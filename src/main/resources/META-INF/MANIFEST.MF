@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 1.5.0_19-b02 (Sun Microsystems Inc.)
+Built-By: ohnishi
+Build-Date: 2010-02-01T13:15:28+0900
+Specification-Title: Aozora Viewer
+Specification-Version: 3.0.2
+Specification-Vendor: SoSO Corporation
+Implementation-Title: Aozora Viewer
+Implementation-Version: 3.0.2.20100201.1315
+Implementation-Vendor: SoSO Corporation
+Implementation-Vendor-URL: http://www.35-35.net/aozora/
