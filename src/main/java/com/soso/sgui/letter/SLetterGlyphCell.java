@@ -10,11 +10,15 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.soso.sgui.text.CharacterUtil;
 
 
 public class SLetterGlyphCell extends SLetterCell {
+
+    static Logger logger = Logger.getLogger(SLetterGlyphCell.class.getName());
 
     protected SLetterGlyphCell(char main, char[] rubys, Font font) {
         if (!Character.isDefined(main)) {
@@ -59,7 +63,7 @@ public class SLetterGlyphCell extends SLetterCell {
             g2.setTransform(transform1);
         }
         g.drawString(String.valueOf(main), x1, y1);
-        if (DEBUG.isDebug()) {
+        if (logger.isLoggable(Level.FINE)) {
             Color color = g.getColor();
             g.setColor(new Color(153, 153, 255));
             g.drawRect(x1, y1 - asc, width, asc);
@@ -119,8 +123,7 @@ public class SLetterGlyphCell extends SLetterCell {
         } else if (isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_TAIL)) {
             transX += (rectangle.height / 4);
         }
-        if (DEBUG.isDebug())
-            DEBUG.log("TransX=" + transX + " ," + main + "|" + rectangle);
+        logger.fine("TransX=" + transX + " ," + main + "|" + rectangle);
         return transX;
     }
 
@@ -139,8 +142,7 @@ public class SLetterGlyphCell extends SLetterCell {
             int h = (asc + desc) / 4;
             transY = transY + (orientation.isHorizonal() ? 0 : -h);
         }
-        if (DEBUG.isDebug())
-            DEBUG.log("TransY=" + transY + " ," + main + "|" + rectangle);
+        logger.fine("TransY=" + transY + " ," + main + "|" + rectangle);
         return transY;
     }
 
@@ -179,7 +181,7 @@ public class SLetterGlyphCell extends SLetterCell {
                 if (is2d && theta != 0.0D)
                     g2.rotate(theta, x2, y2);
                 g.drawString(String.valueOf(ruby), x1, y1);
-                if (DEBUG.isDebug()) {
+                if (logger.isLoggable(Level.FINE)) {
                     Color color = g.getColor();
                     g.setColor(new Color(153, 153, 255));
                     g.drawRect(x1, y1 - asc, width, asc);

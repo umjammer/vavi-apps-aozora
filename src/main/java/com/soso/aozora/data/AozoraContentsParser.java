@@ -206,34 +206,6 @@ public class AozoraContentsParser {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        new AozoraContentsParser(null, new AozoraContentsParserHandler() {
-            public void ruby(String rb, String rt) {
-                System.out.println("ruby|" + rb + "|" + rt);
-            }
-
-            public void otherElement(String element) {
-                System.out.println("element|" + element);
-            }
-
-            public void newLine() {
-                System.out.println("newLine");
-            }
-
-            public void img(URL src, String alt, boolean isGaiji) {
-                System.out.println("img|" + (isGaiji ? "gaiji|" : "") + src + "|" + alt);
-            }
-
-            public void characters(String cdata) {
-                System.out.println("characters|" + cdata);
-            }
-
-            public void parseFinished() {
-                System.out.println("end|----------------------------------------------------");
-            }
-        }).parse(new URL("http://www.aozora.gr.jp/cards/000372/files/42810_23981.html"));
-    }
-
     private final AozoraContext context;
     private final AozoraContentsParserHandler handler;
 }

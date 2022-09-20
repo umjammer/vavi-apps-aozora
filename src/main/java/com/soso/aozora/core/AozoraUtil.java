@@ -4,12 +4,15 @@
 
 package com.soso.aozora.core;
 
+import com.soso.aozora.boot.AozoraContext;
+
 import java.awt.event.ActionEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -19,10 +22,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
-import com.soso.aozora.boot.AozoraLog;
-
 
 public class AozoraUtil {
+
+    static Logger logger = Logger.getLogger(AozoraContext.class.getName());
 
     public static Icon getIcon(String url) {
         Icon icon = null;
@@ -33,13 +36,13 @@ public class AozoraUtil {
             String name = url.substring(nameIndex + 1);
             URL resURL = AozoraUtil.class.getClassLoader().getResource(name);
             if (resURL != null) {
-                AozoraLog.getInstance().log("icon | " + name + " | " + resURL);
+                logger.info("icon | " + name + " | " + resURL);
                 icon = new ImageIcon(resURL);
             }
         }
         if (icon == null) {
             try {
-                AozoraLog.getInstance().log("icon | " + url);
+                logger.info("icon | " + url);
                 baos = new ByteArrayOutputStream();
                 try {
                     in = getInputStream(new URL(url));

@@ -4,7 +4,6 @@
 
 package com.soso.aozora.core;
 
-import de.javasoft.plaf.synthetica.SyntheticaSilverMoonLookAndFeel;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.HashMap;
@@ -19,11 +18,7 @@ public class AozoraIniFileBean {
     public AozoraIniFileBean() {
         bookmark = new HashMap<String, Integer>();
         systemFont = new Font("Dialog", Font.PLAIN, 16);
-        try {
-            lookAndFeel = new SyntheticaSilverMoonLookAndFeel();
-        } catch (Exception e) {
-            lookAndFeel = UIManager.getLookAndFeel();
-        }
+        lookAndFeel = UIManager.getLookAndFeel();
         rowSpace = 10;
         fontRatio = 0.9F;
         foreground = AozoraEnv.DEFAULT_FOREGROUND_COLOR;

@@ -5,29 +5,20 @@
 package com.soso.aozora.core;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.border.MatteBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.soso.aozora.boot.AozoraContext;
-import com.soso.aozora.boot.AozoraSplashWindow;
-import com.soso.aozora.data.AozoraPremierID;
 import com.soso.aozora.event.AozoraListenerAdapter;
-import com.soso.aozora.list.AozoraCachePane;
-import com.soso.aozora.list.AozoraCommentPane;
 import com.soso.aozora.list.AozoraHistoryPane;
 import com.soso.aozora.list.AozoraListPane;
 import com.soso.aozora.list.AozoraRankingPane;
@@ -36,39 +27,7 @@ import com.soso.aozora.list.AozoraTopicPane;
 
 public class AozoraContentPane extends AozoraDefaultPane implements ChangeListener {
 
-    private static class AboutPremierTrialLabel extends JLabel {
-
-        private AozoraContext getAzContext() {
-            return context;
-        }
-
-        private void initGUI() {
-            setOpaque(false);
-            setForeground(Color.BLUE);
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-            setText("試用ステータスと購入はこちら");
-            addMouseListener(new MouseAdapter() {
-                public void mouseClicked(MouseEvent e) {
-                    getAzContext().getRootMediator().aboutPremier();
-                }
-
-                public void mouseEntered(MouseEvent e) {
-                    setBorder(new MatteBorder(0, 0, 1, 0, getForeground()));
-                }
-
-                public void mouseExited(MouseEvent e) {
-                    setBorder(null);
-                }
-            });
-        }
-
-        private final AozoraContext context;
-
-        private AboutPremierTrialLabel(AozoraContext context) {
-            this.context = context;
-            initGUI();
-        }
-    }
+    static Logger logger = Logger.getLogger(AozoraContentPane.class.getName());
 
     private class ContentTabbedPane extends JTabbedPane implements ChangeListener {
 
@@ -122,8 +81,6 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
     public AozoraContentPane(AozoraContext context) {
         super(context);
         initGUI();
-        setTabbedEnabled(getAzContext().getLineMode());
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_CONTENT);
     }
 
     private void initGUI() {
@@ -137,7 +94,6 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
         splitPane.setRightComponent(Box.createGlue());
         splitPane.setOpaque(false);
         menuPane = new AozoraMenuPane(getAzContext());
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_MENU);
         setOpaque(false);
         add(menuPane, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);
@@ -145,36 +101,15 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
         southPane.setOpaque(false);
         southPane.setLayout(new BorderLayout());
         southPane.add(Box.createVerticalStrut(40), BorderLayout.CENTER);
-        if (getAzContext().isPremier() && getAzContext().getPremierID().getStatus() == AozoraPremierID.Status.TRIAL)
-            southPane.add(new AboutPremierTrialLabel(getAzContext()), BorderLayout.EAST);
         add(southPane, BorderLayout.SOUTH);
         listPane = new AozoraListPane(getAzContext());
         tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.DATABASE_ICON.getString()), listPane, "作品一覧");
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_LIST);
         topicPane = new AozoraTopicPane(getAzContext());
         tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.FEED_ICON.getString()), topicPane, "新着情報");
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_TOPIC);
         rankingPane = new AozoraRankingPane(getAzContext());
         tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.RANKING_ICON.getString()), rankingPane, "ランキング");
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_RANKING);
-        commentPane = new AozoraCommentPane(getAzContext());
-        tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.COMMENT_ICON.getString()), commentPane, "コメント");
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_COMMENT);
         historyPane = new AozoraHistoryPane(getAzContext());
         tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.HISTORY_ICON.getString()), historyPane, "履歴");
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_HISTORY);
-        if (getAzContext().checkCachePermitted())
-            try {
-                cachePane = new AozoraCachePane(getAzContext());
-                tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.CACHE_FOLDER_ICON.getString()), cachePane, "キャッシュ");
-                AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_CACHE);
-            } catch (Exception e) {
-                log(e);
-                log("キャッシュ一覧の作成に失敗しました。");
-                javax.swing.JComponent filler = new JPanel();
-                tabbedPane.addTab("", AozoraUtil.getIcon(AozoraEnv.Env.CACHE_FOLDER_ICON.getString()), filler, "キャッシュ");
-                tabbedPane.setEnabledAt(tabbedPane.indexOfComponent(filler), false);
-            }
         getAzContext().getListenerManager().add(new AozoraListenerAdapter() {
             public void lineModeChanged(AozoraEnv.LineMode lineMode) {
                 setTabbedEnabled(lineMode);
@@ -187,8 +122,6 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
         tabbedPane.setEnabledAt(tabbedPane.indexOfComponent(listPane), isConnectable);
         tabbedPane.setEnabledAt(tabbedPane.indexOfComponent(topicPane), isConnectable);
         tabbedPane.setEnabledAt(tabbedPane.indexOfComponent(rankingPane), isConnectable);
-        tabbedPane.setEnabledAt(tabbedPane.indexOfComponent(commentPane), isConnectable);
-        tabbedPane.setSelectedComponent(isConnectable ? listPane : cachePane);
         splitPane.setDividerLocation(tabbedPane.getMinimumSize().width);
     }
 
@@ -205,14 +138,6 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
         return menuPane;
     }
 
-    AozoraCachePane getAozoraCachePane() {
-        return cachePane;
-    }
-
-    AozoraCommentPane getAozoraCommentPane() {
-        return commentPane;
-    }
-
     void focusSelectedPane() {
         Component selectedComp = tabbedPane.getSelectedComponent();
         if (selectedComp != null) {
@@ -221,12 +146,8 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
                 ((AozoraListPane) selectedComp).focusSelectedNode();
             else if (selectedComp instanceof AozoraTopicPane)
                 ((AozoraTopicPane) selectedComp).focusSelectedTopic();
-            else if (selectedComp instanceof AozoraCommentPane)
-                ((AozoraCommentPane) selectedComp).focusSelectedComment();
             else if (selectedComp instanceof AozoraHistoryPane)
                 ((AozoraHistoryPane) selectedComp).focusSelectedHistory();
-            else if (selectedComp instanceof AozoraCachePane)
-                ((AozoraCachePane) selectedComp).focusSelectedCache();
         }
     }
 
@@ -234,8 +155,6 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
     private AozoraListPane listPane;
     private AozoraTopicPane topicPane;
     private AozoraRankingPane rankingPane;
-    private AozoraCachePane cachePane;
-    private AozoraCommentPane commentPane;
     private AozoraHistoryPane historyPane;
     private JTabbedPane tabbedPane;
     private AozoraMenuPane menuPane;

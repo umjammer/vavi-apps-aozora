@@ -6,6 +6,8 @@ package com.soso.aozora.event;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -16,6 +18,8 @@ import com.soso.aozora.viewer.AozoraCommentDecorator;
 
 
 public class AozoraListenerManager implements AozoraListener {
+
+    static Logger logger = Logger.getLogger(AozoraContext.class.getName());
 
     public AozoraListenerManager(AozoraContext context) {
         this.context = context;
@@ -50,14 +54,12 @@ public class AozoraListenerManager implements AozoraListener {
                     lineModeChanged(lineMode);
                 }
             });
-        } else if (lineMode != getAzContext().getLineMode()) {
-            getAzContext().setLineMode(lineMode);
         } else {
             for (AozoraListener listener : getListeners()) {
                 try {
                     listener.lineModeChanged(lineMode);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             }
         }
@@ -75,7 +77,7 @@ public class AozoraListenerManager implements AozoraListener {
                 try {
                     listener.cacheUpdated(cacheID);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             }
         }
@@ -93,7 +95,7 @@ public class AozoraListenerManager implements AozoraListener {
                 try {
                     listener.cacheDeleted(cacheID);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             }
         }
@@ -111,7 +113,7 @@ public class AozoraListenerManager implements AozoraListener {
                 try {
                     listener.commentAdded(comment);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             }
         }
@@ -131,7 +133,7 @@ public class AozoraListenerManager implements AozoraListener {
                 try {
                     listener.commentTypeChanged(commentType);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             }
         }
@@ -139,5 +141,5 @@ public class AozoraListenerManager implements AozoraListener {
 
     private final AozoraContext context;
 
-    private final List<AozoraListener> listeners = new ArrayList<AozoraListener>();
+    private final List<AozoraListener> listeners = new ArrayList<>();
 }

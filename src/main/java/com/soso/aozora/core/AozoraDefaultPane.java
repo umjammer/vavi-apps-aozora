@@ -6,10 +6,13 @@ package com.soso.aozora.core;
 
 import com.soso.aozora.boot.AozoraContext;
 import java.awt.BorderLayout;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 
 
 public abstract class AozoraDefaultPane extends JPanel {
+
+    static Logger logger = Logger.getLogger(AozoraDefaultPane.class.getName());
 
     public AozoraDefaultPane(AozoraContext context) {
         super(new BorderLayout(0, 0), true);
@@ -21,14 +24,6 @@ public abstract class AozoraDefaultPane extends JPanel {
 
     protected AozoraContext getAzContext() {
         return context;
-    }
-
-    protected void log(Object obj) {
-        getAzContext().log(obj, getClass());
-    }
-
-    protected void log(Throwable t) {
-        getAzContext().log(t);
     }
 
     private final AozoraContext context;

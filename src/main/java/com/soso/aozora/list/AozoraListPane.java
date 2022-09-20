@@ -12,6 +12,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
@@ -27,6 +29,7 @@ import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 
 import com.soso.aozora.boot.AozoraContext;
+import com.soso.aozora.core.AozoraContentPane;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.data.AozoraAuthor;
@@ -40,6 +43,8 @@ import com.soso.sgui.SGUIUtil;
 
 
 public class AozoraListPane extends AozoraDefaultPane implements AozoraListMediator {
+
+    static Logger logger = Logger.getLogger(AozoraListPane.class.getName());
 
     static class ScrollableListMinimalPane extends JPanel implements Scrollable {
 
@@ -89,7 +94,6 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
                 setListEnabled(lineMode);
             }
         });
-        setListEnabled(getAzContext().getLineMode());
     }
 
     private void setListEnabled(AozoraEnv.LineMode lineMode) {
@@ -248,7 +252,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
                     try {
                         Thread.sleep(100L);
                     } catch (InterruptedException e) {
-                        log(e);
+                        logger.log(Level.SEVERE, e.getMessage(), e);
                     }
                 }
                 progressBar.setValue(progressBar.getMaximum());
@@ -330,9 +334,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
     }
 
     public void loadWorks(AozoraAuthorNode authorNode) {
-        if (getAzContext().getLineMode().isConnectable()) {
-            loader.loadWorksImmediate(authorNode);
-        }
+        loader.loadWorksImmediate(authorNode);
     }
 
     public void setSearchResult(boolean isSearchResult) {

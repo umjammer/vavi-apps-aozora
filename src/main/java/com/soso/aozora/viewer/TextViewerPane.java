@@ -19,14 +19,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Logger;
 
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractAction;
@@ -38,7 +37,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -57,12 +55,9 @@ import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.core.AozoraUtil;
 import com.soso.aozora.data.AozoraCharacterUtil;
 import com.soso.aozora.data.AozoraComment;
-import com.soso.aozora.data.AozoraCommentManager;
 import com.soso.aozora.data.AozoraContentsParser;
 import com.soso.aozora.data.AozoraContentsParserHandler;
 import com.soso.aozora.data.AozoraWork;
-import com.soso.aozora.event.AozoraListener;
-import com.soso.aozora.event.AozoraListenerAdapter;
 import com.soso.sgui.SButton;
 import com.soso.sgui.SGUIUtil;
 import com.soso.sgui.SOptionPane;
@@ -78,6 +73,8 @@ import com.soso.sgui.letter.SLetterPaneObserverHelper;
 
 
 class TextViewerPane extends AozoraDefaultPane {
+
+    static Logger logger = Logger.getLogger(TextViewerPane.class.getName());
 
     private static class NoFocusButton extends JButton {
 
@@ -364,21 +361,7 @@ class TextViewerPane extends AozoraDefaultPane {
 
         public void img(URL src, String alt, boolean isGaiji) {
             Image image = null;
-            if (isCache()) {
-                byte[] bytes = null;
-                try {
-                    bytes = getAzContext().getCacheManager().getCacheBytes(getWork().getID(), src);
-                    if (bytes != null)
-                        image = (new ImageIcon(bytes)).getImage();
-                    else
-                        log("ID " + getWork().getID() + " のキャッシュリストから " + src + " のキャッシュが見つかりませんでしたが、無視します。");
-                } catch (IOException e) {
-                    log(e);
-                    log("ID " + getWork().getID() + " のキャッシュリストから " + src + " のキャッシュを取得中にエラーが発生しましたが、無視します。");
-                }
-            } else {
-                image = new ImageIcon(src).getImage();
-            }
+            image = new ImageIcon(src).getImage();
             if (image == null) {
                 Icon errorIcon = UIManager.getIcon("OptionPane.errorIcon");
                 image = new BufferedImage(errorIcon.getIconWidth(), errorIcon.getIconHeight(), 1);
@@ -393,13 +376,13 @@ class TextViewerPane extends AozoraDefaultPane {
             ((SLetterImageCell) cell).setMaximizable(!isGaiji);
             if (isGaiji) {
                 if (AozoraCharacterUtil.isGaijiToRotate(src.getFile())) {
-                    log("Gaiji | rotate | " + src + (isCache() ? " | cache" : ""));
+                    logger.info("Gaiji | rotate | " + src + (isCache() ? " | cache" : ""));
                     cell.addConstraint(com.soso.sgui.letter.SLetterConstraint.ROTATE.GENERALLY);
                 } else {
-                    log("Gaiji | " + src + (isCache() ? " | cache" : ""));
+                    logger.info("Gaiji | " + src + (isCache() ? " | cache" : ""));
                 }
             } else {
-                log("Image | " + src + (isCache() ? " | cache" : ""));
+                logger.info("Image | " + src + (isCache() ? " | cache" : ""));
             }
             if (cell != null)
                 appendCell(cell);
@@ -495,7 +478,7 @@ class TextViewerPane extends AozoraDefaultPane {
         }
 
         public void rowCountChanged(int oldRowCount, int newRowCount) {
-            log("cached prev clear " + Arrays.toString(cachedPrevPosStack.toArray()));
+            logger.info("cached prev clear " + Arrays.toString(cachedPrevPosStack.toArray()));
             cachedPrevPosStack.clear();
             if (oldRowCount < newRowCount)
                 tryAppend();
@@ -531,7 +514,6 @@ class TextViewerPane extends AozoraDefaultPane {
     private int firstStartPos;
     private SearchFieldPane searchFieldPane;
     private final boolean isCache;
-    private AozoraListener commentListener;
 
     TextViewerPane(AozoraContext context, AozoraWork work, boolean isCache, int firstStartPos) {
         super(context);
@@ -606,19 +588,6 @@ class TextViewerPane extends AozoraDefaultPane {
         searchFieldPane.setVisible(false);
         buttonPanel.add(searchFieldPane, BorderLayout.NORTH);
         textPane.addMenuItemProducer(searchFieldPane.createSearchMenuItemProducer());
-        SLetterPane.MenuItemProducer commentMenuItemProducer = new SLetterPane.MenuItemProducer() {
-            public JMenuItem procudeMenuItem(Point p, SLetterCell[] cells, boolean isSelected) {
-                commentMenuItem.setEnabled(isSelected);
-                return commentMenuItem;
-            }
-
-            private final JMenuItem commentMenuItem = new JMenuItem(new AbstractAction("コメントを投稿") {
-                public void actionPerformed(ActionEvent e) {
-                    showPostCommentDialog();
-                }
-            });
-        };
-        textPane.addMenuItemProducer(commentMenuItemProducer);
     }
 
     private void setup() {
@@ -638,22 +607,7 @@ class TextViewerPane extends AozoraDefaultPane {
             AozoraContentsParserHandler handler = new ContentsHandler();
             AozoraContentsParser parser = new AozoraContentsParser(getAzContext(), handler);
             URL workURL = new URL(getWork().getContentURL());
-            if (isCache()) {
-                InputStream cachedIn = getAzContext().getCacheManager().getCacheStream(getWork().getID(), workURL);
-                if (cachedIn != null)
-                    parser.parse(cachedIn, workURL);
-                else
-                    throw new IllegalStateException("ID " + getWork().getID() + " のキャッシュリストから " + workURL + " のキャッシュが見つかりません。");
-            } else {
-                parser.parse(workURL);
-            }
-            addComments();
-            getAzContext().getListenerManager().add(new AozoraListenerAdapter() {
-                public void commentTypeChanged(AozoraCommentDecorator.CommentType commentType) {
-                    removeComments();
-                    addComments();
-                }
-            });
+            parser.parse(workURL);
         } catch (Exception e) {
             disposeWithError(e);
         }
@@ -795,9 +749,9 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
 
     private void nextImpl() {
         int lastStartPos = startPos;
-        log("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endPos);
+        logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endPos);
         setStartPos(endPos);
-        cachedPrevPosStack.push(Integer.valueOf(lastStartPos));
+        cachedPrevPosStack.push(lastStartPos);
         setupButtonEnabled();
         setupPageNumber();
         if (nextButton.isEnabled())
@@ -827,7 +781,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
             log.append(",cached," + Arrays.toString(cachedPrevPosStack.toArray()));
             int cachedPrevPos = cachedPrevPosStack.pop();
             setStartPos(cachedPrevPos);
-            tryedStartPosList.add(Integer.valueOf(cachedPrevPos));
+            tryedStartPosList.add(cachedPrevPos);
         }
         int diff;
         while ((diff = endPos - lastStartPos) != 0) {
@@ -839,23 +793,23 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
             }
             if (textCells.get(tryStartPos).isConstraintSet(SLetterConstraint.BREAK.BACK_IF_LINE_HEAD))
                 tryStartPos++;
-            if (tryedStartPosList.contains(Integer.valueOf(tryStartPos)))
+            if (tryedStartPosList.contains(tryStartPos))
                 break;
             setStartPos(tryStartPos);
-            tryedStartPosList.add(Integer.valueOf(tryStartPos));
+            tryedStartPosList.add(tryStartPos);
         }
         for (int pos = startPos - 1; endPos > lastStartPos && pos >= 0; pos--) {
             setStartPos(pos);
-            log.append(">" + startPos);
+            log.append(">").append(startPos);
         }
 
         for (int pos = startPos + 1; endPos < lastStartPos && pos <= textCells.size() - 1; pos++) {
             setStartPos(pos);
-            log.append("<" + startPos);
+            log.append("<").append(startPos);
         }
 
         log.append("|lastStart=" + lastStartPos + "|thisEnd=" + endPos);
-        log(log.toString());
+        logger.info(log.toString());
         setupButtonEnabled();
         setupPageNumber();
         if (prevButton.isEnabled())
@@ -886,7 +840,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
     }
 
     private void searchNext(String keyword) {
-        log("search|next|" + keyword);
+        logger.info("search|next|" + keyword);
         searchFieldPane.setMessage(null);
         int selectionStart = textPane.getSelectionStart();
         int startPos = this.startPos + selectionStart + 1;
@@ -901,7 +855,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
                     matchIndex = 0;
                 if (matchIndex == keyword.length()) {
                     int nextStart = (i - keyword.length()) + 1;
-                    log("search|next| find at " + nextStart);
+                    logger.info("search|next| find at " + nextStart);
                     setSelection(nextStart, keyword.length());
                     return;
                 }
@@ -914,7 +868,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
     }
 
     private void searchPrev(String keyword) {
-        log("search|prev|" + keyword);
+        logger.info("search|prev|" + keyword);
         searchFieldPane.setMessage(null);
         int selectionStart = textPane.getSelectionStart();
         int startPos = (this.startPos + selectionStart) - 1;
@@ -929,7 +883,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
                     matchIndex = 0;
                 if (matchIndex == keyword.length()) {
                     int prevStart = i;
-                    log("search|prev| find at " + prevStart);
+                    logger.info("search|prev| find at " + prevStart);
                     setSelection(prevStart, keyword.length());
                     return;
                 }
@@ -1033,7 +987,6 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
             isAllPageLoaded = true;
             setupButtonEnabled();
             setupPageNumber();
-            SGUIUtil.getParentInstanceOf(this, AozoraViewerPane.class).resetCacheButtons();
             repaint();
         }
     }
@@ -1138,113 +1091,6 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         textPane.setOrientation(orientation);
         textPane.revalidate();
         repaint();
-    }
-
-    private void addComments() {
-        if (!getAzContext().getSettings().isCommentVisible())
-            return;
-        AozoraCommentManager commentManager = getAzContext().getCommentManager();
-        if (commentManager != null) {
-            synchronized (commentManager.getMutex()) {
-                for (AozoraComment comment : commentManager.getComments(getWork().getID())) {
-                    addComment(comment);
-                }
-
-                getAzContext().getListenerManager().add(getCommentListener());
-            }
-            new Thread(new Runnable() {
-                public void run() {
-                    AozoraCommentManager commentManager = getAzContext().getCommentManager();
-                    if (commentManager != null)
-                        try {
-                            commentManager.updateComments();
-                        } catch (Exception e) {
-                            log(e);
-                            log("最新コメントの取得に失敗しました。");
-                        }
-                }
-            }).start();
-        }
-    }
-
-    private void addComment(AozoraComment comment) {
-        synchronized (textCells) {
-            SLetterCellDecorator decorator;
-            decorator = null;
-            for (int i = 0; i < comment.getLength(); i++) {
-                int pos = i + comment.getPosition();
-                if (pos < textCells.size()) {
-                    SLetterCell cell = textCells.get(pos);
-                    if (i == 0) {
-                        for (SLetterCellDecorator anotherDecorator : cell.getDecorators()) {
-                            if (anotherDecorator instanceof AozoraCommentDecorator &&
-                                ((AozoraCommentDecorator) anotherDecorator).getComment().equals(comment))
-                                return;
-                        }
-                        decorator = AozoraCommentDecorator.newInstance(getAzContext(), comment, textPane, cell);
-                    }
-                    if (decorator != null)
-                        cell.addDecorator(decorator);
-                    break;
-                }
-                log("コメントの位置が不正です。" + comment);
-            }
-        }
-        repaint();
-    }
-
-    private void removeComments() {
-        synchronized (textCells) {
-            for (SLetterCell cell : textCells) {
-                for (SLetterCellDecorator decorator : cell.getDecorators()) {
-                    if (decorator instanceof AozoraCommentDecorator)
-                        cell.removeDecorator(decorator);
-                }
-            }
-
-            getAzContext().getListenerManager().remove(getCommentListener());
-        }
-    }
-
-    private AozoraListener getCommentListener() {
-        if (commentListener == null)
-            commentListener = new AozoraListenerAdapter() {
-                public void commentAdded(AozoraComment comment) {
-                    addComment(comment);
-                }
-            };
-        return commentListener;
-    }
-
-    void showPostCommentDialog() {
-        if (!getAzContext().getSettings().isCommentVisible())
-            getAzContext().getSettings().setCommentType(AozoraCommentDecorator.CommentType.ballone);
-        int selectionStart = textPane.getSelectionStart();
-        int position = startPos + selectionStart;
-        SLetterCell[] cells = textPane.getSelectedCells();
-        if (position < 0 || cells == null || cells.length <= 0)
-            throw new IllegalStateException("no selection");
-        StringBuilder sb = new StringBuilder();
-        for (SLetterCell cell : cells) {
-            if (cell != null)
-                sb.append(cell.getText());
-        }
-
-        String text = sb.toString();
-        JInternalFrame iframe = new JInternalFrame("コメントの投稿");
-        iframe.setIconifiable(false);
-        iframe.setMaximizable(false);
-        iframe.setResizable(false);
-        iframe.setClosable(true);
-        iframe.setDefaultCloseOperation(2);
-        CommentPostingPane postingPane = new CommentPostingPane(getAzContext(), getWork(), position, cells.length, text);
-        iframe.setContentPane(postingPane);
-        iframe.pack();
-        SGUIUtil.setCenter(getAzContext().getDesktopPane(), iframe);
-        getAzContext().getDesktopPane().setLayer(iframe, JLayeredPane.MODAL_LAYER.intValue());
-        getAzContext().getDesktopPane().add(iframe);
-        iframe.setVisible(true);
-        iframe.revalidate();
     }
 
     void close() {

@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -36,6 +38,8 @@ import com.soso.sgui.SGUIUtil;
 
 
 abstract class AozoraRankingBasePane extends AozoraDefaultPane {
+
+    static Logger logger = Logger.getLogger(AozoraTopicPane.class.getName());
 
     AozoraRankingBasePane(AozoraContext context) {
         super(context);
@@ -147,7 +151,7 @@ abstract class AozoraRankingBasePane extends AozoraDefaultPane {
                     in.close();
             }
         } catch (FileNotFoundException e) {
-            log("記録がありません。:" + e.getMessage());
+            logger.log(Level.SEVERE, "記録がありません。:" + e.getMessage(), e);
             return null;
         } catch (Exception e) {
             e.printStackTrace(System.err);

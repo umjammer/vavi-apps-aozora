@@ -17,21 +17,25 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.soso.aozora.boot.AozoraContext;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.soso.aozora.boot.AozoraLog;
 import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.core.AozoraUtil;
 
 
 public class AozoraPremierID {
+
+    static Logger logger = Logger.getLogger(AozoraPremierID.class.getName());
+
     private static class PremierXMLBuilder {
 
         private void build(AozoraPremierID premier, String enc) throws IOException {
@@ -39,7 +43,6 @@ public class AozoraPremierID {
             builder.startElement(ELM_PREMIER);
             builder.startElement(ELM_ACCOUNT);
             builder.attribute(ATT_ACCOUNT_ID, premier.id);
-            builder.attribute(ATT_ACCOUNT_STATUS, String.valueOf(premier.status));
             builder.endElement();
             builder.startElement(ELM_COUNT);
             builder.attribute(ATT_COUNT_CHECK, String.valueOf(premier.checkCount));
@@ -98,8 +101,6 @@ public class AozoraPremierID {
         public void startAccount(Attributes attributes) {
             String id = attributes.getValue(ATT_ACCOUNT_ID);
             premier = new AozoraPremierID(id, lock);
-            String status = attributes.getValue(ATT_ACCOUNT_STATUS);
-            premier.setStatus(Status.valueOf(status));
         }
 
         public void startCount(Attributes attributes) {
@@ -132,23 +133,6 @@ public class AozoraPremierID {
         }
     }
 
-    public enum Status {
-        TRIAL("試用"),
-        ACCOUNTING("入金確認中"),
-        CONFIRMED("入金確認済"),
-        INVALID("入金無効");
-
-        private String desc;
-
-        public String getDesc() {
-            return desc;
-        }
-
-        private Status(String desc) {
-            this.desc = desc;
-        }
-    }
-
     private AozoraPremierID(String id, AozoraFileLock lock) {
         if (id == null)
             throw new IllegalArgumentException("id cannot be null");
@@ -163,25 +147,6 @@ public class AozoraPremierID {
         return id;
     }
 
-    public void setStatus(Status status) {
-        if (status == null) {
-            throw new IllegalArgumentException("status cannot be null");
-        }
-        this.status = status;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public int getCheckCount() {
-        return checkCount;
-    }
-
-    public int getTrialCount() {
-        return trialCount;
-    }
-
     public long getCreatedTimestamp() {
         return createdTimestamp;
     }
@@ -194,65 +159,18 @@ public class AozoraPremierID {
         return storedTimestamp;
     }
 
-    public boolean isValid() {
-        switch (getStatus()) {
-        case TRIAL:
-            return canTrialSkip();
-        case ACCOUNTING:
-            return isAccountingTerm();
-        case CONFIRMED:
-            return true;
-        case INVALID:
-            return false;
-        }
-        throw new IllegalStateException("Unknown status " + getStatus());
-    }
-
     public void checkOnline() throws IOException {
         BufferedReader in = null;
         try {
             in = new BufferedReader(new InputStreamReader(AozoraUtil.getInputStream(AozoraEnv.getPremierCheckURL(getID())), "utf-8"));
             String line = in.readLine();
             String[] st = line.split(",");
-            AozoraLog.getInstance().log("premier | " + Arrays.toString(st));
-            Status status = Status.valueOf(st[1]);
-            setStatus(status);
+            logger.info("premier | " + Arrays.toString(st));
             checkCount++;
             lastCheckTimestamp = System.currentTimeMillis();
-            if (status == Status.TRIAL && "SYSTEM".equals(st[3]))
-                trialCount = 0;
         } finally {
             in.close();
         }
-    }
-
-    public boolean isAccountingTerm() {
-        if (status != Status.ACCOUNTING)
-            return false;
-        long current = System.currentTimeMillis();
-        return current - getLastCheckTimestamp() < ACCOUNTING_TERM_MAX;
-    }
-
-    public boolean canTrialSkip() {
-        if (status != Status.TRIAL)
-            return false;
-        if (trialCounted)
-            return true;
-        return getTrialRemainderCount() > 0;
-    }
-
-    public int getTrialRemainderCount() {
-        return TRYAL_COUNT_MAX - getTrialCount();
-    }
-
-    public void doTrialSkip() {
-        if (trialCounted)
-            return;
-        if (!canTrialSkip()) {
-            throw new IllegalStateException("試用回数を越えました。");
-        }
-        trialCount++;
-        trialCounted = true;
     }
 
     private void releaseLock() throws IOException {
@@ -288,9 +206,7 @@ public class AozoraPremierID {
             String line = in.readLine();
             String[] st = line.split(",");
             String id = st[0];
-            Status status = Status.valueOf(st[1]);
             AozoraPremierID premier = new AozoraPremierID(id, lock);
-            premier.setStatus(status);
             premier.createdTimestamp = System.currentTimeMillis();
             aozorapremierid = premier;
             return aozorapremierid;
@@ -358,27 +274,17 @@ public class AozoraPremierID {
         }
     }
 
-    AozoraPremierID(String x0, AozoraFileLock x1, Status x2) {
-        this(x0, x1);
-    }
-
-    private static final int TRYAL_COUNT_MAX = 13;
-    private static final long ACCOUNTING_TERM_MAX = 0x240c8400L;
-
     private final AozoraFileLock lock;
     private final String id;
-    private Status status;
     private int checkCount;
     private int trialCount;
     private long createdTimestamp;
     private long lastCheckTimestamp;
     private long storedTimestamp;
-    private boolean trialCounted;
 
     private static final String ELM_PREMIER = "premier";
     private static final String ELM_ACCOUNT = "account";
     private static final String ATT_ACCOUNT_ID = "id";
-    private static final String ATT_ACCOUNT_STATUS = "status";
     private static final String ELM_COUNT = "count";
     private static final String ATT_COUNT_CHECK = "check";
     private static final String ATT_COUNT_TRIAL = "trial";

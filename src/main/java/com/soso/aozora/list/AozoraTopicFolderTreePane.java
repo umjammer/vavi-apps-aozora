@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -35,6 +36,8 @@ import com.soso.aozora.core.AozoraUtil;
 
 
 class AozoraTopicFolderTreePane extends AozoraDefaultPane implements TreeSelectionListener, AncestorListener {
+
+    static Logger logger = Logger.getLogger(AozoraTopicFolderTreePane.class.getName());
 
     private static class TopicTreeCellRenderer extends DefaultTreeCellRenderer {
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -171,7 +174,7 @@ class AozoraTopicFolderTreePane extends AozoraDefaultPane implements TreeSelecti
 
     private void workaround_checkRowHeight() {
         if (getPreferredSize().height > 16000 && getFolderNode().getChildCount() == 0) {
-            getAzContext().log("Workaround for JTree preffered height bug | " + getFolderNode() + " | " + getPreferredSize());
+            logger.info("Workaround for JTree preffered height bug | " + getFolderNode() + " | " + getPreferredSize());
             fireNodeChanged();
             collapse();
             SwingUtilities.invokeLater(new Runnable() {

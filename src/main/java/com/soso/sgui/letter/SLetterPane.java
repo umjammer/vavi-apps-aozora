@@ -27,6 +27,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
@@ -36,6 +38,8 @@ import javax.swing.plaf.FontUIResource;
 
 
 public class SLetterPane extends JPanel {
+
+    static Logger logger = Logger.getLogger(SLetterPane.class.getName());
 
     protected static class OverlayHolderCell extends SLetterCell {
 
@@ -190,8 +194,7 @@ public class SLetterPane extends JPanel {
         }
 
         protected void selectionStart(MatrixIndex index) {
-            if (DEBUG.isDebug())
-                DEBUG.log("Selection|Start|" + index);
+            logger.fine("Selection|Start|" + index);
             start = index;
             end = null;
             selectionFinished = false;
@@ -199,15 +202,13 @@ public class SLetterPane extends JPanel {
 
         protected void selectionEndUpdate(MatrixIndex index) {
             if (!isSelectionFinished()) {
-                if (DEBUG.isDebug())
-                    DEBUG.log("Selection|EndUpdate|" + index);
+                logger.fine("Selection|EndUpdate|" + index);
                 end = index;
             }
         }
 
         protected void selectionFinish() {
-            if (DEBUG.isDebug())
-                DEBUG.log("Selection|Finished|" + start + "|" + end);
+            logger.fine("Selection|Finished|" + start + "|" + end);
             selectionFinished = true;
         }
 
@@ -241,6 +242,7 @@ public class SLetterPane extends JPanel {
         if (flag || matrix_ == null) {
             synchronized (this) {
                 if (flag || matrix_ == null) {
+logger.info("@@@ here");
                     support = new SLetterPaneObserverSupport();
                     matrix_ = new SLetterCell[20][20];
                     setRowRange(20);
@@ -282,8 +284,7 @@ public class SLetterPane extends JPanel {
 
     protected void componentResized() {
         if (isRowColCountChangable()) {
-            if (DEBUG.isDebug())
-                DEBUG.log("SIZE CHANGED EVENT");
+            logger.fine("SIZE CHANGED EVENT");
             setSize(super.getSize());
         }
         method_h();
@@ -305,11 +306,11 @@ public class SLetterPane extends JPanel {
 
     protected void fontChanged() {
         if (isFontSizeChangable()) {
-            if (DEBUG.isDebug())
-                DEBUG.log("FONT CHANGED EVENT");
+            logger.fine("FONT CHANGED EVENT: getFontRangeRatio(): " + getFontRangeRatio());
             Font font = super.getFont();
             if (font != null) {
-                int range = Math.round(font.getSize2D() / getFontRangeRatio());
+                int range = Math.round(Math.max(font.getSize2D(), 16) / getFontRangeRatio());
+logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", range: " + range);
                 setRowRange(range);
                 setColRange(range);
                 Dimension size = super.getSize();
@@ -486,8 +487,7 @@ public class SLetterPane extends JPanel {
     }
 
     protected void copyToClipBoard() {
-        if (DEBUG.isDebug())
-            DEBUG.log("COPY|Start");
+        logger.fine("COPY|Start");
         StringBuilder sb = new StringBuilder();
         for (SLetterCell cell : getSelectedCells()) {
             sb.append(cell.getText());
@@ -581,6 +581,10 @@ public class SLetterPane extends JPanel {
     public void setRowRange(int rowRange) {
         if (rowRange < 0)
             throw new IllegalArgumentException("must be positive");
+        if (rowRange == 0) {
+            new Exception().printStackTrace();
+            logger.warning("rowRange is 0");
+        }
         int oldValue = this.rowRange;
         if (oldValue != rowRange) {
             this.rowRange = rowRange;
@@ -813,15 +817,13 @@ public class SLetterPane extends JPanel {
     }
 
     public void setSize(Dimension size) {
-        if (DEBUG.isDebug())
-            DEBUG.trace(String.valueOf(size));
+        logger.fine(String.valueOf(size));
         if (isRowColCountChangable())
             setRowColCountBySize(size.width, size.height);
     }
 
     public void setPreferredSize(Dimension size) {
-        if (DEBUG.isDebug())
-            DEBUG.trace(String.valueOf(size));
+        logger.fine(String.valueOf(size));
         if (isRowColCountChangable())
             setRowColCountBySize(size.width, size.height);
     }
@@ -848,32 +850,27 @@ public class SLetterPane extends JPanel {
     }
 
     public Dimension getMaximumSize() {
-        if (DEBUG.isDebug())
-            DEBUG.trace("");
+        logger.fine("");
         return getFixedSize(null);
     }
 
     public Dimension getMinimumSize() {
-        if (DEBUG.isDebug())
-            DEBUG.trace("");
+        logger.fine("getMinimumSize");
         return getFixedSize(null);
     }
 
     public Dimension getPreferredSize() {
-        if (DEBUG.isDebug())
-            DEBUG.trace("");
+        logger.fine("getPreferredSize");
         return getFixedSize(null);
     }
 
     public Dimension getSize() {
-        if (DEBUG.isDebug())
-            DEBUG.trace("");
+        logger.fine("getSize");
         return getFixedSize(null);
     }
 
     public Dimension getSize(Dimension size) {
-        if (DEBUG.isDebug())
-            DEBUG.trace("");
+        logger.fine("getSize");
         return getFixedSize(size);
     }
 
@@ -895,8 +892,7 @@ public class SLetterPane extends JPanel {
             fixedSize.width = calcPanelRowLength(getRowCount());
             fixedSize.height = calcPanelColLength(getColCount());
         }
-        if (DEBUG.isDebug())
-            DEBUG.trace("return:" + fixedSize);
+        logger.fine("return:" + fixedSize);
         return fixedSize;
     }
 
@@ -916,6 +912,7 @@ public class SLetterPane extends JPanel {
 
     protected int calcPanelColCount(int panelColCount) {
         int colRange = getColRange() / 2;
+logger.info("colRange: " + getColRange() + ", colSpace: " + getColSpace());
         return Math.max(panelColCount - getColSpace() - colRange, 0) / (getColRange() + getColSpace());
     }
 
@@ -1137,8 +1134,7 @@ public class SLetterPane extends JPanel {
         c = Math.min(Math.max(0, c), getColCount() - 1);
         r = Math.min(Math.max(0, r), getRowCount() - 1);
         MatrixIndex matrix = new MatrixIndex(r, c);
-        if (DEBUG.isDebug())
-            DEBUG.log("RowColAtPoint|" + point + "|" + matrix);
+        logger.fine("RowColAtPoint|" + point + "|" + matrix);
         return matrix;
     }
 

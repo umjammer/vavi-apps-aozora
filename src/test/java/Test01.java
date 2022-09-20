@@ -9,20 +9,19 @@ import java.awt.Font;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
-
 import javax.swing.JFrame;
-
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipFile;
 
 import com.soso.sgui.letter.SLetterCellFactory;
 import com.soso.sgui.letter.SLetterConstraint;
 import com.soso.sgui.letter.SLetterPane;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipFile;
+
 
 /**
  * Test01. 
@@ -39,7 +38,7 @@ public class Test01 {
         String file = args[0];
 
         List<ZipEntry> texts = new ArrayList<ZipEntry>();
-        ZipFile zip = new ZipFile(new File(file), "JISAutoDetect");
+        ZipFile zip = new ZipFile(new File(file));
         Enumeration<?> e = zip.getEntries();
         while (e.hasMoreElements()) {
             ZipEntry entry = (ZipEntry) e.nextElement();
@@ -48,18 +47,13 @@ public class Test01 {
                 texts.add(entry);
             }
         }
-        Collections.sort(texts, new Comparator<ZipEntry>() {
-            @Override
-            public int compare(ZipEntry o1, ZipEntry o2) {
-                return (int) (o2.getSize() - o1.getSize());
-            }
-        });
+        Collections.sort(texts, (o1, o2) -> (int) (o2.getSize() - o1.getSize()));
 
         ZipEntry entry = texts.get(0);
 System.err.println(entry);
 
         List<Character> chars = new ArrayList<Character>();
-        Reader reader = new InputStreamReader(zip.getInputStream(entry), "JISAutoDetect");
+        Reader reader = new InputStreamReader(zip.getInputStream(entry), StandardCharsets.UTF_8);
         while (true) {
             int r = reader.read();
             if (r < 0) {
@@ -83,7 +77,7 @@ System.err.println("chars: " + chars.size());
         letterPane.setSelectionColor(Color.BLUE);
         letterPane.setSelectedTextColor(Color.CYAN);
         letterPane.setFont(new Font("Hiragino Mincho Pro", Font.PLAIN, 16));
-//        letterPane.setLetterBorderRendarer(null);
+        letterPane.setLetterBorderRendarer(null);
 
         for (char c : chars) {
             boolean flag = letterPane.addCell(SLetterCellFactory.getInstance().createGlyphCell(c));

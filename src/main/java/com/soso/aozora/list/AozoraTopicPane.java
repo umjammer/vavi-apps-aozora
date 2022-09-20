@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -24,6 +26,7 @@ import javax.swing.tree.TreePath;
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraEnv;
+import com.soso.aozora.core.AozoraMenuPane;
 import com.soso.aozora.core.AozoraUtil;
 import com.soso.aozora.event.AozoraListenerAdapter;
 import com.soso.aozora.html.TagReader;
@@ -31,6 +34,8 @@ import com.soso.aozora.html.TagUtil;
 
 
 public class AozoraTopicPane extends AozoraDefaultPane implements AozoraTopicMediator {
+
+    static Logger logger = Logger.getLogger(AozoraTopicPane.class.getName());
 
     private enum TopicLoadStatus {
         NONE,
@@ -44,8 +49,6 @@ public class AozoraTopicPane extends AozoraDefaultPane implements AozoraTopicMed
         super(context);
         status = TopicLoadStatus.NONE;
         initGUI();
-        if (getAzContext().getLineMode().isConnectable())
-            initData();
     }
 
     private void initGUI() {
@@ -72,17 +75,6 @@ public class AozoraTopicPane extends AozoraDefaultPane implements AozoraTopicMed
                 }
             }
         });
-        getAzContext().getListenerManager().add(new AozoraListenerAdapter() {
-            public void lineModeChanged(AozoraEnv.LineMode lineMode) {
-                boolean isConnectable = getAzContext().getLineMode().isConnectable();
-                if (isConnectable)
-                    synchronized (status) {
-                        if (status == TopicLoadStatus.NONE)
-                            initData();
-                    }
-                enableInputMethods(isConnectable);
-            }
-        });
     }
 
     private void initData() {
@@ -95,7 +87,7 @@ public class AozoraTopicPane extends AozoraDefaultPane implements AozoraTopicMed
                 try {
                     loadNewWorkTopic();
                 } catch (Exception e) {
-                    log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             }
         }, "AozoraTopicLoader").start();
@@ -128,7 +120,7 @@ label0:     do
                     URL oldIndexURL = new URL(AozoraEnv.getBackupURL(), href);
                     if (curDate != null && curIndexURL != null) {
                         addNewWorkTopic(curDate, curIndexURL, oldIndexURL);
-                        log((new StringBuilder()).append("topics ").append(href).append(" listed").toString());
+                        logger.info("topics " + href + " listed");
                     }
                     curDate = backDate;
                     curIndexURL = oldIndexURL;

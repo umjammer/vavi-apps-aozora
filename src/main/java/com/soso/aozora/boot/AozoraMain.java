@@ -8,6 +8,8 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -18,6 +20,8 @@ import javax.swing.JPanel;
 
 public class AozoraMain {
 
+    static Logger logger = Logger.getLogger(AozoraMain.class.getName());
+
     private static class ExitCountDownLabel extends JLabel implements Runnable {
 
         private int sec;
@@ -26,7 +30,7 @@ public class AozoraMain {
 
         private void setExitSeccondText(int sec) {
             String text = "あと " + sec + " 秒で自動終了します。";
-            AozoraLog.getInstance().log(text);
+            logger.info(text);
             setText(text);
         }
 
@@ -36,13 +40,13 @@ public class AozoraMain {
                     setExitSeccondText(sec);
                     Thread.sleep(1000L);
                 } catch (Exception e) {
-                    AozoraLog.getInstance().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
 
             if (stopExit) {
-                AozoraLog.getInstance().log("終了をキャンセルしました。");
+                logger.info("終了をキャンセルしました。");
             } else {
-                AozoraLog.getInstance().log("自動終了します。");
+                logger.info("自動終了します。");
                 exitProgram.run();
             }
         }
@@ -61,37 +65,13 @@ public class AozoraMain {
 
     private JFrame frame;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         AozoraMain main = new AozoraMain();
-        try {
-            AozoraSplashWindow.showSplash();
-        } finally {
-            try {
-                main.prepareMain(args);
-} catch (Exception e) {
- e.printStackTrace(System.err);
-            } finally {
-                try {
-                    AozoraSplashWindow.disposeSplash();
-} catch (Exception e) {
- e.printStackTrace(System.err);
-                } finally {
-                    main.showMain();
-                }
-            }
-        }
+        main.prepareMain(args);
+        main.showMain();
     }
 
     private void prepareMain(String[] args) {
-        boolean isServer = AozoraBootLoader.initServerSocket();
-        if (!isServer && args != null && args.length != 0) {
-            boolean requestAnoser = AozoraBootLoader.requestAnotherVM(args);
-            if (requestAnoser) {
-                System.out.println("Request will load on another AozoraViewer, bye.");
-                System.exit(0);
-                return;
-            }
-        }
         frame = new JFrame();
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setSize(Math.min(screen.width, 1024), Math.min(screen.height, 768));
@@ -101,7 +81,7 @@ public class AozoraMain {
                 Runnable exitProgram = new Runnable() {
                     public void run() {
                         try {
-                            AozoraLog.getInstance().log("Aozora Viewer を終了します。");
+                            logger.info("Aozora Viewer を終了します。");
                             frame.dispose();
                             System.exit(0);
                         } catch (Exception e) {

@@ -19,6 +19,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -50,6 +52,8 @@ import com.soso.aozora.event.AozoraListenerAdapter;
 
 
 public class AozoraHistoryPane extends AozoraDefaultPane {
+
+    static Logger logger = Logger.getLogger(AozoraHistoryPane.class.getName());
 
     public AozoraHistoryPane(AozoraContext context) {
         super(context);
@@ -272,8 +276,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
         try {
             getAzContext().getHistories().store();
         } catch (Exception e) {
-            getAzContext().log(e);
-            getAzContext().log("履歴の保存に失敗しました。");
+            logger.log(Level.SEVERE, "履歴の保存に失敗しました。", e);
         }
         ((AozoraHistoryTermNode) entryNode.getParent()).remove(entryNode);
         reload();
@@ -285,7 +288,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
                 try {
                     Thread.sleep(100L);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             for (AozoraHistoryEntryNode entryNode : termNode.getEntryNodes()) {
                 getAzContext().getHistories().removeHistory(entryNode.getEntry());
@@ -295,8 +298,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
             try {
                 getAzContext().getHistories().store();
             } catch (Exception e) {
-                getAzContext().log(e);
-                getAzContext().log("履歴の保存に失敗しました。");
+                logger.log(Level.SEVERE, "履歴の保存に失敗しました。", e);
             }
             reload();
         }
@@ -308,7 +310,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
                 try {
                     Thread.sleep(100L);
                 } catch (Exception e) {
-                    getAzContext().log(e);
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
             for (AozoraHistories.AozoraHistoryEntry entry : getAzContext().getHistories().toArray()) {
                 getAzContext().getHistories().removeHistory(entry);
@@ -317,8 +319,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
             try {
                 getAzContext().getHistories().store();
             } catch (Exception e) {
-                getAzContext().log(e);
-                getAzContext().log("履歴の保存に失敗しました。");
+                logger.log(Level.SEVERE, "履歴の保存に失敗しました。", e);
             }
             for (AozoraHistoryTermNode termNode : getTermNodes()) {
                 termNode.removeAllChildren();
@@ -337,7 +338,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
                     }
                 });
             } catch (Exception e) {
-                getAzContext().log(e);
+                logger.log(Level.SEVERE, e.getMessage(), e);
             }
         TreePath rootPath = new TreePath(getRootNode().getPath());
         TreePath selectionPath = tree.getSelectionPath();

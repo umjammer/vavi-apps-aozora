@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -39,16 +41,13 @@ import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 
 import com.soso.aozora.boot.AozoraContext;
-import com.soso.aozora.boot.AozoraSplashWindow;
 import com.soso.aozora.data.AozoraAuthor;
 import com.soso.aozora.data.AozoraAuthorParserHandler;
 import com.soso.aozora.data.AozoraBookmarks;
-import com.soso.aozora.data.AozoraCacheManager;
 import com.soso.aozora.data.AozoraComment;
 import com.soso.aozora.data.AozoraWork;
 import com.soso.aozora.data.AozoraWorkParserHandler;
 import com.soso.aozora.html.TagReader;
-import com.soso.aozora.list.AozoraCachePane;
 import com.soso.aozora.list.AozoraListPane;
 import com.soso.aozora.viewer.AozoraViewerPane;
 import com.soso.sgui.SDesktopPane;
@@ -61,6 +60,8 @@ import com.soso.sgui.letter.SLetterPane;
 
 
 public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediator {
+
+    static Logger logger = Logger.getLogger(AozoraDesktopPane.class.getName());
 
     private static class BookmarkWorkMenu extends JMenu {
 
@@ -108,14 +109,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
                             }
                         });
                         add(openItem, 0);
-                        AozoraCacheManager cacheManager = getAzContext().getCacheManager();
-                        if (cacheManager != null)
-                            try {
-                                if (cacheManager.isCached(work.getID()))
-                                    setForeground(AozoraEnv.CACHED_COLOR);
-                            } catch (Exception e) {
-                                getAzContext().log(e);
-                            }
                     } else {
                         setText("見つかりません");
                         setToolTipText("作品ID[" + getWorkID() + "]");
@@ -135,7 +128,7 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
                                                                                   : "[" + getWork().getTitleName() + "]") +
                                                                                   "のしおりを削除してよろしいですか？",
                                                                "削除の確認", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                        getAzContext().log("delete boolmark ID:" + getWorkID() + "; work:" + getWork());
+                        logger.info("delete boolmark ID:" + getWorkID() + "; work:" + getWork());
                         getAzContext().getBookmarks().removeBookmark(getWorkID());
                         try {
                             getAzContext().getBookmarks().store();
@@ -163,7 +156,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
     public AozoraDesktopPane(AozoraContext context) {
         this.context = context;
         initGUI();
-        AozoraSplashWindow.setProgress(AozoraSplashWindow.PROGRESS.GUI_DESKTOP);
     }
 
     private void initGUI() {
@@ -181,11 +173,11 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
                             }, "Graphics2D 未サポート", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE);
                         }
                     });
-                getAzContext().log("System | Java VM Name : " + System.getProperty("java.vm.name"));
-                getAzContext().log("System | Java Version : " + System.getProperty("java.version"));
-                getAzContext().log("System | Java Vendor  : " + System.getProperty("java.vendor"));
-                getAzContext().log("System | Graphics " + g.getClass());
-                getAzContext().log("System | " + (is2D ? "Graphics2D found." : " !! NO Graphics2D FOUND !!"));
+                logger.info("System | Java VM Name : " + System.getProperty("java.vm.name"));
+                logger.info("System | Java Version : " + System.getProperty("java.version"));
+                logger.info("System | Java Vendor  : " + System.getProperty("java.vendor"));
+                logger.info("System | Graphics " + g.getClass());
+                logger.info("System | " + (is2D ? "Graphics2D found." : " !! NO Graphics2D FOUND !!"));
                 getParent().remove(this);
             }
         };
@@ -207,17 +199,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
 
     private AozoraViewerPane showViewer(AozoraAuthor author, AozoraWork work, int position, AozoraComment comment) {
         boolean isCached = false;
-        try {
-            AozoraCacheManager cacheManager = getAzContext().getCacheManager();
-            if (cacheManager != null)
-                isCached = cacheManager.isCached(work.getID());
-        } catch (Exception e) {
-            log(e);
-        }
-        if (!getAzContext().getLineMode().isConnectable() && !isCached) {
-            JOptionPane.showInternalMessageDialog(this, "作品「" + work.getTitleName() + "」のキャッシュが見つかりません。");
-            return null;
-        }
         for (Component comp : getComponents()) {
             if (comp instanceof SInternalFrame) {
                 SInternalFrame iframe = (SInternalFrame) comp;
@@ -262,7 +243,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
         viewerPane.focus();
         if (comment != null)
             viewerPane.setStartPositionByComment(comment);
-        postRanking(author, work);
         return viewerPane;
     }
 
@@ -294,72 +274,8 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
         }
     }
 
-    void postRanking(AozoraAuthor author, AozoraWork work) {
-        if (!getAzContext().getLineMode().isConnectable()) {
-            log("オフラインモードではランキング投票しません。");
-            return;
-        }
-        log("ランキング投票:" + author.getID() + "," + work.getID());
-        try {
-            HttpURLConnection con = null;
-            try {
-                con = (HttpURLConnection) AozoraUtil.getURLConnection(AozoraEnv.getRankingCgiURL());
-                con.setRequestMethod("POST");
-                con.setDoOutput(true);
-                con.setDoInput(true);
-                con.connect();
-                OutputStream out = null;
-                try {
-                    out = con.getOutputStream();
-                    String post = "author=" + author.getID() + "&card=" + work.getID();
-                    out.write(post.getBytes("UTF-8"));
-                    out.flush();
-                } finally {
-                    if (out != null)
-                        out.close();
-                }
-                int responseCode = con.getResponseCode();
-                if (responseCode != 200)
-                    throw new IllegalStateException("ResponseCode:" + responseCode);
-                InputStream in = null;
-                try {
-                    in = con.getInputStream();
-                    TagReader tin = new TagReader(new InputStreamReader(in, "UTF-8"));
-                    try {
-                        tin.skipToStartTag("error");
-                        int error = Integer.parseInt(tin.readToEndTag());
-                        tin.skipToStartTag("message");
-                        String mssg = tin.readToEndTag();
-                        mssg = "ランキング投票:" + mssg + "(" + error + ")";
-                        if (error != 0)
-                            throw new IllegalStateException(mssg);
-                        log(mssg);
-                    } finally {
-                        tin.close();
-                    }
-                } finally {
-                    if (in != null)
-                        in.close();
-                }
-            } finally {
-                if (con != null)
-                    con.disconnect();
-            }
-        } catch (Exception e) {
-            log(e);
-        }
-    }
-
     AozoraContext getAzContext() {
         return context;
-    }
-
-    void log(Object obj) {
-        getAzContext().log(obj, getClass());
-    }
-
-    void log(Throwable t) {
-        getAzContext().log(t);
     }
 
     private Rectangle nextFrameBounds(int width, int height) {
@@ -377,8 +293,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
         LookAndFeel oldLookAndFeel = UIManager.getLookAndFeel();
         try {
             SLookAndFeelChooser.showInternalDialog(this, "デザインの変更", new String[] {
-                    "de.javasoft.plaf.synthetica.SyntheticaSilverMoonLookAndFeel",
-                    "de.javasoft.plaf.synthetica.SyntheticaStandardLookAndFeel",
                     "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel",
                     "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
                     "com.apple.mrj.swing.MacLookAndFeel",
@@ -388,7 +302,7 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
                 }, null);
             getAzContext().getSettings().setLookAndFeel(UIManager.getLookAndFeel());
         } catch (Exception e) {
-            log("[ERROR] An error occured while show SLookAndFeelChooser \n" + e);
+            logger.log(Level.SEVERE, "[ERROR] An error occured while show SLookAndFeelChooser \n", e);
             try {
                 SGUIUtil.setLookAndFeel(oldLookAndFeel, SGUIUtil.getParentFrame(this));
             } catch (Exception e2) {
@@ -401,7 +315,7 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
         Font current = getAzContext().getSettings().getFont();
         if (current != null)
             ;
-        log(current);
+        logger.info(current.toString());
         Font nFont = SFontChooser.showInternalFrame(this, "フォントの変更", current);
         if (current != nFont) {
             getAzContext().getSettings().setFont(nFont);
@@ -462,33 +376,16 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
             return null;
     }
 
-    private AozoraCachePane getCachePane() {
-        AozoraContentPane contentPane = getContentPane();
-        if (contentPane != null)
-            return contentPane.getAozoraCachePane();
-        else
-            return null;
-    }
-
     public AozoraAuthor getAozoraAuthor(String authorID) {
         AozoraAuthor author = null;
         AozoraListPane listPane = getListPane();
         if (listPane != null)
             author = listPane.getAozoraAuthor(authorID);
-        if (author == null) {
-            AozoraCachePane cachePane = getCachePane();
-            if (cachePane != null)
-                return cachePane.getAozoraAuthor(authorID);
-        }
         return author;
     }
 
     public void getAozoraAuthorAsynchronous(String authorID, AozoraAuthorParserHandler callback) {
         AozoraAuthor author = getAozoraAuthor(authorID);
-        if (author != null || !getAzContext().getLineMode().isConnectable()) {
-            callback.author(author);
-            return;
-        }
         AozoraListPane listPane = getListPane();
         if (listPane != null)
             listPane.getAozoraAuthorAsynchronous(authorID, callback);
@@ -503,28 +400,17 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
         AozoraListPane listPane = getListPane();
         if (listPane != null)
             work = listPane.getAozoraWork(workID, loadImmediate);
-        if (work == null) {
-            AozoraCachePane cachePane = getCachePane();
-            if (cachePane != null)
-                return cachePane.getAozoraWork(workID);
-        }
         return work;
     }
 
     public void getAozoraWorkAsynchronous(String workID, AozoraWorkParserHandler callback) {
         AozoraWork work = getAozoraWork(workID, false);
-        if (work != null || !getAzContext().getLineMode().isConnectable()) {
-            callback.work(work);
-            return;
-        }
         AozoraListPane listPane = getListPane();
         if (listPane != null)
             listPane.getAozoraWorkAsynchronous(workID, callback);
     }
 
     public void focusAuthor(AozoraAuthor author) {
-        if (!getAzContext().getLineMode().isConnectable())
-            return;
         AozoraListPane listPane = getListPane();
         if (listPane != null) {
             Container listPaneParent = listPane.getParent();
@@ -535,12 +421,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
     }
 
     public void focusWork(AozoraWork work) {
-        if (!getAzContext().getLineMode().isConnectable()) {
-            AozoraCachePane cachePane = getCachePane();
-            if (cachePane != null)
-                cachePane.focusWork(work);
-            return;
-        }
         AozoraListPane listPane = getListPane();
         if (listPane != null) {
             Container listPaneParent = listPane.getParent();
@@ -548,40 +428,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
                 ((JTabbedPane) listPaneParent).setSelectedComponent(listPane);
             listPane.focusWork(work);
         }
-    }
-
-    public void aboutAozora() {
-        JInternalFrame iframe;
-        if (aboutPane == null) {
-            aboutPane = new AozoraAboutPane(getAzContext());
-            iframe = new JInternalFrame();
-            iframe.setTitle("ヘルプ");
-            iframe.setClosable(true);
-            iframe.setMaximizable(true);
-            iframe.setIconifiable(false);
-            iframe.setResizable(true);
-            iframe.setContentPane(aboutPane);
-            iframe.setDefaultCloseOperation(1);
-            iframe.pack();
-            setLayer(iframe, MODAL_LAYER.intValue());
-            add(iframe);
-            SGUIUtil.setCenter(this, iframe);
-            final JInternalFrame theIFrame = iframe;
-            AozoraUtil.putKeyStrokeAction(theIFrame, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, AozoraEnv.ShortCutKey.VIEWER_CLOSE_SHORTCUT.getKeyStroke(), "AozoraAboutPane.closeAction", new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    theIFrame.setVisible(false);
-                }
-            });
-        } else {
-            iframe = SGUIUtil.getParentInstanceOf(aboutPane, JInternalFrame.class);
-        }
-        iframe.setVisible(true);
-        iframe.requestFocusInWindow();
-    }
-
-    public void aboutPremier() {
-        aboutAozora();
-        aboutPane.showPremierTab();
     }
 
     public static final int LIST_COMMENT_LAYER = 20;
@@ -593,5 +439,4 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
     private static final int GRID_Y = 20;
     private final AozoraContext context;
     private Point lastViewPoint;
-    private AozoraAboutPane aboutPane;
 }

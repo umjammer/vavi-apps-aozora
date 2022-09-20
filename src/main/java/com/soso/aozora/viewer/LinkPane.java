@@ -10,11 +10,14 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JLabel;
 import javax.swing.border.TitledBorder;
 
 import com.soso.aozora.boot.AozoraContext;
+import com.soso.aozora.core.AozoraContentPane;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.data.AozoraAuthor;
@@ -23,6 +26,8 @@ import com.soso.sgui.SLinkLabel;
 
 
 class LinkPane extends AozoraDefaultPane {
+
+    static Logger logger = Logger.getLogger(LinkPane.class.getName());
 
     LinkPane(AozoraContext context, AozoraAuthor author, AozoraWork work) {
         super(context);
@@ -46,7 +51,7 @@ class LinkPane extends AozoraDefaultPane {
         try {
             addLink(header, new URL(url));
         } catch (MalformedURLException e) {
-            log(e);
+            logger.log(Level.SEVERE, e.getMessage(), e);
         }
     }
 

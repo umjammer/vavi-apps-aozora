@@ -7,6 +7,8 @@ package com.soso.aozora.list;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -30,10 +32,12 @@ import javax.swing.tree.TreePath;
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraUtil;
-import com.soso.aozora.data.AozoraCacheManager;
+import com.soso.aozora.viewer.AozoraViewerPane;
 
 
 class AozoraAuthorTreePane extends AozoraDefaultPane implements TreeSelectionListener, AncestorListener {
+
+    static Logger logger = Logger.getLogger(AozoraViewerPane.class.getName());
 
     private class RightAction extends AbstractAction {
 
@@ -154,7 +158,7 @@ class AozoraAuthorTreePane extends AozoraDefaultPane implements TreeSelectionLis
 
     private void workaround_checkRowHeight() {
         if (getPreferredSize().height > 16000 && getAuthorNode().getChildCount() == 0) {
-            getAzContext().log("Workaround for JTree preffered height bug | " + getAuthorNode() + " | " + getPreferredSize());
+            logger.info("Workaround for JTree preffered height bug | " + getAuthorNode() + " | " + getPreferredSize());
             fireNodeChanged();
             collapse();
             SwingUtilities.invokeLater(new Runnable() {
@@ -256,20 +260,6 @@ class AozoraAuthorTreePane extends AozoraDefaultPane implements TreeSelectionLis
     private void showPopupMenu(AozoraAuthorNode authorNode, int x, int y) {
         JPopupMenu popupMenu = new JPopupMenu();
         getAuthorNode().isWorkLoaded();
-        if (getAzContext().checkCachePermitted()) {
-            JMenuItem cacheAllItem = new JMenuItem(new AbstractAction("全ての作品をキャッシュする") {
-                public void actionPerformed(ActionEvent e) {
-                    cacheAll();
-                }
-            });
-            try {
-                checkCacheAllEnabled();
-            } catch (Exception e) {
-                cacheAllItem.setEnabled(false);
-                cacheAllItem.setToolTipText(e.getMessage());
-            }
-            popupMenu.add(cacheAllItem);
-        }
         if (popupMenu.getComponentCount() != 0)
             popupMenu.show(tree, x, y);
     }
@@ -282,109 +272,8 @@ class AozoraAuthorTreePane extends AozoraDefaultPane implements TreeSelectionLis
             }
         });
         popupMenu.add(openItem);
-        if (getAzContext().checkCachePermitted()) {
-            JMenuItem cacheItem = new JMenuItem(new AbstractAction("作品をキャッシュする") {
-                public void actionPerformed(ActionEvent e) {
-                    cache(workNode);
-                }
-            });
-            try {
-                checkCacheEnabled(workNode);
-            } catch (Exception e) {
-                cacheItem.setEnabled(false);
-                cacheItem.setToolTipText(e.getMessage());
-            }
-            popupMenu.add(cacheItem);
-        }
         if (popupMenu.getComponentCount() != 0)
             popupMenu.show(tree, x, y);
-    }
-
-    private void checkCacheAllEnabled() {
-        checkCacheManagerEnabled();
-        if (!getAuthorNode().isWorkLoaded())
-            listMediator.loadWorks(getAuthorNode());
-        try {
-            boolean isAnyUncachedExists = false;
-            for (AozoraWorkNode workNode : getAuthorNode().getAllAozoraWorkNodes()) {
-                if (!getAzContext().getCacheManager().isCached(workNode.getAozoraWork().getID()))
-                    isAnyUncachedExists = true;
-            }
-
-            if (!isAnyUncachedExists)
-                throw new IllegalStateException("既に全ての作品がキャッシュされています。");
-        } catch (IllegalStateException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-    }
-
-    private void checkCacheEnabled(AozoraWorkNode workNode) {
-        checkCacheManagerEnabled();
-        try {
-            if (getAzContext().getCacheManager().isCached(workNode.getAozoraWork().getID()))
-                throw new IllegalStateException("既にキャッシュされています。");
-        } catch (IllegalStateException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-    }
-
-    private void checkCacheManagerEnabled() {
-        AozoraCacheManager cacheManager = getAzContext().getCacheManager();
-        if (cacheManager == null)
-            throw new IllegalStateException("キャッシュマネージャがありません");
-        if (cacheManager.isReadOnly())
-            throw new IllegalStateException("キャッシュは読み込み専用です。");
-        if (!getAzContext().getLineMode().isConnectable())
-            throw new IllegalStateException("オフラインモードではキャッシュできません。");
-    }
-
-    private void cacheAll() {
-        if (SwingUtilities.isEventDispatchThread()) {
-            new Thread(new Runnable() {
-                public void run() {
-                    cacheAll();
-                }
-            }, "AozoraAutor_cacheAllWorks").start();
-            return;
-        }
-        for (AozoraWorkNode workNode : getAuthorNode().getAllAozoraWorkNodes()) {
-            try {
-                getAzContext().getCacheManager().putCache(getAuthorNode().getAozoraAuthor(), workNode.getAozoraWork());
-                continue;
-            } catch (Exception e) {
-                getAzContext().log(e);
-                log(e);
-                Object mssg = workNode.getAozoraWork().getTitleName() + " のキャッシュでエラーが発生しました。";
-                if (e.getMessage() != null)
-                    mssg = new String[] {
-                        (String) mssg, e.getMessage()
-                    };
-                if (JOptionPane.showInternalConfirmDialog(getAzContext().getDesktopPane(), mssg, "エラー", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) != JOptionPane.YES_OPTION)
-                    return;
-            }
-        }
-
-        JOptionPane.showInternalMessageDialog(getAzContext().getDesktopPane(), getAuthorNode().getAozoraAuthor().getName() + " の全ての作品をキャッシュしました。");
-    }
-
-    private void cache(AozoraWorkNode workNode) {
-        try {
-            getAzContext().getCacheManager().putCache(getAuthorNode().getAozoraAuthor(), workNode.getAozoraWork());
-            JOptionPane.showInternalMessageDialog(getAzContext().getDesktopPane(), workNode.getAozoraWork().getTitleName() + " をキャッシュしました。");
-        } catch (Exception e) {
-            getAzContext().log(e);
-            log(e);
-            Object mssg = workNode.getAozoraWork().getTitleName() + " のキャッシュでエラーが発生しました。";
-            if (e.getMessage() != null)
-                mssg = new String[] {
-                    (String) mssg, e.getMessage()
-                };
-            JOptionPane.showInternalMessageDialog(getAzContext().getDesktopPane(), mssg, "エラー", JOptionPane.ERROR_MESSAGE);
-        }
     }
 
     void focus(TreePath path) {

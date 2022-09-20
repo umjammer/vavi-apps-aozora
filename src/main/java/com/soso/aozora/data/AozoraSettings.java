@@ -25,8 +25,6 @@ import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.event.AozoraListenerManager;
 import com.soso.aozora.viewer.AozoraCommentDecorator;
 
-import de.javasoft.plaf.synthetica.SyntheticaSilverMoonLookAndFeel;
-
 
 public class AozoraSettings {
 
@@ -243,11 +241,7 @@ public class AozoraSettings {
 
     private void setDefaluts() {
         font = new Font("Dialog", 0, 16);
-        try {
-            lookAndFeel = new SyntheticaSilverMoonLookAndFeel();
-        } catch (Exception e) {
-            lookAndFeel = UIManager.getLookAndFeel();
-        }
+        lookAndFeel = UIManager.getLookAndFeel();
         rowSpace = 10;
         fontRatio = 0.9F;
         foreground = AozoraEnv.DEFAULT_FOREGROUND_COLOR;

@@ -19,9 +19,13 @@ import java.awt.image.FilteredImageSource;
 import java.awt.image.RGBImageFilter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class SLetterImageCell extends SLetterGlyphCell {
+
+    static Logger logger = Logger.getLogger(SLetterImageCell.class.getName());
 
     private static class s_ImageFilter extends RGBImageFilter {
 
@@ -112,14 +116,12 @@ public class SLetterImageCell extends SLetterGlyphCell {
         if (propertyChangeListener == null)
             synchronized (this) {
                 if (propertyChangeListener == null)
-                    propertyChangeListener = new PropertyChangeListener() {
-                        public void propertyChange(PropertyChangeEvent event) {
-                            String name = event.getPropertyName();
-                            if ("background".equals(name) || "foreground".equals(name))
-                                unselectedImage = null;
-                            if ("selectionColor".equals(name) || "selectedTextColor".equals(name))
-                                selectedImage = null;
-                        }
+                    propertyChangeListener = event -> {
+                        String name = event.getPropertyName();
+                        if ("background".equals(name) || "foreground".equals(name))
+                            unselectedImage = null;
+                        if ("selectionColor".equals(name) || "selectedTextColor".equals(name))
+                            selectedImage = null;
                     };
             }
         return propertyChangeListener;
@@ -166,7 +168,7 @@ public class SLetterImageCell extends SLetterGlyphCell {
     }
 
     public void paintCell(Graphics g, Rectangle cellBounds) {
-        if (!b())
+        if (!drawImage_b())
             return;
         SLetterConstraint.ORIENTATION orientation = getOrientation();
         if (orientation == null)
@@ -201,7 +203,7 @@ public class SLetterImageCell extends SLetterGlyphCell {
             g.setColor(defaultColor);
             g.drawRect(cellBounds.x, cellBounds.y, cellBounds.width, cellBounds.height);
         }
-        if (DEBUG.isDebug()) {
+        if (logger.isLoggable(Level.FINE)) {
             g.setColor(new Color(153, 153, 255));
             g.drawRect(x, y, w, h);
         }
@@ -210,7 +212,7 @@ public class SLetterImageCell extends SLetterGlyphCell {
         g.setColor(color);
     }
 
-    private boolean b() {
+    private boolean drawImage_b() {
         SLetterPane parent = getParent();
         if (parent == null)
             return false;
@@ -284,5 +286,5 @@ public class SLetterImageCell extends SLetterGlyphCell {
     private boolean maximizable;
     private String text;
 
-    private PropertyChangeListener propertyChangeListener;
+    private volatile PropertyChangeListener propertyChangeListener;
 }

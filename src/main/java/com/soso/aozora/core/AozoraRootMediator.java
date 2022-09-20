@@ -47,8 +47,4 @@ public interface AozoraRootMediator {
     public abstract void focusAuthor(AozoraAuthor author);
 
     public abstract void focusWork(AozoraWork work);
-
-    public abstract void aboutAozora();
-
-    public abstract void aboutPremier();
 }

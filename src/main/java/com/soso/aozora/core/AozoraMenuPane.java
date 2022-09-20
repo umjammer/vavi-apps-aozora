@@ -14,6 +14,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
@@ -42,8 +43,6 @@ public class AozoraMenuPane extends AozoraDefaultPane {
         setLayout(new BorderLayout());
         JPanel westPane = new JPanel();
         westPane.setLayout(new FlowLayout());
-        if (getAzContext().checkCachePermitted())
-            westPane.add(getLineModeButton());
         JPanel centerPane = new JPanel();
         centerPane.setLayout(new FlowLayout());
         centerPane.add(Box.createHorizontalGlue());
@@ -60,7 +59,6 @@ public class AozoraMenuPane extends AozoraDefaultPane {
         centerPane.add(Box.createHorizontalGlue());
         add(westPane, BorderLayout.WEST);
         add(centerPane, BorderLayout.CENTER);
-        add(getAozoraInfoButton(), BorderLayout.EAST);
         for (JComponent comp : SGUIUtil.getChildInstanceOf(this, JComponent.class)) {
             comp.setOpaque(false);
         }
@@ -314,73 +312,6 @@ public class AozoraMenuPane extends AozoraDefaultPane {
         return bookmarkButton;
     }
 
-    private JButton getAozoraInfoButton() {
-        if (aozoraInfoButton == null) {
-            aozoraInfoButton = new JButton();
-            aozoraInfoButton.setName("AozoraMenuPane.aozoraInfoButton");
-            aozoraInfoButton.setAction(new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    getAzContext().getRootMediator().aboutAozora();
-                }
-            });
-            int PREF_WIDTH = 32;
-            int PREF_HEIGHT = 32;
-            aozoraInfoButton.setToolTipText(AozoraEnv.ShortCutKey.AOZORA_SHORTCUT.getNameWithHelpTitle());
-            AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.AOZORA_SHORTCUT.getKeyStroke(), aozoraInfoButton);
-            Icon aozoraIcon = AozoraUtil.getIcon(AozoraEnv.Env.AOZORA_ICON_URL.getString());
-            BufferedImage aozoraImage = new BufferedImage(aozoraIcon.getIconWidth(), aozoraIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-            aozoraIcon.paintIcon(null, aozoraImage.getGraphics(), 0, 0);
-            BufferedImage preferredSizeImage = new BufferedImage(PREF_WIDTH, PREF_HEIGHT, BufferedImage.TYPE_INT_ARGB);
-            preferredSizeImage.getGraphics().drawImage(aozoraImage, 0, 0, preferredSizeImage.getWidth(), preferredSizeImage.getHeight(), null);
-            aozoraInfoButton.setIcon(new ImageIcon(preferredSizeImage));
-            SGUIUtil.setSizeALL(aozoraInfoButton, new Dimension(PREF_WIDTH, PREF_HEIGHT));
-        }
-        return aozoraInfoButton;
-    }
-
-    private JButton getLineModeButton() {
-        if (lineModeButton == null) {
-            lineModeButton = new JButton();
-            onlineModeIcon = AozoraUtil.getIcon(AozoraEnv.Env.ONLINE_ICON.getString());
-            offlineModeIcon = AozoraUtil.getIcon(AozoraEnv.Env.OFFLINE_ICON.getString());
-            lineModeButton.setName("AozoraMenuPane.lineModeButton");
-            lineModeButton.setAction(new AbstractAction() {
-                public void actionPerformed(ActionEvent e) {
-                    if (lineModeButton.getIcon() == onlineModeIcon)
-                        getAzContext().setLineMode(AozoraEnv.LineMode.Offline);
-                    else if (lineModeButton.getIcon() == offlineModeIcon)
-                        getAzContext().setLineMode(AozoraEnv.LineMode.Online);
-                }
-            });
-            lineModeButton.setToolTipText(AozoraEnv.ShortCutKey.LINE_MODE_SHORTCUT.getNameWithHelpTitle());
-            AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.LINE_MODE_SHORTCUT.getKeyStroke(), lineModeButton);
-            setLineModeButtonIcon(getAzContext().getLineMode());
-            lineModeButton.setMaximumSize(lineModeButton.getPreferredSize());
-            getAzContext().getListenerManager().add(new AozoraListenerAdapter() {
-                public void lineModeChanged(AozoraEnv.LineMode lineMode) {
-                    setLineModeButtonIcon(lineMode);
-                }
-            });
-        }
-        return lineModeButton;
-    }
-
-    private void setLineModeButtonIcon(AozoraEnv.LineMode lineMode) {
-        switch (lineMode) {
-        case Offline:
-            lineModeButton.setIcon(offlineModeIcon);
-            break;
-        case Online:
-            lineModeButton.setIcon(onlineModeIcon);
-            break;
-        default:
-            throw new UnsupportedOperationException("Unknown LineMode : " + lineMode);
-        }
-    }
-
-    private JButton lineModeButton;
-    private Icon onlineModeIcon;
-    private Icon offlineModeIcon;
     private JButton lafChooserButton;
     private JButton fontChooserButton;
     private JButton colorChooserButton;
@@ -393,5 +324,4 @@ public class AozoraMenuPane extends AozoraDefaultPane {
     private Icon commentBalloneIcon;
     private Icon commentNoneIcon;
     private JButton bookmarkButton;
-    private JButton aozoraInfoButton;
 }
