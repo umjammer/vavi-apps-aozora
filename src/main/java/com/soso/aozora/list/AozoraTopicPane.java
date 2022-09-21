@@ -160,7 +160,7 @@ label0:     do
             sb.append("の新着");
             title = sb.toString();
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
         return title;
     }

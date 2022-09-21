@@ -16,6 +16,7 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 
 import javax.swing.Box;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
@@ -136,9 +137,9 @@ public class SLineBorder extends LineBorder {
     }
 
     public static void main(String[] args) {
-        SFrame frame = new SFrame();
+        JFrame frame = new JFrame();
         frame.setSize(800, 800);
-        frame.setDefaultCloseOperation(SFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout(0, 0));
         JPanel borderPanel = new JPanel();
         borderPanel.setBackground(Color.BLUE);

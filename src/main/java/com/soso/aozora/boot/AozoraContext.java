@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JDesktopPane;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import com.soso.aozora.core.AozoraEnv;
@@ -104,19 +105,7 @@ public class AozoraContext {
     }
 
     private void focusLater(final String authorID, final String cardID) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                focus(authorID, cardID);
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        SwingUtilities.invokeLater(() -> SwingUtilities.invokeLater(() -> SwingUtilities.invokeLater(() -> focus(authorID, cardID))));
     }
 
     class AuthorWorkFocusCallback implements AozoraAuthorParserHandler, AozoraWorkParserHandler {
@@ -124,7 +113,7 @@ public class AozoraContext {
         public void author(AozoraAuthor author) {
             this.author = author;
             if (author == null) {
-                SOptionPane.showConfirmDialog(getDesktopPane(), "ID " + authorID + " の著者情報が見つかりません。", "エラー", -1, 0);
+                SOptionPane.showConfirmDialog(getDesktopPane(), "ID " + authorID + " の著者情報が見つかりません。", "エラー", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE);
                 return;
             }
             logger.info("args focusing author=" + authorID);
@@ -136,7 +125,7 @@ public class AozoraContext {
         public void work(AozoraWork work) {
             this.work = work;
             if (work == null) {
-                SOptionPane.showConfirmDialog(getDesktopPane(), "ID " + cardID + " の作品が見つかりません。", "エラー", -1, 0);
+                SOptionPane.showConfirmDialog(getDesktopPane(), "ID " + cardID + " の作品が見つかりません。", "エラー", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE);
                 return;
             }
             logger.info("args focusing card=" + cardID);
@@ -147,7 +136,7 @@ public class AozoraContext {
 
         private void showViewer() {
             if (!work.getAuthorID().equals(author.getID())) {
-                SOptionPane.showConfirmDialog(getDesktopPane(), "作品「" + work.getTitleName() + "」(ID " + cardID + ")" + "の著者は「" + author.getName() + "」(ID " + authorID + ")" + "ではありません。", "エラー", -1, 0);
+                SOptionPane.showConfirmDialog(getDesktopPane(), "作品「" + work.getTitleName() + "」(ID " + cardID + ")" + "の著者は「" + author.getName() + "」(ID " + authorID + ")" + "ではありません。", "エラー", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE);
             } else {
                 logger.info("args showing author=" + authorID + " card=" + cardID);
                 getRootMediator().showViewer(author, work);

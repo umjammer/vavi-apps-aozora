@@ -19,37 +19,7 @@ public class AozoraCharacterUtil {
         return Arrays.binarySearch(GAIJI_ALPHABET_WITH_PHONETIC, name) >= 0;
     }
 
-    public static void main(String[] args) {
-        Arrays.sort(GAIJI_ALPHABET_PHONETIC_SIGN);
-        System.out.println("Test GAIJI_ALPHABET_PHONETIC_SIGN:");
-        for (String test : GAIJI_ALPHABET_PHONETIC_SIGN) {
-            if (!isGaijiToRotate(test + ".png"))
-                System.err.println("ERROR: " + test);
-        }
-
-        System.out.println("Test GAIJI_ALPHABET_WITH_PHONETIC:");
-        for (String test : GAIJI_ALPHABET_WITH_PHONETIC) {
-            if (!isGaijiToRotate(test + ".jpg"))
-                System.err.println("ERROR: " + test);
-        }
-
-        System.out.println("Test OTHER:");
-        for(Object test[] : new Object[][] {{ "hoge", false },
-                                            { "hoge.png", false },
-                                            { "1_2_22.gif", false },
-                                            { "1-09-81", true },
-                                            { "1-09-81.png", true },
-                                            { "/gaiji/1-09/1-09-81.png", true }}) {
-            if (isGaijiToRotate((String) test[0]) == (Boolean) test[1])
-                System.out.println("OK : " + ((Boolean) test[1] ? "ROTATE" : "NOMAL ") + " : " + test[0]);
-            else
-                System.err.println("ERR : " + test[0]);
-        }
-
-        System.out.println("Test FINISH");
-    }
-
-    private static final String[] GAIJI_ALPHABET_PHONETIC_SIGN = {
+    static final String[] GAIJI_ALPHABET_PHONETIC_SIGN = {
         "1-08-79", "1-08-80", "1-08-81", "1-08-86", "1-08-87", "1-08-88", "1-08-89", "1-08-90", "1-08-91", "1-08-92", 
         "1-09-39", "1-09-52", "1-09-70", "1-09-83", "1-10-01", "1-10-04", "1-10-06", "1-10-08", "1-10-10", "1-10-11", 
         "1-10-12", "1-10-15", "1-10-18", "1-10-20", "1-10-23", "1-10-24", "1-10-26", "1-10-29", "1-10-30", "1-10-31", 
@@ -64,7 +34,7 @@ public class AozoraCharacterUtil {
         "1-11-43", "1-11-44", "1-11-45", "1-11-46", "1-11-47", "1-11-48", "1-11-49"
     };
 
-    private static final String[] GAIJI_ALPHABET_WITH_PHONETIC = {
+    static final String[] GAIJI_ALPHABET_WITH_PHONETIC = {
         "1-08-82", "1-08-83", "1-08-84", "1-08-85", "1-09-23", "1-09-24", "1-09-25", "1-09-26", "1-09-27", "1-09-28", 
         "1-09-29", "1-09-30", "1-09-31", "1-09-32", "1-09-33", "1-09-34", "1-09-35", "1-09-36", "1-09-37", "1-09-38", 
         "1-09-40", "1-09-41", "1-09-42", "1-09-43", "1-09-44", "1-09-45", "1-09-46", "1-09-47", "1-09-48", "1-09-49", 

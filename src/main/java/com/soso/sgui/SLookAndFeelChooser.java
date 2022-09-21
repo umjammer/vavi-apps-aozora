@@ -252,7 +252,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         add(panel, BorderLayout.SOUTH);
-        comboBox = new SComboBox();
+        comboBox = new JComboBox();
         comboBox.addItemListener(this);
         panel.add(comboBox);
         this.panel = new JPanel();

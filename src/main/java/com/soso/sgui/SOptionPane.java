@@ -66,19 +66,19 @@ public class SOptionPane extends JOptionPane {
 
         if (y > h)
             messages.add("... more");
-        return messages.toArray(new String[messages.size()]);
+        return messages.toArray(new String[0]);
     }
 
     public static void showMessageDialog(Component parent, Object message) throws HeadlessException {
-        JOptionPane.showConfirmDialog(parent, (message instanceof String) ? (Object) safetyMessage((String) message) : message);
+        JOptionPane.showConfirmDialog(parent, (message instanceof String) ? safetyMessage((String) message) : message);
     }
 
     public static void showMessageDialog(Component parent, Object message, String title, int messageType) throws HeadlessException {
-        JOptionPane.showMessageDialog(parent, (message instanceof String) ? (Object) safetyMessage((String) message) : message, title, messageType);
+        JOptionPane.showMessageDialog(parent, (message instanceof String) ? safetyMessage((String) message) : message, title, messageType);
     }
 
     public static void showMessageDialog(Component parent, Object message, String title, int messageType, Icon icon) throws HeadlessException {
-        JOptionPane.showMessageDialog(parent, (message instanceof String) ? (Object) safetyMessage((String) message) : message, title, messageType, icon);
+        JOptionPane.showMessageDialog(parent, (message instanceof String) ? safetyMessage((String) message) : message, title, messageType, icon);
     }
 
     public static int showConfirmDialog(Component parent, Object message) throws HeadlessException {
@@ -232,22 +232,19 @@ public class SOptionPane extends JOptionPane {
         iframe.setMaximizable(false);
         iframe.setIconifiable(false);
         iframe.putClientProperty("JInternalFrame.frameType", "optionDialog");
-        iframe.putClientProperty("JInternalFrame.messageType", new Integer(getMessageType()));
+        iframe.putClientProperty("JInternalFrame.messageType", getMessageType());
         iframe.addInternalFrameListener(new InternalFrameAdapter() {
             public void internalFrameClosing(InternalFrameEvent event) {
                 if (getValue() == JOptionPane.UNINITIALIZED_VALUE)
                     setValue(null);
             }
         });
-        addPropertyChangeListener(new PropertyChangeListener() {
-            @SuppressWarnings("deprecation")
-            public final void propertyChange(PropertyChangeEvent event) {
-                if (iframe.isVisible() &&
-                    event.getSource() == SOptionPane.this &&
-                    event.getPropertyName().equals("value")) {
-                    iframe.setModal(false);
-                    iframe.setVisible(false);
-                }
+        addPropertyChangeListener(event -> {
+            if (iframe.isVisible() &&
+                event.getSource() == SOptionPane.this &&
+                event.getPropertyName().equals("value")) {
+                iframe.setModal(false);
+                iframe.setVisible(false);
             }
         });
         iframe.getContentPane().add(this, BorderLayout.CENTER);

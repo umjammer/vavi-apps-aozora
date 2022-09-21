@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 
 import javax.swing.JOptionPane;
 import javax.swing.LookAndFeel;
@@ -23,6 +24,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import vavi.util.Debug;
 
 
 @Deprecated
@@ -62,7 +64,7 @@ public class AozoraSettingFileHandler {
                 getBean().setForeground(AozoraSettingFileHandler.decodeColor(foreground));
                 getBean().setBackground(AozoraSettingFileHandler.decodeColor(background));
             } catch (NumberFormatException e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
 
@@ -73,10 +75,8 @@ public class AozoraSettingFileHandler {
                     Object object = Class.forName(laf).newInstance();
                     if (object instanceof LookAndFeel)
                         getBean().setLookAndFeel((LookAndFeel) object);
-                } catch (InstantiationException e) {
-                    e.printStackTrace(System.err);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace(System.err);
+                } catch (InstantiationException | IllegalAccessException e) {
+                    e.printStackTrace();
                 }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
@@ -102,20 +102,20 @@ public class AozoraSettingFileHandler {
                 try {
                     getBean().setRowSpace(Integer.parseInt(rowSpace));
                 } catch (NumberFormatException e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace();
                 }
             String fontRatio = attributes.getValue(KEY_LETTER_FONT_RATIO);
             if (fontRatio != null)
                 try {
                     getBean().setFontRatio(Float.parseFloat(fontRatio));
                 } catch (NumberFormatException e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace();
                 }
         }
 
         public void startBookmark(Attributes attributes) {
             String book = attributes.getValue(KEY_BOOK);
-            Integer page = Integer.valueOf(Integer.parseInt(attributes.getValue(KEY_PAGE)));
+            Integer page = Integer.parseInt(attributes.getValue(KEY_PAGE));
             putBookmark(book, page);
         }
 
@@ -152,7 +152,7 @@ public class AozoraSettingFileHandler {
         AozoraSettingFileHandler test = new AozoraSettingFileHandler();
         AozoraIniFileBean ini = test.getIni();
         String xml = test.createXML(ini);
-        System.out.println(xml);
+Debug.println(xml);
         ini.setSystemFont(new Font("Dialog", Font.PLAIN, 13));
         ini.putBookmark("234", 123);
         ini.putBookmark("7567", 0x34084);
@@ -160,9 +160,9 @@ public class AozoraSettingFileHandler {
         ini.setRowSpace(2);
         ini.setForeground(new Color(0xaabbccdd, true));
         ini.setBackground(new Color(0x00000000, false));
-        System.out.println("====================");
+Debug.println("====================");
         String newXML = test.createXML(ini);
-        System.out.println(newXML);
+Debug.println(newXML);
         test.writeAozoraIni(ini);
     }
 
@@ -172,7 +172,7 @@ public class AozoraSettingFileHandler {
             String xml = createXML(bean);
             File userHome = getUserHome();
             File aozoraIniFile = getAozoraIniFile(userHome);
-            out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(aozoraIniFile), ENCODE));
+            out = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(aozoraIniFile.toPath()), ENCODE));
             out.println(xml);
             out.flush();
         } finally {
@@ -182,25 +182,25 @@ public class AozoraSettingFileHandler {
 
     private String createXML(AozoraIniFileBean bean) {
         String tab = "\t";
-        String xml = withNewLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        xml += withNewLine("<aozora>");
-        xml += tab + withNewLine("<system>");
+        StringBuilder xml = new StringBuilder(withNewLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+        xml.append(withNewLine("<aozora>"));
+        xml.append(tab).append(withNewLine("<system>"));
         if (bean.getSystemFont() != null)
-            xml += tab + tab + withNewLine(createFontAtt(bean.getSystemFont()));
-        xml += tab + tab + withNewLine(createLetterAtt(bean.getRowSpace(), bean.getFontRatio()));
+            xml.append(tab).append(tab).append(withNewLine(createFontAtt(bean.getSystemFont())));
+        xml.append(tab).append(tab).append(withNewLine(createLetterAtt(bean.getRowSpace(), bean.getFontRatio())));
         if (bean.getLookAndFeel() != null)
-            xml += tab + tab + withNewLine(createLookAndFeelAtt(bean.getLookAndFeel()));
-        xml += tab + tab + withNewLine(createColorAtt(bean.getForeground(), bean.getBackground()));
-        xml += tab + withNewLine("</system>");
-        xml += tab + withNewLine("<bookmarks>");
+            xml.append(tab).append(tab).append(withNewLine(createLookAndFeelAtt(bean.getLookAndFeel())));
+        xml.append(tab).append(tab).append(withNewLine(createColorAtt(bean.getForeground(), bean.getBackground())));
+        xml.append(tab).append(withNewLine("</system>"));
+        xml.append(tab).append(withNewLine("<bookmarks>"));
         for (String book : bean.getBookmarks().keySet()) {
             Integer page = bean.getBookmark(book);
-            xml += tab + tab + withNewLine(createBookmarkAtt(book, page));
+            xml.append(tab).append(tab).append(withNewLine(createBookmarkAtt(book, page)));
         }
 
-        xml += tab + withNewLine("</bookmarks>");
-        xml += withNewLine("</aozora>");
-        return xml;
+        xml.append(tab).append(withNewLine("</bookmarks>"));
+        xml.append(withNewLine("</aozora>"));
+        return xml.toString();
     }
 
     private String withNewLine(String value) {
@@ -218,15 +218,15 @@ public class AozoraSettingFileHandler {
     }
 
     private static String encodeColor(Color color) {
-        String colorStr = Integer.toHexString(color.getRGB());
-        colorStr = colorStr.toUpperCase();
+        StringBuilder colorStr = new StringBuilder(Integer.toHexString(color.getRGB()));
+        colorStr = new StringBuilder(colorStr.toString().toUpperCase());
         while (colorStr.length() < 6) {
-            colorStr = "0" + colorStr;
+            colorStr.insert(0, "0");
         }
         if (colorStr.length() > 6)
-            colorStr = colorStr.substring(colorStr.length() - 6);
-        colorStr = "#" + colorStr;
-        return colorStr;
+            colorStr = new StringBuilder(colorStr.substring(colorStr.length() - 6));
+        colorStr.insert(0, "#");
+        return colorStr.toString();
     }
 
     private static Color decodeColor(String colorStr) {

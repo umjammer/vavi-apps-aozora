@@ -48,19 +48,11 @@ public class SFontChooser extends JPanel {
         }
 
         public void addTextSizeChangeListener(final Window window) {
-            fontChooser.addPropertyChangeListener(SFontChooser.eventName, new PropertyChangeListener() {
-                public final void propertyChange(PropertyChangeEvent event) {
-                    window.pack();
-                }
-            });
+            fontChooser.addPropertyChangeListener(SFontChooser.eventName, event -> window.pack());
         }
 
         public void addTextSizeChangeListener(final JInternalFrame iframe) {
-            fontChooser.addPropertyChangeListener(SFontChooser.eventName, new PropertyChangeListener() {
-                public final void propertyChange(PropertyChangeEvent event) {
-                    iframe.pack();
-                }
-            });
+            fontChooser.addPropertyChangeListener(SFontChooser.eventName, event -> iframe.pack());
         }
 
         final Font getSelectedFont() {
@@ -84,11 +76,7 @@ public class SFontChooser extends JPanel {
             if (cancelButton == null) {
                 cancelButton = new JButton();
                 cancelButton.setText("キャンセル");
-                cancelButton.addActionListener(new ActionListener() {
-                    public final void actionPerformed(ActionEvent event) {
-                        actionPerformed_a(event);
-                    }
-                });
+                cancelButton.addActionListener(this::actionPerformed_a);
             }
             return cancelButton;
         }
@@ -97,12 +85,10 @@ public class SFontChooser extends JPanel {
             if (okButton == null) {
                 okButton = new JButton();
                 okButton.setText("OK");
-                okButton.addActionListener(new ActionListener() {
-                    public final void actionPerformed(ActionEvent event) {
-                        setSelectedFont(FontChooserPane.getSFontChooser(FontChooserPane.this).getSelectedFont());
-                        fireFontChange();
-                        actionPerformed_a(event);
-                    }
+                okButton.addActionListener(event -> {
+                    setSelectedFont(FontChooserPane.getSFontChooser(FontChooserPane.this).getSelectedFont());
+                    fireFontChange();
+                    actionPerformed_a(event);
                 });
             }
             return okButton;
@@ -148,12 +134,12 @@ public class SFontChooser extends JPanel {
         private Font font;
 
         public FontChooserPane() {
-            fontListenerComponents = new ArrayList<Component>();
+            fontListenerComponents = new ArrayList<>();
             initGUI(getFont());
         }
 
         public FontChooserPane(Font font) {
-            fontListenerComponents = new ArrayList<Component>();
+            fontListenerComponents = new ArrayList<>();
             this.font = font;
             initGUI(font);
         }

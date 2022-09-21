@@ -109,7 +109,7 @@ public class AozoraSettings {
                 else if (ELM_COMMENT.equals(qName))
                     startComment(attributes);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
 

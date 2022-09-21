@@ -48,7 +48,7 @@ public class SFlowLayout implements LayoutManager {
     class Group {
 
         private Group(SFlowLayout layout) {
-            components = new ArrayList<Component>();
+            components = new ArrayList<>();
             a = 0;
             size_b = 0;
             count_c = 0;

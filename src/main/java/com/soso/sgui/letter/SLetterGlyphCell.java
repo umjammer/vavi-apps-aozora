@@ -51,14 +51,14 @@ public class SLetterGlyphCell extends SLetterCell {
         x1 += transX;
         y1 += transY;
         AffineTransform transform = null;
-        if (is2d && theta != 0.0D) {
+        if (is2d && theta != 0.0) {
             transform = g2.getTransform();
             AffineTransform transform1 = new AffineTransform(transform);
             transform1.rotate(theta, x2, y2);
             if (isConstraintSet(SLetterConstraint.ROTATE.LR_MIRROR)) {
-                transform1.translate(0.0D, y2);
+                transform1.translate(0.0, y2);
                 transform1.scale(1.0D, -1D);
-                transform1.translate(0.0D, -y2);
+                transform1.translate(0.0, -y2);
             }
             g2.setTransform(transform1);
         }
@@ -109,9 +109,9 @@ public class SLetterGlyphCell extends SLetterCell {
             isConstraintSet(SLetterConstraint.OVERLAY.LINE_TAIL_OVER))
             if (isConstraintSet(SLetterConstraint.ROTATE.GENERALLY) ||
                 isConstraintSet(SLetterConstraint.ROTATE.REVERSE))
-                transX = 0 + (orientation.isLeftToRight() ? rectangle.height : rectangle.width);
+                transX = (orientation.isLeftToRight() ? rectangle.height : rectangle.width);
             else if (isConstraintSet(SLetterConstraint.TRANS.PUNCTURETE))
-                transX = 0 + (orientation.isLeftToRight() ? rectangle.width : 0);
+                transX = (orientation.isLeftToRight() ? rectangle.width : 0);
 
         if (isConstraintSet(SLetterConstraint.TRANS.PUNCTURETE)) {
             transX += (orientation.isLeftToRight() ? 0 : rectangle.width / 2);
@@ -119,11 +119,11 @@ public class SLetterGlyphCell extends SLetterCell {
             int w = (int) ((width / 4) * 0.7861513F);
             transX += (orientation.isLeftToRight() ? -w : w);
         } else if (isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_HEAD)) {
-            transX += (0 - rectangle.height / 4);
+            transX += (-rectangle.height / 4);
         } else if (isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_TAIL)) {
             transX += (rectangle.height / 4);
         }
-        logger.fine("TransX=" + transX + " ," + main + "|" + rectangle);
+        logger.finer("TransX=" + transX + " ," + main + "|" + rectangle);
         return transX;
     }
 
@@ -134,7 +134,7 @@ public class SLetterGlyphCell extends SLetterCell {
         if (isConstraintSet(SLetterConstraint.BREAK.BACK_IF_LINE_HEAD) &&
             isConstraintSet(SLetterConstraint.OVERLAY.LINE_TAIL_OVER) &&
             isConstraintSet(SLetterConstraint.TRANS.PUNCTURETE))
-            transY = 0 + (orientation.isHorizonal() ? 0 : rectangle.height);
+            transY = (orientation.isHorizonal() ? 0 : rectangle.height);
         if (isConstraintSet(SLetterConstraint.TRANS.PUNCTURETE)) {
             int h = rectangle.height / 2;
             transY = transY + (orientation.isHorizonal() ? 0 : -h);
@@ -142,7 +142,7 @@ public class SLetterGlyphCell extends SLetterCell {
             int h = (asc + desc) / 4;
             transY = transY + (orientation.isHorizonal() ? 0 : -h);
         }
-        logger.fine("TransY=" + transY + " ," + main + "|" + rectangle);
+        logger.finer("TransY=" + transY + " ," + main + "|" + rectangle);
         return transY;
     }
 

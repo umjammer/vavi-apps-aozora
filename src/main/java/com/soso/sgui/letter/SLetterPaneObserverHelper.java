@@ -42,13 +42,13 @@ public class SLetterPaneObserverHelper implements SLetterPaneObserver {
     public void colSpaceChanged(int oldValue, int newValue) {
     }
 
-    public void borderRendarerChanged(SLetterBorderRendarer oldValue, SLetterBorderRendarer newValue) {
+    public void borderRendererChanged(SLetterBorderRenderer oldValue, SLetterBorderRenderer newValue) {
     }
 
-    public void rowColCountChangableChanged(boolean value) {
+    public void rowColCountChangeableChanged(boolean value) {
     }
 
-    public void fontSizeChangableChanged(boolean value) {
+    public void fontSizeChangeableChanged(boolean value) {
     }
 
     public void originDifferenceChanged(Point oldValue, Point newValue) {

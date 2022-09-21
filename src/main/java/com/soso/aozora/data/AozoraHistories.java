@@ -60,7 +60,7 @@ public class AozoraHistories {
                 if (ELM_HISTORY.equals(qName))
                     startBoolmark(attributes);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
 

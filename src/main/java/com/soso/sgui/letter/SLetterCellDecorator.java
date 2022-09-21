@@ -10,9 +10,9 @@ import java.awt.Rectangle;
 
 public interface SLetterCellDecorator {
 
-    public abstract void decorateBeforePaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds);
+    void decorateBeforePaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds);
 
-    public abstract void decorateAfterPaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds);
+    void decorateAfterPaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds);
 
-    public abstract void removeDecoration(SLetterCell cell);
+    void removeDecoration(SLetterCell cell);
 }

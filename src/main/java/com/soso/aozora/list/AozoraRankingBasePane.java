@@ -154,7 +154,7 @@ abstract class AozoraRankingBasePane extends AozoraDefaultPane {
             logger.log(Level.SEVERE, "記録がありません。:" + e.getMessage(), e);
             return null;
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
             return null;
         }
         return rankingList;

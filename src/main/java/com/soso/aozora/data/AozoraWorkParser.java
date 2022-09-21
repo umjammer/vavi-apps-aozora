@@ -114,7 +114,7 @@ label0:     do
             try {
                 tin.close();
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
     }

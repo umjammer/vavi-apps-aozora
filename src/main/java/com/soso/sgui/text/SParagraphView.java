@@ -201,7 +201,7 @@ final class SParagraphView extends ParagraphView {
         View child = getView(index);
         int adjust = 0;
         Row row = (Row) child;
-        if (child instanceof Row)
+        if (child != null)
             adjust = row.getTopInset() + row.getBottomInset();
         int span = layoutSpan - adjust;
         return span;
@@ -211,7 +211,7 @@ final class SParagraphView extends ParagraphView {
         View child = getView(index);
         short adjust = 0;
         Row row = (Row) child;
-        if (child instanceof Row)
+        if (child != null)
             adjust = row.getTopInset();
         return adjust;
     }

@@ -131,7 +131,7 @@ class TextViewerPane extends AozoraDefaultPane {
 
         private SLetterPane.MenuItemProducer createSearchMenuItemProducer() {
             SLetterPane.MenuItemProducer producer = new SLetterPane.MenuItemProducer() {
-                public JMenuItem procudeMenuItem(Point p, SLetterCell[] cells, boolean isSelected) {
+                public JMenuItem produceMenuItem(Point p, SLetterCell[] cells, boolean isSelected) {
                     return searchItem;
                 }
 
@@ -625,7 +625,7 @@ class TextViewerPane extends AozoraDefaultPane {
             if (parentFrame != null)
                 parentFrame.dispose();
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
     }
 
@@ -721,7 +721,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
                 setupButtonEnabled();
                 setupPageNumber();
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
     }

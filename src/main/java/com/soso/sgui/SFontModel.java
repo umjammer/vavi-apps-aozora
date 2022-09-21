@@ -7,21 +7,21 @@ package com.soso.sgui;
 
 public interface SFontModel {
 
-    public abstract String[] getFontFamilyNames();
+    String[] getFontFamilyNames();
 
-    public abstract Integer[] getSizes();
+    Integer[] getSizes();
 
-    public abstract String[] getStyleNames();
+    String[] getStyleNames();
 
-    public abstract int[] getStyleTypes();
+    int[] getStyleTypes();
 
-    public abstract int getFontFamilyNameIndex(String name);
+    int getFontFamilyNameIndex(String name);
 
-    public abstract int getSizeIndex(int size);
+    int getSizeIndex(int size);
 
-    public abstract int getSizeRoundIndex(int size);
+    int getSizeRoundIndex(int size);
 
-    public abstract int styleNameToType(String name);
+    int styleNameToType(String name);
 
-    public abstract int getStyleTypeIndex(int type);
+    int getStyleTypeIndex(int type);
 }

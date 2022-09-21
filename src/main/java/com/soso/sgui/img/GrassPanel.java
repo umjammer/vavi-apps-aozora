@@ -157,7 +157,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
                             try {
                                 Thread.sleep(1000L);
                             } catch (Exception e) {
-                                e.printStackTrace(System.err);
+                                e.printStackTrace();
                                 flag_x = !flag_x;
                                 repaint(resizerBounds);
                             }

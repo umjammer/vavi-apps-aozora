@@ -14,7 +14,7 @@ import java.awt.Stroke;
 
 public final class SLetterDefaults {
 
-    public static class DefaultLetterBorderRendarer implements SLetterBorderRendarer {
+    public static class DefaultLetterBorderRenderer implements SLetterBorderRenderer {
 
         protected void init() {
             setRowBorderColor(ROW_BORDER_COLOR);
@@ -148,7 +148,7 @@ public final class SLetterDefaults {
         private Stroke cellBorderStroke;
         private Stroke cellCenterLineStroke;
 
-        public DefaultLetterBorderRendarer(SLetterConstraint.ORIENTATION orientation) {
+        public DefaultLetterBorderRenderer(SLetterConstraint.ORIENTATION orientation) {
             if (orientation == null) {
                 throw new IllegalArgumentException("ORIENTATION cannot be null");
             }
@@ -166,7 +166,7 @@ public final class SLetterDefaults {
     public static final int COL_COUNT = 20;
     public static final int ROW_RANGE = 20;
     public static final int COL_RANGE = 20;
-    public static final float FONT_RANGE_RASIO = 0.7861513F;
+    public static final float FONT_RANGE_RASIO = 0.7861513f;
     public static final int ROW_SPACE = 10;
     public static final int COL_SPACE = 0;
 

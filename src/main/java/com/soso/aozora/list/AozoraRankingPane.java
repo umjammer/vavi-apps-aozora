@@ -162,7 +162,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
             tabbedPane.addTab("著者別 [月間]", new AozoraMonthlyAuthorRankingPane(getAzContext()));
             tabbedPane.addChangeListener(this);
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
         getAzContext().getListenerManager().add(new AozoraListenerAdapter() {
             public void lineModeChanged(AozoraEnv.LineMode lineMode) {

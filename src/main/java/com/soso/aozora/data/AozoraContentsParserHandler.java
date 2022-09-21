@@ -9,15 +9,15 @@ import java.net.URL;
 
 public interface AozoraContentsParserHandler {
 
-    public abstract void characters(String cdata);
+    void characters(String cdata);
 
-    public abstract void newLine();
+    void newLine();
 
-    public abstract void ruby(String rb, String rt);
+    void ruby(String rb, String rt);
 
-    public abstract void img(URL src, String alt, boolean isGaiji);
+    void img(URL src, String alt, boolean isGaiji);
 
-    public abstract void otherElement(String element);
+    void otherElement(String element);
 
-    public abstract void parseFinished();
+    void parseFinished();
 }

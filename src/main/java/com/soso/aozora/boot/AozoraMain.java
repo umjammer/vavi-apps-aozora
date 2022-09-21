@@ -85,7 +85,7 @@ public class AozoraMain {
                             frame.dispose();
                             System.exit(0);
                         } catch (Exception e) {
-                            e.printStackTrace(System.err);
+                            e.printStackTrace();
                             System.exit(1);
                         }
                     }

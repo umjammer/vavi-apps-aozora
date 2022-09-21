@@ -10,12 +10,12 @@ final class CipherUtil {
     CipherUtil() {
     }
 
-    static byte[] encript(byte[] plain) {
+    static byte[] encrypt(byte[] plain) {
         return not(plain);
     }
 
-    static byte[] decript(byte[] encripted) {
-        return not(encripted);
+    static byte[] decrypt(byte[] encrypted) {
+        return not(encrypted);
     }
 
     private static byte[] not(byte[] src) {
@@ -25,9 +25,5 @@ final class CipherUtil {
             ret[i] = (byte) ~src[i];
 
         return ret;
-    }
-
-    public static void main(String[] args) throws Exception {
-        System.out.println(new String(decript(encript("OK".getBytes("UTF-8"))), "UTF-8"));
     }
 }

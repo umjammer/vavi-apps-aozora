@@ -329,7 +329,7 @@ public class SImageResizerPane extends JPanel {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace();
                 }
             }
         }

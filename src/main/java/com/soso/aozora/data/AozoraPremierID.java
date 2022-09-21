@@ -23,7 +23,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import com.soso.aozora.boot.AozoraContext;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -94,7 +93,7 @@ public class AozoraPremierID {
                         startStored(attributes);
                 }
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
 
@@ -231,7 +230,7 @@ public class AozoraPremierID {
                 in.close();
             }
             byte[] encripted = baos.toByteArray();
-            byte[] plain = CipherUtil.decript(encripted);
+            byte[] plain = CipherUtil.decrypt(encripted);
             try {
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 SAXParser parser = factory.newSAXParser();
@@ -262,7 +261,7 @@ public class AozoraPremierID {
         OutputStream out = null;
         try {
             byte[] plain = baos.toByteArray();
-            encripted = CipherUtil.encript(plain);
+            encripted = CipherUtil.encrypt(plain);
             File file = getPremierFile();
             if (!file.exists() && !file.getParentFile().exists())
                 file.getParentFile().mkdirs();

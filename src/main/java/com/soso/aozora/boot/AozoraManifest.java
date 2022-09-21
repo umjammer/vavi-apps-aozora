@@ -94,7 +94,7 @@ public class AozoraManifest {
         try {
             return new URL(getManifest().getMainAttributes().getValue("Implementation-Vendor-URL"));
         } catch (MalformedURLException e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
             return null;
         }
     }

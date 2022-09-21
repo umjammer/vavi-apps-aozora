@@ -12,11 +12,14 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 
+/**
+ * Represents one character.
+ */
 public abstract class SLetterCell {
 
     protected SLetterCell() {
-        constraints = new LinkedHashSet<SLetterConstraint>();
-        decorators = new LinkedHashSet<SLetterCellDecorator>();
+        constraints = new LinkedHashSet<>();
+        decorators = new LinkedHashSet<>();
     }
 
     public void addConstraint(SLetterConstraint constraint) {
@@ -35,7 +38,7 @@ public abstract class SLetterCell {
     }
 
     public SLetterConstraint[] getConstraints() {
-        SLetterConstraint[] constraints = this.constraints.toArray(new SLetterConstraint[this.constraints.size()]);
+        SLetterConstraint[] constraints = this.constraints.toArray(new SLetterConstraint[0]);
         if (constraints == null)
             constraints = new SLetterConstraint[0];
         return constraints;
@@ -46,9 +49,8 @@ public abstract class SLetterCell {
     }
 
     public boolean isConstraintSet(SLetterConstraint constraint) {
-        Iterator<SLetterConstraint> i = constraints.iterator();
-        while (i.hasNext())
-            if (i.next().equals(constraint))
+        for (SLetterConstraint sLetterConstraint : constraints)
+            if (sLetterConstraint.equals(constraint))
                 return true;
 
         return false;
@@ -62,7 +64,7 @@ public abstract class SLetterCell {
     }
 
     public SLetterCellDecorator[] getDecorators() {
-        return decorators.toArray(new SLetterCellDecorator[decorators.size()]);
+        return decorators.toArray(new SLetterCellDecorator[0]);
     }
 
     public boolean removeDecorator(SLetterCellDecorator decorator) {

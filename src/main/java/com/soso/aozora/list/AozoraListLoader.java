@@ -61,7 +61,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                     try {
                         workLoadQueue.wait();
                     } catch (InterruptedException e) {
-                        e.printStackTrace(System.err);
+                        e.printStackTrace();
                     }
             }
             if (element != null) {
@@ -90,7 +90,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                 try {
                     authorsIn.close();
                 } catch (Exception e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace();
                 }
             }
             mediator.setSearchEnabled(true);
@@ -103,7 +103,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
     }
 
@@ -115,7 +115,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
     }
 
@@ -146,13 +146,13 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                 authorNode.setWorkLoaded(true);
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         } finally {
             try {
                 if (worksIn != null)
                     worksIn.close();
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
     }
@@ -169,7 +169,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
             return;
         }
@@ -198,7 +198,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
                 });
                 Thread.sleep(10L);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
             return;
         }

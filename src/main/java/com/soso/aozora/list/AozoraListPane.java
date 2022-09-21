@@ -236,7 +236,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
             try {
                 index = AozoraIndex.getIndex();
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         new Thread(new Runnable() {
             public void run() {
@@ -306,7 +306,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
                 });
                 progressBar.setValue(progressBar.getValue() + 1);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
         progressBar.setValue(progressBar.getMaximum());
@@ -327,7 +327,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
                 });
                 progressBar.setValue(progressBar.getValue() + 1);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
         progressBar.setValue(progressBar.getMaximum());

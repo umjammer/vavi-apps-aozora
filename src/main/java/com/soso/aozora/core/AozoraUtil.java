@@ -36,7 +36,7 @@ public class AozoraUtil {
             String name = url.substring(nameIndex + 1);
             URL resURL = AozoraUtil.class.getClassLoader().getResource(name);
             if (resURL != null) {
-                logger.info("icon | " + name + " | " + resURL);
+                logger.finer("icon | " + name + " | " + resURL);
                 icon = new ImageIcon(resURL);
             }
         }
@@ -46,7 +46,7 @@ public class AozoraUtil {
                 baos = new ByteArrayOutputStream();
                 try {
                     in = getInputStream(new URL(url));
-                    byte buf[] = new byte[1024];
+                    byte[] buf = new byte[1024];
                     int len;
                     while ((len = in.read(buf)) != -1)
                         baos.write(buf, 0, len);
@@ -56,7 +56,7 @@ public class AozoraUtil {
                 }
                 icon = new ImageIcon(baos.toByteArray(), url);
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
         return icon;

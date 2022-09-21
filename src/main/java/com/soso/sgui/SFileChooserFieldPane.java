@@ -11,6 +11,7 @@ import java.io.File;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileSystemView;
 
@@ -28,7 +29,7 @@ public class SFileChooserFieldPane extends JPanel {
                 requestComboBoxFocusInWindow();
             }
         };
-        comboBox = new SComboBox();
+        comboBox = new JComboBox();
         comboBox.getActionMap().put(action.getValue("Name"), action);
         comboBox.setEditable(true);
         add(comboBox, BorderLayout.CENTER);
@@ -65,7 +66,7 @@ public class SFileChooserFieldPane extends JPanel {
             return null;
     }
 
-    public SComboBox getComboBox() {
+    public JComboBox getComboBox() {
         return comboBox;
     }
 
@@ -110,7 +111,7 @@ public class SFileChooserFieldPane extends JPanel {
     }
 
     private static final long serialVersionUID = 0xaf088394L;
-    private SComboBox comboBox;
+    private JComboBox comboBox;
     private Action action;
     private SButton button;
     private SFileChooser fileChooser;

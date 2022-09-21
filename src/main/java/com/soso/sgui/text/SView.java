@@ -225,7 +225,7 @@ class SView extends View implements TabableView, Cloneable {
             if (is2d && CharacterUtil.isToRotateKana(c1)) {
                 float ha = CharacterUtil.getHorizontalAlign(c1);
                 int x0 = h + desc;
-                int y0 = ((0 - w) + asc / 2) - leading - (int) (desc * ha);
+                int y0 = ((-w) + asc / 2) - leading - (int) (desc * ha);
                 g2.rotate(halfPI, 0.0D, 0.0D);
                 g2.drawChars(segment.array, ofs, 1, x0, y0);
                 g2.rotate(-halfPI, 0.0D, 0.0D);
@@ -234,7 +234,7 @@ class SView extends View implements TabableView, Cloneable {
             }
             if (is2d && CharacterUtil.isToRotate(c1)) {
                 int x2 = h + desc;
-                int x3 = ((0 - w) + asc / 2) - leading - desc / 2;
+                int x3 = ((-w) + asc / 2) - leading - desc / 2;
                 g2.rotate(halfPI, 0.0D, 0.0D);
                 g2.drawChars(segment.array, ofs, 1, x2, x3);
                 g2.rotate(-halfPI, 0.0D, 0.0D);

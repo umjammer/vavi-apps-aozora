@@ -8,7 +8,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 
-public interface SLetterBorderRendarer {
+public interface SLetterBorderRenderer {
 
     public abstract void paintRowBorder(Graphics g, Rectangle rowBounds);
 

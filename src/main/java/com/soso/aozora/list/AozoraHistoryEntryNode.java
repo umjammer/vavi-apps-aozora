@@ -47,7 +47,7 @@ class AozoraHistoryEntryNode extends DefaultMutableTreeNode implements AozoraWor
             sb.append("表示位置：").append(getEntry().getPosition()).append("　");
             sb.append("時刻：").append(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(getEntry().getTimestamp())));
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
         return sb.length() != 0 ? sb.toString() : null;
     }

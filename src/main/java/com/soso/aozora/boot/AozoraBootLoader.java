@@ -119,7 +119,7 @@ public class AozoraBootLoader {
 
             bookmarks.store();
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
         if (!compatIniFile.delete())
             compatIniFile.deleteOnExit();

@@ -44,7 +44,7 @@ public class SFileChooser extends JFileChooser {
                     if (extensions[i].equals(extension))
                         return true;
                 } catch (Exception e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace();
                 }
             }
             return false;
@@ -265,7 +265,7 @@ public class SFileChooser extends JFileChooser {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    e.printStackTrace(System.err);
+                    e.printStackTrace();
                 }
             }
         }

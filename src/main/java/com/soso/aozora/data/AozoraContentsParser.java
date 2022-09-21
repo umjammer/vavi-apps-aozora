@@ -78,16 +78,16 @@ public class AozoraContentsParser {
                 if (in != null)
                     in.close();
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
         byte[] bytes = byteOut.toByteArray();
-        TagReader tin = new TagReader(new InputStreamReader(new ByteArrayInputStream(bytes), "us-ascii"));
+        TagReader tin = new TagReader(new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.US_ASCII));
         String encoding = null;
         String tag;
         while ((tag = tin.readNextTag()) != null) {
             String lowerTag = tag.toLowerCase();
-            if (lowerTag.indexOf("/head") != -1)
+            if (lowerTag.contains("/head"))
                 break;
             String charset = TagUtil.getHttpEquivContentTypeCharset(tag);
             if (charset != null) {
@@ -201,7 +201,7 @@ public class AozoraContentsParser {
             try {
                 tin.close();
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
         }
     }

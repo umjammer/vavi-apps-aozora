@@ -141,7 +141,7 @@ public class AozoraEnv {
                 if (value.trim().length() == 0)
                     value = defaultValue;
             } catch (Exception e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
                 value = defaultValue;
             }
             return System.getProperty(key, value);

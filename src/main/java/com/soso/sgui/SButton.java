@@ -24,7 +24,7 @@ public class SButton extends JButton {
 
     private void attachKeyListener() {
         addKeyListener(new KeyAdapter() {
-            public final void keyPressed(KeyEvent event) {
+            public void keyPressed(KeyEvent event) {
                 if (event.getKeyCode() == KeyEvent.VK_ENTER)
                     doClick();
             }
@@ -33,11 +33,11 @@ public class SButton extends JButton {
 
     private void attachMouseListener() {
         addMouseListener(new MouseAdapter() {
-            public final void mouseEntered(MouseEvent event) {
+            public void mouseEntered(MouseEvent event) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
 
-            public final void mouseExited(MouseEvent event) {
+            public void mouseExited(MouseEvent event) {
                 setCursor(Cursor.getDefaultCursor());
             }
         });

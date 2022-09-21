@@ -14,19 +14,19 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
+import vavi.util.Debug;
+
 
 public class SImageIcon extends ImageIcon {
 
     private void init(URL url, String desc) {
         final URL theUrl = url;
         final String theDesc = desc;
-        Thread thread = new Thread(new Runnable() {
-            public final void run() {
-                image = Toolkit.getDefaultToolkit().getImage(theUrl);
-                if (image != null) {
-                    description = theDesc;
-                    loadImage(image);
-                }
+        Thread thread = new Thread(() -> {
+            image = Toolkit.getDefaultToolkit().getImage(theUrl);
+            if (image != null) {
+                description = theDesc;
+                loadImage(image);
             }
         });
         thread.start();
@@ -51,7 +51,7 @@ public class SImageIcon extends ImageIcon {
             try {
                 tracker.waitForID(theId, 0L);
             } catch (InterruptedException _ex) {
-                System.out.println("INTERRUPTED while loading Image");
+                Debug.println("INTERRUPTED while loading Image");
             }
             status = tracker.statusID(theId, false);
             tracker.removeImage(theImage, theId);
@@ -60,7 +60,7 @@ public class SImageIcon extends ImageIcon {
             try {
                 Thread.sleep(10L);
             } catch (InterruptedException e) {
-                e.printStackTrace(System.err);
+                e.printStackTrace();
             }
             loaded = true;
         }
@@ -111,7 +111,7 @@ public class SImageIcon extends ImageIcon {
                         Thread.sleep(500L);
                         paintImage(theOwner, theG, theX, theY);
                     } catch (InterruptedException e) {
-                        e.printStackTrace(System.err);
+                        e.printStackTrace();
                     }
                 }
             });
@@ -132,7 +132,7 @@ public class SImageIcon extends ImageIcon {
             Thread.sleep(250L);
             paintImage(owner, g, x, y);
         } catch (InterruptedException e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
     }
 

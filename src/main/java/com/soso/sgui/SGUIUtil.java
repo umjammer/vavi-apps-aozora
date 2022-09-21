@@ -42,14 +42,14 @@ public class SGUIUtil {
     public static Rectangle getBoundsRecursive(Component comp0, Component comp1) {
         Rectangle bounds0 = new Rectangle(0, 0, comp1.getWidth(), comp1.getHeight());
         Rectangle bounds1 = null;
-        Object obj = comp1;
+        Component obj = comp1;
         while (obj != null) {
-            bounds1 = ((Component) (obj)).getBounds(bounds1);
+            bounds1 = obj.getBounds(bounds1);
             bounds0.x += bounds1.x;
             bounds0.y += bounds1.y;
-            if (((Component) obj).getParent() == comp0)
+            if (obj.getParent() == comp0)
                 return bounds0;
-            obj = ((Component) obj).getParent();
+            obj = obj.getParent();
         }
         return bounds0;
     }
@@ -81,7 +81,7 @@ public class SGUIUtil {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked"})
     public static <T> T[] getChildInstanceOf(Container container, Class<T> clazz) {
         try {
             List<Object> children = new ArrayList<Object>();
@@ -105,7 +105,7 @@ public class SGUIUtil {
         Dimension size0 = comp0.getSize();
         Dimension size1 = comp1.getSize();
         Point point = getCenter(size0, size1);
-        comp1.setBounds(point.x <= 0 ? 0 : point.x, point.y <= 0 ? 0 : point.y, size1.width, size1.height);
+        comp1.setBounds(Math.max(point.x, 0), Math.max(point.y, 0), size1.width, size1.height);
     }
 
     public static Point getCenter(Dimension size0, Dimension size1) {
@@ -142,7 +142,7 @@ public class SGUIUtil {
     }
 
     public static LookAndFeel[] selectSupportedLookAndFeel(String[] names) {
-        List<LookAndFeel> lookAndFeels = new ArrayList<LookAndFeel>();
+        List<LookAndFeel> lookAndFeels = new ArrayList<>();
         for (String name : names) {
             try {
                 Class<?> clazz = Class.forName(name, true, Thread.currentThread().getContextClassLoader());
@@ -156,7 +156,7 @@ public class SGUIUtil {
             }
         }
 
-        return lookAndFeels.toArray(new LookAndFeel[lookAndFeels.size()]);
+        return lookAndFeels.toArray(new LookAndFeel[0]);
     }
 
     public static void setTextPanePreferredWidth(JTextComponent comp, int width) {
@@ -201,53 +201,43 @@ public class SGUIUtil {
     }
 
     private static Object invoke(Object obj, final Class<?> clazz, final String name, final Class<?>[] argTypes, Object[] args) throws InvocationTargetException {
-        Object method = AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                Method method = null;
-                try {
-                    method = clazz.getDeclaredMethod(name, argTypes);
-                } catch (NoSuchMethodException e) {
-                    throw new IllegalStateException(e);
-                }
-                if (method != null)
-                    method.setAccessible(true);
-                return method;
+        Object method = AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+            Method method1;
+            try {
+                method1 = clazz.getDeclaredMethod(name, argTypes);
+            } catch (NoSuchMethodException e) {
+                throw new IllegalStateException(e);
             }
+            method1.setAccessible(true);
+            return method1;
         });
         if (method == null)
             throw new IllegalStateException("cannot find method");
         else
             try {
                 return ((Method) (method)).invoke(obj, args);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalStateException(e);
-            } catch (IllegalAccessException e) {
+            } catch (IllegalArgumentException | IllegalAccessException e) {
                 throw new IllegalStateException(e);
             }
     }
 
     private static Object get(Object obj, final Class<?> clazz, final String name) {
-        Field field = (Field) AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                Field field = null;
-                try {
-                    field = clazz.getDeclaredField(name);
-                } catch (NoSuchFieldException e) {
-                    throw new IllegalStateException(e);
-                }
-                if (field != null)
-                    field.setAccessible(true);
-                return field;
+        Field field = (Field) AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+            Field field1;
+            try {
+                field1 = clazz.getDeclaredField(name);
+            } catch (NoSuchFieldException e) {
+                throw new IllegalStateException(e);
             }
+            field1.setAccessible(true);
+            return field1;
         });
         try {
             if (field == null)
                 throw new IllegalStateException("cannot find field");
             else
                 return field.get(obj);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalAccessException | IllegalArgumentException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -306,16 +296,14 @@ public class SGUIUtil {
     }
 
     public static void ensureSelectedIsVisible(final JList list) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                int selectedIndex = list.getSelectedIndex();
-                int rowCount = list.getVisibleRowCount();
-                Rectangle aRect = list.getCellBounds(Math.max(selectedIndex - rowCount / 2, 0),
-                                                     Math.min(selectedIndex + rowCount / 2, list.getModel().getSize() - 1));
-                if (aRect != null)
-                    list.scrollRectToVisible(aRect);
-                list.ensureIndexIsVisible(selectedIndex);
-            }
+        SwingUtilities.invokeLater(() -> {
+            int selectedIndex = list.getSelectedIndex();
+            int rowCount = list.getVisibleRowCount();
+            Rectangle aRect = list.getCellBounds(Math.max(selectedIndex - rowCount / 2, 0),
+                                                 Math.min(selectedIndex + rowCount / 2, list.getModel().getSize() - 1));
+            if (aRect != null)
+                list.scrollRectToVisible(aRect);
+            list.ensureIndexIsVisible(selectedIndex);
         });
     }
 
@@ -341,27 +329,13 @@ public class SGUIUtil {
         return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff) << 0;
     }
 
-    // TODO ???
     public static int compromise(int foreground, int background, float freshnessRatio) {
         int r = (int) (foreground * (1.0F - freshnessRatio) + background * freshnessRatio);
-        if (foreground > background) { // goto _L2; else goto _L1
-// _L1:
-        // i;
-        // j;
-        // goto _L3
+        if (foreground > background) {
             r = Math.min(Math.max(background, r), foreground);
-// _L2:
         } else {
-            // j;
-            // i;
-// _L3:
             r = Math.min(Math.max(foreground, r), background);
         }
-        // l;
-        // Math.max();
-        // Math.min();
-        // JVM INSTR dup ;
-        // l;
         return r;
     }
 }

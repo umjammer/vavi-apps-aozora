@@ -36,24 +36,24 @@ public class WorkViewerPane extends AozoraDefaultPane {
         setLayout(new GridBagLayout());
         setBackground(getAzContext().getDefaultBGColor());
         gbc.insets = new Insets(1, 1, 1, 1);
-        addLabel("作品名：", getWork().getTitleName());
-        addLabel("作品名読み：", getWork().getTitleKana());
-        addLabel("原題：", getWork().getOrginalBook());
+        addLabel("作品名：", this.work.getTitleName());
+        addLabel("作品名読み：", this.work.getTitleKana());
+        addLabel("原題：", this.work.getOrginalBook());
         addLabel("著者：", null);
         addSeparator();
-        addText("作品について：", getWork().getNote());
-        addLabel("仮名遣い種別：", getWork().getKanaType());
+        addText("作品について：", this.work.getNote());
+        addLabel("仮名遣い種別：", this.work.getKanaType());
         addLabel("翻訳者：", null);
         addSeparator();
-        addLabel("底本：", getWork().getOrginalBook());
-        addLabel("出版社：", getWork().getPublisher());
-        addLabel("初版発行日：", getWork().getFirstDate());
-        addLabel("入力に使用：", getWork().getInputBase());
-        addLabel("校正に使用：", getWork().getProofBase());
+        addLabel("底本：", this.work.getOrginalBook());
+        addLabel("出版社：", this.work.getPublisher());
+        addLabel("初版発行日：", this.work.getFirstDate());
+        addLabel("入力に使用：", this.work.getInputBase());
+        addLabel("校正に使用：", this.work.getProofBase());
         addSeparator();
-        addLabel("親本の底本：", getWork().getCompleteOrginalBook());
-        addLabel("親本出版社：", getWork().getCompletePublisher());
-        addLabel("親本初版発行日：", getWork().getCompleteFirstDate());
+        addLabel("親本の底本：", this.work.getCompleteOrginalBook());
+        addLabel("親本出版社：", this.work.getCompletePublisher());
+        addLabel("親本初版発行日：", this.work.getCompleteFirstDate());
         addGlue();
     }
 

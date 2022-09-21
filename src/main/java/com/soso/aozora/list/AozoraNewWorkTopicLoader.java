@@ -34,7 +34,7 @@ class AozoraNewWorkTopicLoader implements AozoraTopicLoader {
                     topics.add(new AozoraNewWorkTopicNode(context, curWorkID));
             }
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
         }
         return topics.toArray(new AozoraTopicNode[topics.size()]);
     }

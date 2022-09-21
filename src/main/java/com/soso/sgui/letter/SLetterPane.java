@@ -20,16 +20,16 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseMotionListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -62,7 +62,7 @@ public class SLetterPane extends JPanel {
         }
 
         protected SLetterCell[] getChildCells() {
-            return cells.toArray(new SLetterCell[cells.size()]);
+            return cells.toArray(new SLetterCell[0]);
         }
 
         protected boolean removeChildCell(SLetterCell cell) {
@@ -96,7 +96,7 @@ public class SLetterPane extends JPanel {
             sb.append("[");
             if (cells != null) {
                 for (SLetterCell cell : cells) {
-                    sb.append(String.valueOf(cell));
+                    sb.append(cell);
                 }
             } else {
                 sb.append("null");
@@ -117,7 +117,7 @@ public class SLetterPane extends JPanel {
         private List<SLetterCell> cells;
 
         protected OverlayHolderCell(SLetterCell... args) {
-            cells = new ArrayList<SLetterCell>();
+            cells = new ArrayList<>();
             for (SLetterCell cell : args) {
                 if (cell == null)
                     throw new IllegalArgumentException("Cell cannot be null");
@@ -221,9 +221,9 @@ public class SLetterPane extends JPanel {
         }
     }
 
-    public static interface MenuItemProducer {
+    public interface MenuItemProducer {
 
-        public abstract JMenuItem procudeMenuItem(Point point, SLetterCell[] cells, boolean enabled);
+        JMenuItem produceMenuItem(Point point, SLetterCell[] cells, boolean enabled);
     }
 
     public static SLetterPane newInstance(SLetterConstraint.ORIENTATION orientation) {
@@ -244,17 +244,17 @@ public class SLetterPane extends JPanel {
                 if (flag || matrix_ == null) {
 logger.info("@@@ here");
                     support = new SLetterPaneObserverSupport();
-                    matrix_ = new SLetterCell[20][20];
-                    setRowRange(20);
-                    setColRange(20);
-                    setFontRangeRatio(0.7861513F);
-                    setRowSpace(10);
-                    setColSpace(0);
+                    matrix_ = new SLetterCell[SLetterDefaults.ROW_COUNT][SLetterDefaults.COL_COUNT];
+                    setRowRange(SLetterDefaults.ROW_RANGE);
+                    setColRange(SLetterDefaults.COL_RANGE);
+                    setFontRangeRatio(SLetterDefaults.FONT_RANGE_RASIO);
+                    setRowSpace(SLetterDefaults.ROW_SPACE);
+                    setColSpace(SLetterDefaults.COL_SPACE);
                     setBackground(SLetterDefaults.BG_COLOR);
                     setForeground(SLetterDefaults.FG_COLOR);
                     setSelectionColor(SLetterDefaults.SELECTED_BG_COLOR);
                     setSelectedTextColor(SLetterDefaults.SELECTED_FG_COLOR);
-                    setLetterBorderRendarer(new SLetterDefaults.DefaultLetterBorderRendarer(getOrientation()));
+                    setLetterBorderRendarer(new SLetterDefaults.DefaultLetterBorderRenderer(getOrientation()));
                     point_ = new Point();
                     selectionModel = new SelectionModel();
                     addComponentListener(getComponentListener());
@@ -262,7 +262,7 @@ logger.info("@@@ here");
                     addMouseListener(getMouseListener());
                     addMouseMotionListener(getMouseMotionListener());
                     addKeyListener(getKeyListener());
-                    producers = new ArrayList<MenuItemProducer>();
+                    producers = new ArrayList<>();
                     addMenuItemProducer(getMenuItemProducer());
                 }
             }
@@ -274,7 +274,7 @@ logger.info("@@@ here");
             synchronized (this) {
                 if (componentListener == null)
                     componentListener = new ComponentAdapter() {
-                        public final void componentResized(ComponentEvent event) {
+                        public void componentResized(ComponentEvent event) {
                             SLetterPane.this.componentResized();
                         }
                     };
@@ -284,7 +284,7 @@ logger.info("@@@ here");
 
     protected void componentResized() {
         if (isRowColCountChangable()) {
-            logger.fine("SIZE CHANGED EVENT");
+logger.finer("SIZE CHANGED EVENT");
             setSize(super.getSize());
         }
         method_h();
@@ -294,11 +294,9 @@ logger.info("@@@ here");
         if (propertyChangeListener == null)
             synchronized (this) {
                 if (propertyChangeListener == null)
-                    propertyChangeListener = new PropertyChangeListener() {
-                        public final void propertyChange(PropertyChangeEvent event) {
+                    propertyChangeListener = event -> {
                             if (isFontSizeChangable() && "font".equals(event.getPropertyName()))
                                 fontChanged();
-                        }
                     };
             }
         return propertyChangeListener;
@@ -324,7 +322,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         if (mouseListener == null)
             synchronized (this) {
                 if (mouseListener == null)
-                    mouseListener = new MouseListener() {
+                    mouseListener = new MouseAdapter() {
                         public void mouseClicked(MouseEvent event) {
                             if (event.getButton() == MouseEvent.BUTTON1) {
                                 if (getMaximizedImageCell() != null) {
@@ -342,22 +340,16 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
                                 }
                             }
                         }
-
+                        @Override
                         public void mousePressed(MouseEvent event) {
                             if (event.getButton() == MouseEvent.BUTTON3) {
                                 showPopupMenu(event.getPoint());
                             } else if (getMaximizedImageCell() == null)
                                 selectionStart(event.getPoint());
                         }
-
+                        @Override
                         public void mouseReleased(MouseEvent event) {
                             selectionFinish();
-                        }
-
-                        public void mouseEntered(MouseEvent event) {
-                        }
-
-                        public void mouseExited(MouseEvent event) {
                         }
                     };
             }
@@ -368,12 +360,9 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         if (mouseMotionListener == null)
             synchronized (this) {
                 if (mouseMotionListener == null)
-                    mouseMotionListener = new MouseMotionListener() {
+                    mouseMotionListener = new MouseMotionAdapter() {
                         public void mouseDragged(MouseEvent event) {
                             selectionEndUpdate(event.getPoint());
-                        }
-
-                        public void mouseMoved(MouseEvent event) {
                         }
                     };
             }
@@ -440,7 +429,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
             synchronized (this) {
                 if (keyListener == null)
                     keyListener = new KeyAdapter() {
-                        public final void keyPressed(KeyEvent event) {
+                        public void keyPressed(KeyEvent event) {
                             if (event.isControlDown() && event.getKeyCode() == KeyEvent.VK_C)
                                 copyToClipBoard();
                         }
@@ -451,13 +440,13 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
 
     private MenuItemProducer getMenuItemProducer() {
         return new MenuItemProducer() {
-            public JMenuItem procudeMenuItem(Point point, SLetterCell[] cells, boolean enabled) {
+            public JMenuItem produceMenuItem(Point point, SLetterCell[] cells, boolean enabled) {
                 menuItem.setEnabled(enabled);
                 return menuItem;
             }
 
             JMenuItem menuItem = new JMenuItem(new AbstractAction("選択範囲のコピー") {
-                public final void actionPerformed(ActionEvent event) {
+                public void actionPerformed(ActionEvent event) {
                     copyToClipBoard();
                 }
             });
@@ -474,7 +463,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         }
 
         for (MenuItemProducer producer : producers) {
-            JMenuItem menuItem = producer.procudeMenuItem(point, cells, selected);
+            JMenuItem menuItem = producer.produceMenuItem(point, cells, selected);
             if (menuItem != null)
                 popupMenu.add(menuItem);
         }
@@ -530,16 +519,15 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
     }
 
     protected List<SLetterCell> setRowColCount(int row, int col) {
-        List<SLetterCell> result = new ArrayList<SLetterCell>();
+        List<SLetterCell> result = new ArrayList<>();
         int rs = getRowCount();
         int cs = getColCount();
         if (row > 0 && col > 0 && (rs != row || cs != col)) {
             SLetterCell[][] matrix = matrix_;
             matrix_ = new SLetterCell[row][col];
             boolean flag = true;
-            for (int r = 0; r < matrix.length; r++) {
-                for (int c = 0; c < matrix[r].length; c++) {
-                    SLetterCell cell = matrix[r][c];
+            for (SLetterCell[] cells : matrix) {
+                for (SLetterCell cell : cells) {
                     if (cell != null) {
                         if (cell instanceof OverlayHolderCell) {
                             for (SLetterCell cell1 : ((OverlayHolderCell) cell).getChildCells()) {
@@ -674,16 +662,16 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         firePropertyChange("selectedTextColor", oldValue, color);
     }
 
-    public SLetterBorderRendarer getLetterBorderRendarer() {
+    public SLetterBorderRenderer getLetterBorderRendarer() {
         return letterBorderRendarer;
     }
 
-    public void setLetterBorderRendarer(SLetterBorderRendarer rendarer) {
-        SLetterBorderRendarer oldValue = getLetterBorderRendarer();
+    public void setLetterBorderRendarer(SLetterBorderRenderer rendarer) {
+        SLetterBorderRenderer oldValue = getLetterBorderRendarer();
         if (oldValue != rendarer) {
             letterBorderRendarer = rendarer;
             syncSize();
-            support.letterBorderRendarerChanged(oldValue, rendarer);
+            support.letterBorderRendererChanged(oldValue, rendarer);
         }
     }
 
@@ -722,7 +710,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         if (this.fontSizeChangable != fontSizeChangable) {
             this.fontSizeChangable = fontSizeChangable;
             syncSize();
-            support.fontSizeChangableChanged(fontSizeChangable);
+            support.fontSizeChangeableChanged(fontSizeChangable);
         }
     }
 
@@ -758,9 +746,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
                     SLetterCell cell = matrix_[row][col];
                     if (cell != null) {
                         if (cell instanceof OverlayHolderCell) {
-                            for (SLetterCell child : ((OverlayHolderCell) cell).getChildCells()) {
-                                result.add(child);
-                            }
+                            Collections.addAll(result, ((OverlayHolderCell) cell).getChildCells());
                         } else {
                             result.add(cell);
                         }
@@ -768,7 +754,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
                 }
             }
         }
-        return result.toArray(new SLetterCell[result.size()]);
+        return result.toArray(new SLetterCell[0]);
     }
 
     public int getSelectionStart() {
@@ -892,7 +878,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
             fixedSize.width = calcPanelRowLength(getRowCount());
             fixedSize.height = calcPanelColLength(getColCount());
         }
-        logger.fine("return:" + fixedSize);
+logger.finer("return:" + fixedSize);
         return fixedSize;
     }
 
@@ -912,7 +898,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
 
     protected int calcPanelColCount(int panelColCount) {
         int colRange = getColRange() / 2;
-logger.info("colRange: " + getColRange() + ", colSpace: " + getColSpace());
+logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
         return Math.max(panelColCount - getColSpace() - colRange, 0) / (getColRange() + getColSpace());
     }
 
@@ -929,7 +915,7 @@ logger.info("colRange: " + getColRange() + ", colSpace: " + getColSpace());
         if (getOrientation() == null)
             return;
         Rectangle rectangle = new Rectangle();
-        SLetterBorderRendarer rendarer = getLetterBorderRendarer();
+        SLetterBorderRenderer renderer = getLetterBorderRendarer();
         for (int r = 0; r < matrix_.length; r++) {
             for (int c = 0; c < matrix_[r].length; c++) {
                 SLetterCell cell = matrix_[r][c];
@@ -946,13 +932,13 @@ logger.info("colRange: " + getColRange() + ", colSpace: " + getColSpace());
                     g.setColor(color);
                 }
                 rectangle = getCellBounds(r, c, rectangle);
-                if (rendarer != null)
-                    rendarer.paintCellBorder(g, rectangle);
+                if (renderer != null)
+                    renderer.paintCellBorder(g, rectangle);
             }
 
             rectangle = getCellBounds(r, 0, rectangle).union(getCellBounds(r, getColCount() - 1, null));
-            if (rendarer != null)
-                rendarer.paintRowBorder(g, rectangle);
+            if (renderer != null)
+                renderer.paintRowBorder(g, rectangle);
         }
     }
 
@@ -1352,7 +1338,7 @@ label0: {
     }
 
     public SLetterCell[] removeCellAll() {
-        List<SLetterCell> result = new ArrayList<SLetterCell>();
+        List<SLetterCell> result = new ArrayList<>();
         for (int row = 0; row < matrix_.length; row++) {
             for (int col = 0; col < matrix_[row].length; col++) {
                 SLetterCell cell = matrix_[row][col];
@@ -1370,7 +1356,7 @@ label0: {
                 }
             }
         }
-        return result.toArray(new SLetterCell[result.size()]);
+        return result.toArray(new SLetterCell[0]);
     }
 
 //    @SuppressWarnings("cast")
@@ -1399,7 +1385,7 @@ label0: {
     private float fontRangeRatio;
     private int rowSpace;
     private int colSpace;
-    private SLetterBorderRendarer letterBorderRendarer;
+    private SLetterBorderRenderer letterBorderRendarer;
     private Color selectionColor;
     private Color selectedTextColor;
     private boolean rowColCountChangable;
@@ -1408,10 +1394,10 @@ label0: {
     private SelectionModel selectionModel;
     private SLetterImageCell imageCell;
     private SLetterPaneObserverSupport support;
-    private PropertyChangeListener propertyChangeListener;
-    private ComponentListener componentListener;
-    private MouseListener mouseListener;
-    private MouseMotionListener mouseMotionListener;
-    private KeyListener keyListener;
+    private volatile PropertyChangeListener propertyChangeListener;
+    private volatile ComponentListener componentListener;
+    private volatile MouseListener mouseListener;
+    private volatile MouseMotionListener mouseMotionListener;
+    private volatile KeyListener keyListener;
     private List<MenuItemProducer> producers;
 }
