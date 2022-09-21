@@ -1255,8 +1255,9 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
     private boolean f(MatrixIndex matrix, SLetterCell cell) {
 label0: {
             MatrixIndex matrix1 = c(new MatrixIndex(matrix.row(), matrix.col()));
+            if (matrix1 != null) {
             SLetterCell cell1 = matrix_[matrix1.row()][matrix1.col()];
-            if (matrix1 != null && !cell1.isConstraintSet(SLetterConstraint.BREAK.NEW_LINE) &&
+                if (!cell1.isConstraintSet(SLetterConstraint.BREAK.NEW_LINE) &&
                                    !cell1.isConstraintSet(SLetterConstraint.BREAK.NEW_PAGE)) {
                 if (cell.isConstraintSet(SLetterConstraint.OVERLAY.FORCE_OVER)) {
                     if (cell1 instanceof OverlayHolderCell) {
@@ -1293,6 +1294,7 @@ label0: {
                     }
                 }
             }
+        }
         }
         if (cell.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER))
             cell.addConstraint(SLetterConstraint.OVERLAY.HALF_OVER_HEAD);
