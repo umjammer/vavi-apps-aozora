@@ -12,13 +12,18 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraUtil;
 import com.soso.aozora.html.TagReader;
 import com.soso.aozora.html.TagUtil;
+import vavi.util.Debug;
 
 
+/**
+ * HTML formatted Aozora parser.
+ */
 public class AozoraContentsParser {
 
     private static class NestedContentsParserHandler implements AozoraContentsParserHandler {
@@ -53,6 +58,11 @@ public class AozoraContentsParser {
         }
     }
 
+    /**
+     *
+     * @param context not used in this class.
+     * @param handler
+     */
     public AozoraContentsParser(AozoraContext context, AozoraContentsParserHandler handler) {
         this.context = context;
         this.handler = handler;
@@ -66,6 +76,7 @@ public class AozoraContentsParser {
         parse(AozoraUtil.getInputStream(url), url);
     }
 
+    // TODO xml character reference doesn't support
     public void parse(InputStream in, URL base) throws IOException {
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         try {
@@ -92,11 +103,13 @@ public class AozoraContentsParser {
             String charset = TagUtil.getHttpEquivContentTypeCharset(tag);
             if (charset != null) {
                 encoding = charset;
+Debug.println("encoding detected: " + encoding);
                 break;
             }
         }
         if (encoding == null)
             encoding = "JISAutoDetect";
+Debug.println("encoding set: " + encoding);
         parse((new InputStreamReader(new ByteArrayInputStream(bytes), encoding)), base);
     }
 

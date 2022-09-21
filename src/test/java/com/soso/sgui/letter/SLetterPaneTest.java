@@ -4,6 +4,8 @@
  * Programmed by Naohide Sano
  */
 
+package com.soso.sgui.letter;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.io.BufferedReader;
@@ -23,21 +25,18 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 
 import com.soso.aozora.data.AozoraBunkoRuby;
-import com.soso.sgui.letter.SLetterCellFactory;
-import com.soso.sgui.letter.SLetterConstraint;
-import com.soso.sgui.letter.SLetterPane;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import vavi.util.Debug;
 
 
 /**
- * Test01. 
+ * com.soso.sgui.letter.SLetterPaneTest.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2011/09/14 umjammer initial version <br>
  */
-public class Test01 {
+public class SLetterPaneTest {
 
     /** */
     public static InputStream getTextInputStream(File file) throws IOException {
@@ -99,7 +98,7 @@ Debug.println("OVER at " + c);
             }
         }
 
-        final JFrame frame = new JFrame("Test01");
+        final JFrame frame = new JFrame("com.soso.sgui.letter.SLetterPaneTest");
         frame.getContentPane().add(letterPane);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();

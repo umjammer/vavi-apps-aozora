@@ -19,12 +19,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import com.soso.sgui.SFontChooser;
+import vavi.util.Debug;
 
 
 public class SVTest {
 
     public static void main(String[] args) throws Exception {
-        System.out.println('—');
+        Debug.println('—');
         final SLetterPane letterPane = SLetterPane.newInstance(SLetterConstraint.ORIENTATION.TBRL);
         letterPane.setRowColCountChangable(true);
         letterPane.setFontSizeChangable(false);
@@ -68,7 +69,7 @@ public class SVTest {
         frame.pack();
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
-            public final void windowClosing(WindowEvent event) {
+            public void windowClosing(WindowEvent event) {
                 System.exit(0);
             }
         });

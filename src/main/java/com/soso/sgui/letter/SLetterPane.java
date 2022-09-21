@@ -37,6 +37,9 @@ import javax.swing.JPopupMenu;
 import javax.swing.plaf.FontUIResource;
 
 
+/**
+ * Represents a page.
+ */
 public class SLetterPane extends JPanel {
 
     static Logger logger = Logger.getLogger(SLetterPane.class.getName());
@@ -194,7 +197,7 @@ public class SLetterPane extends JPanel {
         }
 
         protected void selectionStart(MatrixIndex index) {
-            logger.fine("Selection|Start|" + index);
+logger.fine("Selection|Start|" + index);
             start = index;
             end = null;
             selectionFinished = false;
@@ -202,13 +205,13 @@ public class SLetterPane extends JPanel {
 
         protected void selectionEndUpdate(MatrixIndex index) {
             if (!isSelectionFinished()) {
-                logger.fine("Selection|EndUpdate|" + index);
+logger.fine("Selection|EndUpdate|" + index);
                 end = index;
             }
         }
 
         protected void selectionFinish() {
-            logger.fine("Selection|Finished|" + start + "|" + end);
+logger.fine("Selection|Finished|" + start + "|" + end);
             selectionFinished = true;
         }
 
@@ -242,7 +245,6 @@ public class SLetterPane extends JPanel {
         if (flag || matrix_ == null) {
             synchronized (this) {
                 if (flag || matrix_ == null) {
-logger.info("@@@ here");
                     support = new SLetterPaneObserverSupport();
                     matrix_ = new SLetterCell[SLetterDefaults.ROW_COUNT][SLetterDefaults.COL_COUNT];
                     setRowRange(SLetterDefaults.ROW_RANGE);
@@ -295,8 +297,8 @@ logger.finer("SIZE CHANGED EVENT");
             synchronized (this) {
                 if (propertyChangeListener == null)
                     propertyChangeListener = event -> {
-                            if (isFontSizeChangable() && "font".equals(event.getPropertyName()))
-                                fontChanged();
+                        if (isFontSizeChangable() && "font".equals(event.getPropertyName()))
+                            fontChanged();
                     };
             }
         return propertyChangeListener;
@@ -304,7 +306,7 @@ logger.finer("SIZE CHANGED EVENT");
 
     protected void fontChanged() {
         if (isFontSizeChangable()) {
-            logger.fine("FONT CHANGED EVENT: getFontRangeRatio(): " + getFontRangeRatio());
+logger.fine("FONT CHANGED EVENT: getFontRangeRatio(): " + getFontRangeRatio());
             Font font = super.getFont();
             if (font != null) {
                 int range = Math.round(Math.max(font.getSize2D(), 16) / getFontRangeRatio());
@@ -570,7 +572,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         if (rowRange < 0)
             throw new IllegalArgumentException("must be positive");
         if (rowRange == 0) {
-            new Exception().printStackTrace();
+new Exception().printStackTrace();
             logger.warning("rowRange is 0");
         }
         int oldValue = this.rowRange;
@@ -803,13 +805,13 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
     }
 
     public void setSize(Dimension size) {
-        logger.fine(String.valueOf(size));
+logger.fine(String.valueOf(size));
         if (isRowColCountChangable())
             setRowColCountBySize(size.width, size.height);
     }
 
     public void setPreferredSize(Dimension size) {
-        logger.fine(String.valueOf(size));
+logger.fine(String.valueOf(size));
         if (isRowColCountChangable())
             setRowColCountBySize(size.width, size.height);
     }
@@ -836,27 +838,27 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
     }
 
     public Dimension getMaximumSize() {
-        logger.fine("");
+logger.fine("");
         return getFixedSize(null);
     }
 
     public Dimension getMinimumSize() {
-        logger.fine("getMinimumSize");
+logger.fine("getMinimumSize");
         return getFixedSize(null);
     }
 
     public Dimension getPreferredSize() {
-        logger.fine("getPreferredSize");
+logger.fine("getPreferredSize");
         return getFixedSize(null);
     }
 
     public Dimension getSize() {
-        logger.fine("getSize");
+logger.fine("getSize");
         return getFixedSize(null);
     }
 
     public Dimension getSize(Dimension size) {
-        logger.fine("getSize");
+logger.fine("getSize");
         return getFixedSize(size);
     }
 
@@ -1256,45 +1258,45 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
 label0: {
             MatrixIndex matrix1 = c(new MatrixIndex(matrix.row(), matrix.col()));
             if (matrix1 != null) {
-            SLetterCell cell1 = matrix_[matrix1.row()][matrix1.col()];
+                SLetterCell cell1 = matrix_[matrix1.row()][matrix1.col()];
                 if (!cell1.isConstraintSet(SLetterConstraint.BREAK.NEW_LINE) &&
-                                   !cell1.isConstraintSet(SLetterConstraint.BREAK.NEW_PAGE)) {
-                if (cell.isConstraintSet(SLetterConstraint.OVERLAY.FORCE_OVER)) {
-                    if (cell1 instanceof OverlayHolderCell) {
-                        ((OverlayHolderCell) cell1).addChildCell(cell);
-                    } else {
-                        OverlayHolderCell cell0 = new OverlayHolderCell(cell1, cell);
-                        matrix_[matrix1.row()][matrix1.col()] = cell0;
-                    }
-                    fireCellAdded_a(cell);
-                    return true;
-                }
-                if (cell.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER)) {
-                    if (cell1 instanceof OverlayHolderCell) {
-                        OverlayHolderCell cell3 = (OverlayHolderCell) cell1;
-                        boolean flag = false;
-                        for (SLetterCell cell2 : cell3.getChildCells()) {
-                            if (!cell2.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_HEAD))
-                                break label0;
-                            flag = true;
+                    !cell1.isConstraintSet(SLetterConstraint.BREAK.NEW_PAGE)) {
+                    if (cell.isConstraintSet(SLetterConstraint.OVERLAY.FORCE_OVER)) {
+                        if (cell1 instanceof OverlayHolderCell) {
+                            ((OverlayHolderCell) cell1).addChildCell(cell);
+                        } else {
+                            OverlayHolderCell cell0 = new OverlayHolderCell(cell1, cell);
+                            matrix_[matrix1.row()][matrix1.col()] = cell0;
                         }
-        
-                        cell.addConstraint(flag ? (SLetterConstraint) (SLetterConstraint.OVERLAY.HALF_OVER_TAIL) :
-                                                  (SLetterConstraint) (SLetterConstraint.OVERLAY.HALF_OVER_HEAD));
-                        cell3.addChildCell(cell);
                         fireCellAdded_a(cell);
                         return true;
                     }
-                    if (cell1.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_HEAD)) {
-                        cell.addConstraint(SLetterConstraint.OVERLAY.HALF_OVER_TAIL);
-                        OverlayHolderCell overlayholdercell2 = new OverlayHolderCell(cell1, cell);
-                        matrix_[matrix1.row()][matrix1.col()] = overlayholdercell2;
-                        fireCellAdded_a(cell);
-                        return true;
+                    if (cell.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER)) {
+                        if (cell1 instanceof OverlayHolderCell) {
+                            OverlayHolderCell cell3 = (OverlayHolderCell) cell1;
+                            boolean flag = false;
+                            for (SLetterCell cell2 : cell3.getChildCells()) {
+                                if (!cell2.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_HEAD))
+                                    break label0;
+                                flag = true;
+                            }
+
+                            cell.addConstraint(flag ? (SLetterConstraint) (SLetterConstraint.OVERLAY.HALF_OVER_TAIL) :
+                                    (SLetterConstraint) (SLetterConstraint.OVERLAY.HALF_OVER_HEAD));
+                            cell3.addChildCell(cell);
+                            fireCellAdded_a(cell);
+                            return true;
+                        }
+                        if (cell1.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_HEAD)) {
+                            cell.addConstraint(SLetterConstraint.OVERLAY.HALF_OVER_TAIL);
+                            OverlayHolderCell overlayholdercell2 = new OverlayHolderCell(cell1, cell);
+                            matrix_[matrix1.row()][matrix1.col()] = overlayholdercell2;
+                            fireCellAdded_a(cell);
+                            return true;
+                        }
                     }
                 }
             }
-        }
         }
         if (cell.isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER))
             cell.addConstraint(SLetterConstraint.OVERLAY.HALF_OVER_HEAD);
