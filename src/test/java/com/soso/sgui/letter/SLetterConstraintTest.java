@@ -1,20 +1,77 @@
 /*
+ * Copyright (c) 2011 by Naohide Sano, All rights reserved.
  *
+ * Programmed by Naohide Sano
  */
 
 package com.soso.sgui.letter;
 
-import org.junit.Test;
+import java.awt.image.BufferedImage;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import javax.imageio.ImageIO;
+import javax.swing.JFrame;
 
-import static org.junit.Assert.*;
+import com.apple.eawt.Application;
+import com.soso.aozora.data.AozoraBunkoRuby;
+import com.soso.aozora.data.AozoraBunkoRubyTest;
+import com.soso.aozora.viewer.MyTextViewerPane;
+import vavi.util.properties.annotation.Property;
+import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- * 
+ * SLetterConstraintTest
  */
+//@EnabledIf("localPropertiesExists")
+@PropsEntity(url = "file:local.properties")
 public class SLetterConstraintTest {
-    @Test
-    public void test01() {
+
+//    static boolean localPropertiesExists() {
+//        return Files.exists(Paths.get("local.properties"));
+//    }
+
+    @Property(name = "aozora.zip")
+    String file;
+
+    public static void main(String[] args) throws Exception {
+        URI uri = URI.create("https://www.aozora.gr.jp/cards/000372/files/42810_23981.html");
+        String title = uri.toString();
+
+        SLetterConstraintTest app = new SLetterConstraintTest();
+        PropsEntity.Util.bind(app);
+
+        Path textPath = AozoraBunkoRubyTest.getTextPath(Paths.get(app.file));
+        Reader reader = Files.newBufferedReader(textPath, StandardCharsets.UTF_8);
+        Writer writer = new StringWriter();
+//        AozoraParser converter = new AozoraParser(reader, writer);
+        AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);
+        converter.printHtml();
+        URL base = new URL("https://vavi.com");
+        Reader forParse = new StringReader(writer.toString());
+        title = textPath.getFileName().toString();
+
+        BufferedImage icon = ImageIO.read(Files.newInputStream(Paths.get("tmp/Tate.iconset/icon_128x128x2.png")));
+        Application application = Application.getApplication();
+        application.setDockIconImage(icon);
+        application.setDockIconBadge("99");
+
+//        MyTextViewerPane pane = new MyTextViewerPane(uri, 0);
+        MyTextViewerPane pane = new MyTextViewerPane(forParse, base, 0);
+        JFrame frame = new JFrame(title);
+        frame.setLocation(200, 100);
+        frame.getContentPane().add(pane);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
     }
 }
 

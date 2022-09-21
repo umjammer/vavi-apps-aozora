@@ -25,7 +25,7 @@ import vavi.util.Debug;
 public class SVTest {
 
     public static void main(String[] args) throws Exception {
-        Debug.println('—');
+Debug.println('—');
         final SLetterPane letterPane = SLetterPane.newInstance(SLetterConstraint.ORIENTATION.TBRL);
         letterPane.setRowColCountChangable(true);
         letterPane.setFontSizeChangable(false);
@@ -35,32 +35,32 @@ public class SVTest {
         letterPane.setRowCount(10);
         letterPane.setRowSpace(40);
         letterPane.setColSpace(20);
-        letterPane.setBackground(Color.LIGHT_GRAY);
+        letterPane.setBackground(new Color(253, 248, 225));
         letterPane.setForeground(Color.DARK_GRAY);
         letterPane.setSelectionColor(Color.BLUE);
         letterPane.setSelectedTextColor(Color.CYAN);
-        letterPane.setFont(new Font("IPA明朝", Font.PLAIN, 12));
+        letterPane.setFont(new Font("Hiragino Mincho ProN", Font.PLAIN, 12));
         String s = "「てすと」『テストー。』漢字あぁいぃうぅえぇおぉつっ。きゃチュぴょ！て、す・と。\nTest, test. It's test!?";
         s += '—';
         for (char c : s.toCharArray()) {
             boolean flag = letterPane.addCell(SLetterCellFactory.getInstance().createGlyphCell(c, c != '漢' ? c != '字' ? null : "じ".toCharArray() : "かん".toCharArray()));
             if (!flag) {
-                System.out.println("OVER at " + c);
+Debug.println("OVER at " + c);
                 break;
             }
             if (c == '字') {
-                letterPane.addCell(SLetterCellFactory.getInstance().createImageCell((new ImageIcon(new URL("http://www.aozora.gr.jp/gaiji/1-85/1-85-25.png"))).getImage(), "PMG".toCharArray()));
-                letterPane.addCell(SLetterCellFactory.getInstance().createImageCell(new URL("http://www.aozora.gr.jp/gaiji0213/kigou/1_2_22.gif"), true, true, "GIF".toCharArray(), null, "これは画像"));
-                letterPane.addCell(SLetterCellFactory.getInstance().createImageCell(Toolkit.getDefaultToolkit().createImage(new URL("http://www.aozora.gr.jp/gaiji0213/kigou/1_2_22.gif"))));
+                letterPane.addCell(SLetterCellFactory.getInstance().createImageCell((new ImageIcon(new URL("https://www.aozora.gr.jp/gaiji/1-85/1-85-25.png"))).getImage(), "PMG".toCharArray()));
+                letterPane.addCell(SLetterCellFactory.getInstance().createImageCell(new URL("https://www.aozora.gr.jp/gaiji0213/kigou/1_2_22.gif"), true, true, "GIF".toCharArray(), null, "これは画像"));
+                letterPane.addCell(SLetterCellFactory.getInstance().createImageCell(Toolkit.getDefaultToolkit().createImage(new URL("https://www.aozora.gr.jp/gaiji0213/kigou/1_2_22.gif"))));
             }
         }
 
         final JFrame frame = new JFrame("SVtest");
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(new JButton(new AbstractAction("フォント:" + letterPane.getFont()) {
-            public final void actionPerformed(ActionEvent actionevent) {
+            public void actionPerformed(ActionEvent actionevent) {
                 Font font = SFontChooser.showDialog(frame, getValue("Name").toString(), letterPane.getFont());
-                System.out.println("newFont:" + font);
+                Debug.println("newFont:" + font);
                 putValue("Name", "フォント:" + font);
                 letterPane.setFont(font);
             }
