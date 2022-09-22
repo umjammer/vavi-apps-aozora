@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package com.soso.aozora.data;
+package vavi.text.aozora.converter;
 
 import java.nio.charset.Charset;
 import java.nio.file.Files;

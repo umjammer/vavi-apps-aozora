@@ -2,7 +2,7 @@
  * http://www.35-35.net/aozora/
  */
 
-package com.soso.aozora.viewer;
+package vavi.text.aozora.viewer;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -72,6 +72,12 @@ import static javax.swing.SwingUtilities.invokeAndWait;
 
 /**
  * based on {@link com.soso.aozora.viewer.TextViewerPane}
+ *
+ * TODO
+ *  - half letter strings are separated into 2 letters, spacing is suck
+ *  - half digit 2 letters pair must not be rotated
+ *  - external characters should be replaced into unicode letters
+ *  - unicode specification should be replaced into unicode letters
  */
 public class MyTextViewerPane extends JPanel {
 
@@ -664,7 +670,9 @@ Debug.println(Level.FINER, rb + ", " + rt);
     void disposeWithError(final Throwable t) {
         try {
             t.printStackTrace();
-            invokeAndWait(() -> JOptionPane.showInternalMessageDialog(MyTextViewerPane.this, Arrays.toString(t.getStackTrace()), "作品を表示できません。", JOptionPane.ERROR_MESSAGE));
+            invokeAndWait(() -> JOptionPane.showInternalMessageDialog(MyTextViewerPane.this,
+                    String.join(",", Arrays.toString(t.getStackTrace()).split(",")),
+                    "作品を表示できません。", JOptionPane.ERROR_MESSAGE));
         } catch (Exception e) {
             e.printStackTrace();
         }

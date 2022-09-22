@@ -21,15 +21,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
@@ -43,24 +39,24 @@ import com.soso.sgui.SInternalFrame;
 
 public class SImageResizerPane extends JPanel {
 
-    static enum SizeOption {
+    enum SizeOption {
         ORIGINAL,
         RATIO_EXTEND,
         FULL_EXTEND
     }
 
     public BufferedImage showImageResizerInternalDialog(Container container, String title) {
-        a(container, title);
+        showInternalDialog(container, title);
         return getResultImage();
     }
 
     public Image showImageResizerInternalDialog(Container container, String title, boolean flag) {
-        a(container, title);
+        showInternalDialog(container, title);
         return getResultImage(flag);
     }
 
     @SuppressWarnings("deprecation")
-    private void a(Container container, String title) {
+    private void showInternalDialog(Container container, String title) {
         final SInternalFrame iframe = new SInternalFrame();
         iframe.setTitle(title);
         iframe.setResizable(false);
@@ -79,7 +75,7 @@ public class SImageResizerPane extends JPanel {
             container.add(iframe, BorderLayout.CENTER);
         }
         iframe.addInternalFrameListener(new InternalFrameAdapter() {
-            public final void internalFrameClosing(InternalFrameEvent event) {
+            public void internalFrameClosing(InternalFrameEvent event) {
                 doNotifyAll();
             }
         });
@@ -136,11 +132,7 @@ public class SImageResizerPane extends JPanel {
                 doNotifyAll();
             }
         });
-        setDisposer(new Runnable() {
-            public void run() {
-                dialog.dispose();
-            }
-        });
+        setDisposer(dialog::dispose);
         dialog.setVisible(true);
     }
 
@@ -287,7 +279,7 @@ public class SImageResizerPane extends JPanel {
         approveButton.setText("完了");
         approveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
-                a(isAnimated());
+                showInternalDialog(isAnimated());
             }
         });
         panel.add(approveButton);
@@ -312,11 +304,11 @@ public class SImageResizerPane extends JPanel {
             grassPanel.setOriginalSize(true);
             return;
         case RATIO_EXTEND:
-            grassPanel.setSize_a((Dimension) null);
+            grassPanel.setSize_a(null);
             grassPanel.setOriginalSize(false);
             return;
         case FULL_EXTEND:
-            grassPanel.setSize_a((Dimension) null);
+            grassPanel.setSize_a(null);
             grassPanel.setOriginalSize(false);
             return;
         }
@@ -359,7 +351,7 @@ public class SImageResizerPane extends JPanel {
         doNotifyAll();
     }
 
-    final void a(boolean flag) {
+    final void showInternalDialog(boolean flag) {
         if (flag) {
             image_k = imagePanel.getImage_a(flag);
             doNotifyAll();
@@ -399,31 +391,6 @@ public class SImageResizerPane extends JPanel {
 
     public boolean isAnimated() {
         return animated;
-    }
-
-    public static void main(String[] args) {
-        final JFrame frame = new JFrame();
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent event) {
-                System.exit(0);
-            }
-        });
-        SButton button = new SButton();
-        button.setText("test");
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                SImageResizerPane pane = new SImageResizerPane(new Dimension(300, 200), SImageResizerPane.DEFAULT_CANVAS_SIZE, null, Image.SCALE_REPLICATE);
-                Image image = pane.showImageResizerInternalDialog(frame.getLayeredPane(), "イメージリサイズ", false);
-                if (image != null) {
-                    JOptionPane.showConfirmDialog(frame, "リサイズされました", "test", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(image));
-                } else {
-                    JOptionPane.showConfirmDialog(frame, "キャンセルです", "test", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        });
-        frame.getContentPane().add(button);
-        frame.pack();
-        frame.setVisible(true);
     }
 
     private static final long serialVersionUID = 0x69dc8253L;

@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package com.soso.aozora.data;
+package vavi.text.aozora.converter;
 
 import java.io.IOException;
 import java.net.URI;

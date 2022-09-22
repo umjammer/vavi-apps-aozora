@@ -233,7 +233,10 @@ public class SLetterGlyphCell extends SLetterCell {
         return sb.toString();
     }
 
+    /** a letter */
     private char main;
+    /** rubys TODO this is not good that having separated rubys */
     private char[] rubys;
+    /** */
     private Font font;
 }

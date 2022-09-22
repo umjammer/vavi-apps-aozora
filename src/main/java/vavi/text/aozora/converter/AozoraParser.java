@@ -2,7 +2,7 @@
  * https://github.com/weimingtom/AozoraParser/blob/master/AozoraParser.java
  */
 
-package com.soso.aozora.data;
+package vavi.text.aozora.converter;
 
 import java.io.PrintWriter;
 import java.io.Reader;

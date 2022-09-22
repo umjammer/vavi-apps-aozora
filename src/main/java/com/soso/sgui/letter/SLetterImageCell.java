@@ -28,6 +28,7 @@ public class SLetterImageCell extends SLetterGlyphCell {
 
     private static class s_ImageFilter extends RGBImageFilter {
 
+        @Override
         public final int filterRGB(int x, int y, int rgb) {
             Color color = new Color(rgb, true);
             Color color1 = new Color(a(color_a.getRed(), color_b.getRed(), color.getRed()),

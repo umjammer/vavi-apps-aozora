@@ -34,7 +34,7 @@ public class AozoraUtil {
         int nameIndex = url.lastIndexOf('/');
         if (nameIndex != -1) {
             String name = url.substring(nameIndex + 1);
-            URL resURL = AozoraUtil.class.getClassLoader().getResource(name);
+            URL resURL = AozoraUtil.class.getClassLoader().getResource("images/" + name);
             if (resURL != null) {
                 logger.finer("icon | " + name + " | " + resURL);
                 icon = new ImageIcon(resURL);

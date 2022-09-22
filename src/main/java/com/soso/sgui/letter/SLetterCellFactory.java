@@ -4,11 +4,12 @@
 
 package com.soso.sgui.letter;
 
-import com.soso.sgui.text.CharacterUtil;
 import java.awt.Font;
 import java.awt.Image;
 import java.net.URL;
 import javax.swing.ImageIcon;
+
+import com.soso.sgui.text.CharacterUtil;
 
 
 public class SLetterCellFactory {
@@ -89,6 +90,7 @@ public class SLetterCellFactory {
     }
 
     public SLetterCell createImageCell(Image image, boolean resize, boolean maximizable, char[] rubys, Font font, String text) {
+//new Exception("image: " + text).printStackTrace();
         SLetterImageCell imageCell = new SLetterImageCell(image, resize, maximizable, rubys, font, text);
         return imageCell;
     }

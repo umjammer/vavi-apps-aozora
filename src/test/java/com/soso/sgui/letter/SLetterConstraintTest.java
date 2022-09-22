@@ -21,16 +21,15 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
 import com.apple.eawt.Application;
-import com.soso.aozora.data.AozoraBunkoRuby;
-import com.soso.aozora.data.AozoraBunkoRubyTest;
-import com.soso.aozora.data.AozoraParser;
-import com.soso.aozora.viewer.MyTextViewerPane;
+import vavi.text.aozora.converter.AozoraBunkoRuby;
+import vavi.text.aozora.converter.AozoraBunkoRubyTest;
+import vavi.text.aozora.viewer.MyTextViewerPane;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- * SLetterConstraintTest
+ * Application
  */
 //@EnabledIf("localPropertiesExists")
 @PropsEntity(url = "file:local.properties")
@@ -65,8 +64,8 @@ public class SLetterConstraintTest {
         application.setDockIconImage(icon);
         application.setDockIconBadge("99");
 
-//        MyTextViewerPane pane = new MyTextViewerPane(uri, 0);
-        MyTextViewerPane pane = new MyTextViewerPane(forParse, base, 0);
+        MyTextViewerPane pane = new MyTextViewerPane(uri, 0);
+//        MyTextViewerPane pane = new MyTextViewerPane(forParse, base, 0);
         JFrame frame = new JFrame(title);
         frame.setLocation(200, 100);
         frame.getContentPane().add(pane);

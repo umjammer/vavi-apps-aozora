@@ -24,16 +24,16 @@ import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
-import com.soso.aozora.data.AozoraBunkoRuby;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
+import vavi.text.aozora.converter.AozoraBunkoRuby;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- * com.soso.sgui.letter.SLetterPaneTest.
+ * SLetterPaneTest.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2011/09/14 umjammer initial version <br>

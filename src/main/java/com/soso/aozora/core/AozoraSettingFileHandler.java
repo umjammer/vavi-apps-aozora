@@ -148,24 +148,6 @@ public class AozoraSettingFileHandler {
         }
     }
 
-    public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
-        AozoraSettingFileHandler test = new AozoraSettingFileHandler();
-        AozoraIniFileBean ini = test.getIni();
-        String xml = test.createXML(ini);
-Debug.println(xml);
-        ini.setSystemFont(new Font("Dialog", Font.PLAIN, 13));
-        ini.putBookmark("234", 123);
-        ini.putBookmark("7567", 0x34084);
-        ini.putBookmark("23464564", 1);
-        ini.setRowSpace(2);
-        ini.setForeground(new Color(0xaabbccdd, true));
-        ini.setBackground(new Color(0x00000000, false));
-Debug.println("====================");
-        String newXML = test.createXML(ini);
-Debug.println(newXML);
-        test.writeAozoraIni(ini);
-    }
-
     public void writeAozoraIni(AozoraIniFileBean bean) throws IOException {
         PrintWriter out = null;
         try {
@@ -180,7 +162,7 @@ Debug.println(newXML);
         }
     }
 
-    private String createXML(AozoraIniFileBean bean) {
+    String createXML(AozoraIniFileBean bean) {
         String tab = "\t";
         StringBuilder xml = new StringBuilder(withNewLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
         xml.append(withNewLine("<aozora>"));

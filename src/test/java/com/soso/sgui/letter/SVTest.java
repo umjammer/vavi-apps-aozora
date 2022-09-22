@@ -22,6 +22,9 @@ import com.soso.sgui.SFontChooser;
 import vavi.util.Debug;
 
 
+/**
+ * many types of cells
+ */
 public class SVTest {
 
     public static void main(String[] args) throws Exception {
@@ -60,18 +63,14 @@ Debug.println("OVER at " + c);
         frame.getContentPane().add(new JButton(new AbstractAction("フォント:" + letterPane.getFont()) {
             public void actionPerformed(ActionEvent actionevent) {
                 Font font = SFontChooser.showDialog(frame, getValue("Name").toString(), letterPane.getFont());
-                Debug.println("newFont:" + font);
+Debug.println("newFont:" + font);
                 putValue("Name", "フォント:" + font);
                 letterPane.setFont(font);
             }
         }), BorderLayout.NORTH);
         frame.getContentPane().add(letterPane, BorderLayout.CENTER);
         frame.pack();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent event) {
-                System.exit(0);
-            }
-        });
     }
 }

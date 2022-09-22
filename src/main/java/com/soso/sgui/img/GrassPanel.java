@@ -12,6 +12,7 @@ import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -26,7 +27,7 @@ import com.soso.sgui.SGUIUtil;
 import vavi.util.Debug;
 
 
-final class GrassPanel extends JPanel implements MouseListener, MouseMotionListener {
+final class GrassPanel extends JPanel {
 
     private static final long serialVersionUID = 0x5baf68d6L;
     private static final Dimension size_a = new Dimension(10, 10);
@@ -193,8 +194,8 @@ Debug.println("shutdownHook: " + getClass().getName());
     private void initGUI() {
         setLayout(null);
         SGUIUtil.setSizeALL(this, size_i);
-        addMouseListener(this);
-        addMouseMotionListener(this);
+        addMouseListener(mouseAdapter);
+        addMouseMotionListener(mouseAdapter);
     }
 
     void loadImage(Image image) {
@@ -327,57 +328,54 @@ Debug.println("shutdownHook: " + getClass().getName());
         resize_a(w, h, rect_t.width, rect_t.height);
     }
 
-    public void mouseClicked(MouseEvent event) {
-    }
-
-    public void mouseEntered(MouseEvent event) {
-    }
-
-    public void mouseExited(MouseEvent event) {
-    }
-
-    public void mousePressed(MouseEvent event) {
-        int x = event.getX();
-        int y = event.getY();
-        if (containsResizer(x, y))
-            resizerPressed = true;
-        else if (containsMover(x, y))
-            moverPressed = true;
-        rect_t = moverBounds.getBounds();
-        point_u = new Point(x, y);
-    }
-
-    public void mouseReleased(MouseEvent event) {
-        if (resizerPressed) {
-            resizerPressed = false;
-            update_h();
+    private final MouseAdapter mouseAdapter = new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent event) {
+            int x = event.getX();
+            int y = event.getY();
+            if (containsResizer(x, y))
+                resizerPressed = true;
+            else if (containsMover(x, y))
+                moverPressed = true;
+            rect_t = moverBounds.getBounds();
+            point_u = new Point(x, y);
         }
-        if (moverPressed) {
-            moverPressed = false;
-            update_h();
-        }
-    }
 
-    public void mouseDragged(MouseEvent event) {
-        if (resizerPressed)
-            doResize_c(event.getX(), event.getY());
-        if (moverPressed)
-            doMove_d(event.getX(), event.getY());
-    }
-
-    public void mouseMoved(MouseEvent event) {
-        if (containsResizer(event.getX(), event.getY())) {
-            isResize = true;
-            setCursor(new Cursor(Cursor.SE_RESIZE_CURSOR));
-        } else if (containsMover(event.getX(), event.getY())) {
-            isResize = false;
-            setCursor(new Cursor(Cursor.MOVE_CURSOR));
-        } else {
-            isResize = false;
-            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        @Override
+        public void mouseReleased(MouseEvent event) {
+            if (resizerPressed) {
+                resizerPressed = false;
+                update_h();
+            }
+            if (moverPressed) {
+                moverPressed = false;
+                update_h();
+            }
         }
-        repaint();
-    }
+
+        @Override
+        public void mouseDragged(MouseEvent event) {
+            if (resizerPressed)
+                doResize_c(event.getX(), event.getY());
+            if (moverPressed)
+                doMove_d(event.getX(), event.getY());
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent event) {
+            if (containsResizer(event.getX(), event.getY())) {
+                isResize = true;
+                setCursor(new Cursor(Cursor.SE_RESIZE_CURSOR));
+            } else if (containsMover(event.getX(), event.getY())) {
+                isResize = false;
+                setCursor(new Cursor(Cursor.MOVE_CURSOR));
+            } else {
+                isResize = false;
+                setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+            repaint();
+        }
+    };
 
     void setHints(int hints) {
         this.hints = hints;
