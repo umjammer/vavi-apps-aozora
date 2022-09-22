@@ -9,11 +9,9 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Container;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-
 import javax.swing.JInternalFrame;
 import javax.swing.JLayeredPane;
 
@@ -41,15 +39,18 @@ class AozoraCommentNoteDecorator extends AozoraCommentDecorator {
             return delta;
         }
 
+        @Override
         public void setRowRange(int rowRange) {
             setDelta(rowRange);
         }
 
+        @Override
         public void setColRange(int colRange) {
             setDelta(colRange);
         }
 
-        public void paintCells(Graphics g) {
+        @Override
+        public void paintCells(Graphics2D g) {
             super.paintCells(g);
         }
 
@@ -68,6 +69,7 @@ class AozoraCommentNoteDecorator extends AozoraCommentDecorator {
         super(context, comment, textPane, firstCell);
         commentPane = null;
         getTextPane().addObserver(new SLetterPaneObserverHelper() {
+            @Override
             public void cellRemoved(SLetterCell cell) {
                 checkCellRemoved(cell);
             }
@@ -79,21 +81,21 @@ class AozoraCommentNoteDecorator extends AozoraCommentDecorator {
             removeCommentPane();
     }
 
-    public void decorateBeforePaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
+    @Override
+    public void decorateBeforePaint(Graphics2D g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
     }
 
+    @Override
     public void removeDecoration(SLetterCell cell) {
         if (cell == getFirstCell())
             removeCommentPane();
     }
 
-    public void decorateAfterPaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2d = is2d ? (Graphics2D) g : null;
+    @Override
+    public void decorateAfterPaint(Graphics2D g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
         Color color0 = g.getColor();
-        Composite composite0 = is2d ? g2d.getComposite() : null;
-        if (is2d)
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7F));
+        Composite composite0 = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7F));
         if (cell == getFirstCell()) {
             int delta = getTextPane().getRowSpace() / 2;
             delta = Math.min(delta, getTextPane().getRowRange());
@@ -148,7 +150,7 @@ class AozoraCommentNoteDecorator extends AozoraCommentDecorator {
                    (cellBounds.x + cellBounds.width) - 1,
                    (cellBounds.y + cellBounds.height) - 1);
         if (composite0 != null)
-            g2d.setComposite(composite0);
+            g.setComposite(composite0);
         if (color0 != null)
             g.setColor(color0);
     }
@@ -188,8 +190,8 @@ class AozoraCommentNoteDecorator extends AozoraCommentDecorator {
             commentPane.setFontRangeRatio(1.0F);
             commentPane.setFontSizeChangable(false);
             commentPane.setLetterBorderRendarer(null);
-            for (int i = 0; i < commentData.length; i++)
-                commentPane.addCell(SLetterCellFactory.getInstance().createGlyphCell(commentData[i]));
+            for (char commentDatum : commentData)
+                commentPane.addCell(SLetterCellFactory.getInstance().createGlyphCell(commentDatum));
 
         }
         return commentPane;

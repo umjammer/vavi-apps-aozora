@@ -44,9 +44,9 @@ public class SLetterImageCell extends SLetterGlyphCell {
         private static int a(int c1, int c2, int c3) {
             float f1 = (c1 - c2) / 255F;
             float f2 = c2 + c3 * f1;
-            int j1 = Math.round(f2);
-            j1 = Math.max(0, j1);
-            return j1 = Math.min(255, j1);
+            int v = Math.round(f2);
+            v = Math.max(0, v);
+            return v = Math.min(255, v);
         }
 
         final Color color_a;
@@ -126,24 +126,18 @@ public class SLetterImageCell extends SLetterGlyphCell {
         return propertyChangeListener;
     }
 
-    public void paintMaximizedImage(Graphics g, Rectangle bounds) {
+    public void paintMaximizedImage(Graphics2D g, Rectangle bounds) {
         if (!isMaximizable())
             return;
         SLetterPane parent = getParent();
         if (parent == null)
             return;
         Color color = g.getColor();
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
-        Composite composite = null;
-        if (is2d) {
-            composite = g2.getComposite();
-            g2.setComposite(AlphaComposite.getInstance(3, 0.7F));
-        }
+        Composite composite = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(3, 0.7F));
         g.setColor(Color.LIGHT_GRAY);
         g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        if (is2d)
-            g2.setComposite(AlphaComposite.SrcOver);
+        g.setComposite(AlphaComposite.SrcOver);
         int iw = image.getWidth(parent);
         int ih = image.getHeight(parent);
         int w = Math.min(iw, Math.max(0, bounds.width - 20));
@@ -162,37 +156,35 @@ public class SLetterImageCell extends SLetterGlyphCell {
         g.drawRect(x - 1, y - 1, w + 1, h + 1);
         g.drawImage(image, x, y, w, h, getParent());
         if (composite != null)
-            g2.setComposite(composite);
+            g.setComposite(composite);
         g.setColor(color);
     }
 
-    public void paintCell(Graphics g, Rectangle cellBounds) {
+    public void paintCell(Graphics2D g, Rectangle cellBounds) {
         if (!drawImage_b())
             return;
         SLetterConstraint.ORIENTATION orientation = getOrientation();
         if (orientation == null)
             return;
         Color color = g.getColor();
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
         int w = image_c.getWidth();
         int h = image_c.getHeight();
         int x = cellBounds.x + (cellBounds.width - w) / 2;
         int y = cellBounds.y + (cellBounds.height - h) / 2;
         double t = getRotateTheta(orientation);
         AffineTransform trans = null;
-        if (is2d && t != 0.0D) {
-            trans = g2.getTransform();
+        if (t != 0.0) {
+            trans = g.getTransform();
             AffineTransform affinetransform1 = new AffineTransform(trans);
             int x1 = cellBounds.x + cellBounds.width / 2;
             int y1 = cellBounds.y + cellBounds.height / 2;
             affinetransform1.rotate(t, x1, y1);
             if (isConstraintSet(SLetterConstraint.ROTATE.LR_MIRROR)) {
-                affinetransform1.translate(0.0D, y1);
-                affinetransform1.scale(1.0D, -1D);
-                affinetransform1.translate(0.0D, -y1);
+                affinetransform1.translate(0.0, y1);
+                affinetransform1.scale(1.0, -1D);
+                affinetransform1.translate(0.0, -y1);
             }
-            g2.setTransform(affinetransform1);
+            g.setTransform(affinetransform1);
         }
         if (isConstraintSet(SLetterConstraint.SELECTION.SELECTED))
             g.drawImage(getImage_d(), x, y, getParent());
@@ -207,7 +199,7 @@ public class SLetterImageCell extends SLetterGlyphCell {
             g.drawRect(x, y, w, h);
         }
         if (trans != null)
-            g2.setTransform(trans);
+            g.setTransform(trans);
         g.setColor(color);
     }
 

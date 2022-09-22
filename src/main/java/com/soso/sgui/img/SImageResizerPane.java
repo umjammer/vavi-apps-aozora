@@ -175,7 +175,7 @@ public class SImageResizerPane extends JPanel {
         imagePanelSize = dimension1;
         initGUI();
         grassPanel.setImagePanel(imagePanel);
-        grassPanel.b();
+        grassPanel.startTask();
         if (image != null)
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {

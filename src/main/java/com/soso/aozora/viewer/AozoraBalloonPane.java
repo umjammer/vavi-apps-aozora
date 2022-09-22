@@ -272,7 +272,7 @@ public abstract class AozoraBalloonPane extends AozoraDefaultPane {
         Point basePoint = getBasePoint();
         Dimension contentSize = getContentSize();
         Insets margin = getFillerMargin();
-        int radius = getHolderPane().getBorder().getRadious();
+        int radius = getHolderPane().getBorder().getRadius();
         int thickness = getHolderPane().getBorder().getThickness();
         Point[] footPoints = new Point[2];
         if (lipPoint.y < basePoint.y && margin.top >= margin.left && margin.top >= margin.right) {

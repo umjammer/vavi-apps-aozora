@@ -452,11 +452,11 @@ Debug.println(Level.FINER, rb + ", " + rt);
                     if (cell != null)
                         appendCell(cell);
                 } else {
-                    char[][] rubysCharsArray = splitRT(rubyChars, textChars.length);
+                    char[][] rubyAssigns = splitRT(rubyChars, textChars.length);
                     for (int i = 0; i < textChars.length; i++) {
                         char textChar = textChars[i];
-                        char[] rubys = rubysCharsArray[i];
-                        SLetterCell cell = getCellFactory().createGlyphCell(textChar, rubys);
+                        char[] rubyAssign = rubyAssigns[i];
+                        SLetterCell cell = getCellFactory().createGlyphCell(textChar, rubyAssign);
                         if (cell != null)
                             appendCell(cell);
                     }

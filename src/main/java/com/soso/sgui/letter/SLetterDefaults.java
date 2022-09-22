@@ -10,6 +10,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import javax.swing.UIManager;
 
 
 public final class SLetterDefaults {
@@ -84,16 +85,11 @@ public final class SLetterDefaults {
             this.orientation = orientation;
         }
 
-        public void paintRowBorder(Graphics g, Rectangle rowBounds) {
-            boolean is2d = g instanceof Graphics2D;
-            Graphics2D g2 = is2d ? (Graphics2D) g : null;
+        public void paintRowBorder(Graphics2D g, Rectangle rowBounds) {
             Color color = g.getColor();
-            Stroke stroke = null;
-            if (is2d)
-                stroke = g2.getStroke();
+            Stroke stroke = g.getStroke();
             g.setColor(getRowBorderColor());
-            if (is2d)
-                g2.setStroke(getRowBorderStroke());
+            g.setStroke(getRowBorderStroke());
             if (getOrientation().isHorizonal()) {
                 g.drawLine(rowBounds.x, rowBounds.y, rowBounds.x + rowBounds.width, rowBounds.y);
                 g.drawLine(rowBounds.x, rowBounds.y + rowBounds.height, rowBounds.x + rowBounds.width, rowBounds.y + rowBounds.height);
@@ -102,20 +98,14 @@ public final class SLetterDefaults {
                 g.drawLine(rowBounds.x + rowBounds.width, rowBounds.y, rowBounds.x + rowBounds.width, rowBounds.y + rowBounds.height);
             }
             g.setColor(color);
-            if (is2d)
-                g2.setStroke(stroke);
+            g.setStroke(stroke);
         }
 
-        public void paintCellBorder(Graphics g, Rectangle cellBounds) {
-            boolean is2d = g instanceof Graphics2D;
-            Graphics2D g2 = is2d ? (Graphics2D) g : null;
+        public void paintCellBorder(Graphics2D g, Rectangle cellBounds) {
             Color color = g.getColor();
-            Stroke stroke = null;
-            if (is2d)
-                stroke = g2.getStroke();
+            Stroke stroke = g.getStroke();
             g.setColor(getCellBorderColor());
-            if (is2d)
-                g2.setStroke(getCellBorderStroke());
+            g.setStroke(getCellBorderStroke());
             if (getOrientation().isHorizonal()) {
                 g.drawLine(cellBounds.x, cellBounds.y, cellBounds.x, cellBounds.y + cellBounds.height);
                 g.drawLine(cellBounds.x + cellBounds.width, cellBounds.y, cellBounds.x + cellBounds.width, cellBounds.y + cellBounds.height);
@@ -124,13 +114,11 @@ public final class SLetterDefaults {
                 g.drawLine(cellBounds.x, cellBounds.y + cellBounds.height, cellBounds.x + cellBounds.width, cellBounds.y + cellBounds.height);
             }
             g.setColor(getCellCenterLineColor());
-            if (is2d)
-                g2.setStroke(getCellCenterLineStroke());
+            g.setStroke(getCellCenterLineStroke());
             g.drawLine(cellBounds.x + cellBounds.width / 2, cellBounds.y, cellBounds.x + cellBounds.width / 2, cellBounds.y + cellBounds.height);
             g.drawLine(cellBounds.x, cellBounds.y + cellBounds.height / 2, cellBounds.x + cellBounds.width, cellBounds.y + cellBounds.height / 2);
             g.setColor(color);
-            if (is2d)
-                g2.setStroke(stroke);
+            g.setStroke(stroke);
         }
 
         protected static final Color ROW_BORDER_COLOR = new Color(153, 102, 51);
@@ -172,6 +160,6 @@ public final class SLetterDefaults {
 
     public static final Color BG_COLOR = Color.WHITE;
     public static final Color FG_COLOR = Color.BLACK;
-    public static final Color SELECTED_BG_COLOR = Color.LIGHT_GRAY;
-    public static final Color SELECTED_FG_COLOR = Color.WHITE;
+    public static final Color SELECTED_BG_COLOR = UIManager.getColor("TextArea.selectionBackground");
+    public static final Color SELECTED_FG_COLOR = UIManager.getColor("TextArea.selectionForeground");
 }

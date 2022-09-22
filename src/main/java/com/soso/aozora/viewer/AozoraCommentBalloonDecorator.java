@@ -43,6 +43,7 @@ class AozoraCommentBalloonDecorator extends AozoraCommentDecorator {
 
     private class AozoraCommentBalloonPane extends AozoraBalloonPane {
 
+        @Override
         protected JComponent initContentPane() {
             JPanel contentPane = new JPanel();
             contentPane.setLayout(new BorderLayout());
@@ -101,6 +102,7 @@ class AozoraCommentBalloonDecorator extends AozoraCommentDecorator {
     protected AozoraCommentBalloonDecorator(AozoraContext context, AozoraComment comment, SLetterPane textPane, SLetterCell firstCell) {
         super(context, comment, textPane, firstCell);
         getTextPane().addObserver(new SLetterPaneObserverHelper() {
+            @Override
             public void cellRemoved(SLetterCell cell) {
                 checkCellRemoved(cell);
             }
@@ -112,21 +114,21 @@ class AozoraCommentBalloonDecorator extends AozoraCommentDecorator {
             removeBalloonComment();
     }
 
-    public void decorateBeforePaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
+    @Override
+    public void decorateBeforePaint(Graphics2D g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
     }
 
+    @Override
     public void removeDecoration(SLetterCell cell) {
         if (cell == getFirstCell())
             removeBalloonComment();
     }
 
-    public void decorateAfterPaint(Graphics g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2d = is2d ? (Graphics2D) g : null;
+    @Override
+    public void decorateAfterPaint(Graphics2D g, SLetterCell cell, Rectangle cellBounds, Rectangle rubyBounds) {
         Color color0 = g.getColor();
-        Composite composite0 = is2d ? g2d.getComposite() : null;
-        if (is2d)
-            g2d.setComposite(AlphaComposite.getInstance(3, 0.7F));
+        Composite composite0 = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(3, 0.7F));
         g.setColor(Color.BLUE);
 
         switch (getTextPane().getOrientation()) {
@@ -142,7 +144,7 @@ class AozoraCommentBalloonDecorator extends AozoraCommentDecorator {
         }
         addBalloonComment(cell, cellBounds);
         if (composite0 != null)
-            g2d.setComposite(composite0);
+            g.setComposite(composite0);
         if (color0 != null)
             g.setColor(color0);
     }

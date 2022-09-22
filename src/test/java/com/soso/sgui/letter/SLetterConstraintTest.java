@@ -23,6 +23,7 @@ import javax.swing.JFrame;
 import com.apple.eawt.Application;
 import com.soso.aozora.data.AozoraBunkoRuby;
 import com.soso.aozora.data.AozoraBunkoRubyTest;
+import com.soso.aozora.data.AozoraParser;
 import com.soso.aozora.viewer.MyTextViewerPane;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;

@@ -17,12 +17,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Collection;
 import java.util.HashSet;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import com.soso.sgui.SGUIUtil;
+import vavi.util.Debug;
 
 
 final class GrassPanel extends JPanel implements MouseListener, MouseMotionListener {
@@ -38,7 +39,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
     private static final Color color_h = Color.RED;
 
     private final Dimension size_i;
-    private final Collection<ImagePanel> imagePanels = new HashSet<ImagePanel>();
+    private final Collection<ImagePanel> imagePanels = new HashSet<>();
     private ImageIcon imageIcon;
     private Image scaledImage;
     private Rectangle imageBounds;
@@ -51,21 +52,17 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
     private Rectangle rect_t;
     private Point point_u;
     private Dimension size_v;
-    private boolean finalized;
     private boolean flag_x;
     private int hints;
     private boolean isOriginalSize;
 
+    ExecutorService ses = Executors.newSingleThreadExecutor();
+
     GrassPanel(Dimension size) {
-        new Object() {
-            protected final void finalize() throws Throwable {
-                try {
-                    super.finalize();
-                } finally {
-                    finalized = true;
-                }
-            }
-        };
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+Debug.println("shutdownHook: " + getClass().getName());
+            ses.shutdown();
+        }));
         hints = Image.SCALE_SMOOTH;
         isOriginalSize = true;
         this.size_i = size;
@@ -73,18 +70,18 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         initGUI();
     }
 
-    public final void paint(Graphics g) {
+    public void paint(Graphics g) {
         super.paint(g);
         Color originalColor = g.getColor();
         paintChecker(g);
         if (scaledImage != null)
-            paintImage(g);
+            paintImage((Graphics2D) g);
         paint_c(g);
         g.setColor(originalColor);
     }
 
     private void paintChecker(Graphics g) {
-       
+
         g.setColor(oddColor);
         g.fillRect(0, 0, getWidth(), getHeight());
         int bw = size_b.width;
@@ -108,27 +105,21 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    private void paintImage(Graphics g) {
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
-        if (is2d) {
-            Composite composite = g2.getComposite();
-            g2.setComposite(AlphaComposite.getInstance(3, 0.5f));
-            g.drawImage(scaledImage, imageBounds.x, imageBounds.y, this);
-            g2.setComposite(composite);
-            g.drawImage(scaledImage,
-                        moverBounds.x,
-                        moverBounds.y,
-                        moverBounds.x + moverBounds.width,
-                        moverBounds.y + moverBounds.height,
-                        moverBounds.x - imageBounds.x,
-                        moverBounds.y - imageBounds.y,
-                        (moverBounds.x - imageBounds.x) + moverBounds.width,
-                        (moverBounds.y - imageBounds.y) + moverBounds.height,
-                        this);
-        } else {
-            g.drawImage(scaledImage, imageBounds.x, imageBounds.y, this);
-        }
+    private void paintImage(Graphics2D g) {
+        Composite composite = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(3, 0.5f));
+        g.drawImage(scaledImage, imageBounds.x, imageBounds.y, this);
+        g.setComposite(composite);
+        g.drawImage(scaledImage,
+                    moverBounds.x,
+                    moverBounds.y,
+                    moverBounds.x + moverBounds.width,
+                    moverBounds.y + moverBounds.height,
+                    moverBounds.x - imageBounds.x,
+                    moverBounds.y - imageBounds.y,
+                    (moverBounds.x - imageBounds.x) + moverBounds.width,
+                    (moverBounds.y - imageBounds.y) + moverBounds.height,
+                    this);
     }
 
     private void paint_c(Graphics g) {
@@ -148,27 +139,19 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         g.drawRect(resizerBounds.x, resizerBounds.y, resizerBounds.width, resizerBounds.height);
     }
 
-    final void b() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new Thread(new Runnable() {
-                    public final void run() {
-                        while (!finalized) {
-                            try {
-                                Thread.sleep(1000L);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                flag_x = !flag_x;
-                                repaint(resizerBounds);
-                            }
-                        }
-                    }
-                }).start();
+    void startTask() {
+        ses.submit(() -> {
+            try {
+                Thread.sleep(1000L);
+            } catch (Exception e) {
+                e.printStackTrace();
+                flag_x = !flag_x;
+                repaint(resizerBounds);
             }
         });
     }
 
-    final void setImagePanel(ImagePanel panel) {
+    void setImagePanel(ImagePanel panel) {
         synchronized (imagePanels) {
             imagePanels.add(panel);
         }
@@ -214,7 +197,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         addMouseMotionListener(this);
     }
 
-    final void loadImage(Image image) {
+    void loadImage(Image image) {
         if (image == null) {
             reset();
             return;
@@ -224,7 +207,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         int h1 = imageIcon.getIconHeight();
         double sx = (double) w1 / (double) size_i.width;
         double sy = (double) h1 / (double) size_i.height;
-        if (sx > 1.0D || sy > 1.0D) {
+        if (sx > 1.0 || sy > 1.0) {
             scale = Math.max(sx, sy);
             if (sx < sy) {
                 w1 = -1;
@@ -234,7 +217,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
                 h1 = -1;
             }
         } else {
-            scale = 1.0D;
+            scale = 1.0;
         }
         scaledImage = image.getScaledInstance(w1, h1, hints);
         MediaTracker mt = new MediaTracker(this);
@@ -242,7 +225,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         mt.addImage(scaledImage, wait);
         try {
             mt.waitForID(wait);
-        } catch (InterruptedException _ex) {
+        } catch (InterruptedException e) {
             throw new IllegalStateException("INTERRUPTED while loading Image");
         }
         mt.statusID(wait, false);
@@ -344,16 +327,16 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         resize_a(w, h, rect_t.width, rect_t.height);
     }
 
-    public final void mouseClicked(MouseEvent event) {
+    public void mouseClicked(MouseEvent event) {
     }
 
-    public final void mouseEntered(MouseEvent event) {
+    public void mouseEntered(MouseEvent event) {
     }
 
-    public final void mouseExited(MouseEvent event) {
+    public void mouseExited(MouseEvent event) {
     }
 
-    public final void mousePressed(MouseEvent event) {
+    public void mousePressed(MouseEvent event) {
         int x = event.getX();
         int y = event.getY();
         if (containsResizer(x, y))
@@ -364,7 +347,7 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         point_u = new Point(x, y);
     }
 
-    public final void mouseReleased(MouseEvent event) {
+    public void mouseReleased(MouseEvent event) {
         if (resizerPressed) {
             resizerPressed = false;
             update_h();
@@ -375,14 +358,14 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    public final void mouseDragged(MouseEvent event) {
+    public void mouseDragged(MouseEvent event) {
         if (resizerPressed)
             doResize_c(event.getX(), event.getY());
         if (moverPressed)
             doMove_d(event.getX(), event.getY());
     }
 
-    public final void mouseMoved(MouseEvent event) {
+    public void mouseMoved(MouseEvent event) {
         if (containsResizer(event.getX(), event.getY())) {
             isResize = true;
             setCursor(new Cursor(Cursor.SE_RESIZE_CURSOR));
@@ -396,11 +379,11 @@ final class GrassPanel extends JPanel implements MouseListener, MouseMotionListe
         repaint();
     }
 
-    final void setHints(int hints) {
+    void setHints(int hints) {
         this.hints = hints;
     }
 
-    final void setOriginalSize(boolean isOriginalSize) {
+    void setOriginalSize(boolean isOriginalSize) {
         this.isOriginalSize = isOriginalSize;
     }
 }

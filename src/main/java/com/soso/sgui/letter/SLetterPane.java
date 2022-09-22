@@ -45,14 +45,15 @@ public class SLetterPane extends JPanel {
     static Logger logger = Logger.getLogger(SLetterPane.class.getName());
 
     protected static class OverlayHolderCell extends SLetterCell {
-
-        public void paintCell(Graphics g, Rectangle cellBounds) {
+        @Override
+        public void paintCell(Graphics2D g, Rectangle cellBounds) {
             for (SLetterCell cell : cells) {
                 cell.paintCell(g, cellBounds);
             }
         }
 
-        public void paintRuby(Graphics g, Rectangle rubyBounds) {
+        @Override
+        public void paintRuby(Graphics2D g, Rectangle rubyBounds) {
             for (SLetterCell cell : cells) {
                 cell.paintRuby(g, rubyBounds);
             }
@@ -72,6 +73,7 @@ public class SLetterPane extends JPanel {
             return cells.remove(cell);
         }
 
+        @Override
         public boolean isConstraintSet(SLetterConstraint constraint) {
             for (SLetterCell cell : cells) {
                 if (cell.isConstraintSet(constraint))
@@ -80,6 +82,7 @@ public class SLetterPane extends JPanel {
             return super.isConstraintSet(constraint);
         }
 
+        @Override
         public void addConstraint(SLetterConstraint constraint) {
             for (SLetterCell cell : cells) {
                 cell.addConstraint(constraint);
@@ -87,6 +90,7 @@ public class SLetterPane extends JPanel {
             super.addConstraint(constraint);
         }
 
+        @Override
         protected void setParent(SLetterPane pane) {
             for (SLetterCell cell : cells) {
                 cell.setParent(pane);
@@ -94,6 +98,7 @@ public class SLetterPane extends JPanel {
             super.setParent(pane);
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder(super.toString());
             sb.append("[");
@@ -108,6 +113,7 @@ public class SLetterPane extends JPanel {
             return sb.toString();
         }
 
+        @Override
         public String getText() {
             StringBuilder sb = new StringBuilder();
             for (SLetterCell cell : cells) {
@@ -139,10 +145,12 @@ public class SLetterPane extends JPanel {
             return col;
         }
 
+        @Override
         public String toString() {
             return super.toString() + "[row=" + row() + ",col=" + col() + "]";
         }
 
+        @Override
         public int compareTo(MatrixIndex matrix) {
             if (row > matrix.row)
                 return 1;
@@ -276,6 +284,7 @@ logger.fine("Selection|Finished|" + start + "|" + end);
             synchronized (this) {
                 if (componentListener == null)
                     componentListener = new ComponentAdapter() {
+                        @Override
                         public void componentResized(ComponentEvent event) {
                             SLetterPane.this.componentResized();
                         }
@@ -363,6 +372,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
             synchronized (this) {
                 if (mouseMotionListener == null)
                     mouseMotionListener = new MouseMotionAdapter() {
+                        @Override
                         public void mouseDragged(MouseEvent event) {
                             selectionEndUpdate(event.getPoint());
                         }
@@ -504,8 +514,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
     public List<SLetterCell> setRowCount(int rowCount) {
         if (rowCount <= 0)
             throw new IllegalArgumentException("must be positive");
-        List<SLetterCell> list = setRowColCount(rowCount, getColCount());
-        return list;
+        return setRowColCount(rowCount, getColCount());
     }
 
     public int getColCount() {
@@ -516,8 +525,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
     public List<SLetterCell> setColCount(int colCount) {
         if (colCount <= 0)
             throw new IllegalArgumentException("must be positive");
-        List<SLetterCell> list = setRowColCount(getRowCount(), colCount);
-        return list;
+        return setRowColCount(getRowCount(), colCount);
     }
 
     protected List<SLetterCell> setRowColCount(int row, int col) {
@@ -848,7 +856,7 @@ logger.fine("getMinimumSize");
     }
 
     public Dimension getPreferredSize() {
-logger.fine("getPreferredSize");
+logger.fine("getPreferredSize: " + getFixedSize(null));
         return getFixedSize(null);
     }
 
@@ -912,6 +920,7 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
         return Math.max(panelRowCount - getRowSpace(), 0) / (getRowRange() + getRowSpace());
     }
 
+    @Override
     protected void paintBorder(Graphics g) {
         super.paintBorder(g);
         if (getOrientation() == null)
@@ -935,37 +944,34 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
                 }
                 rectangle = getCellBounds(r, c, rectangle);
                 if (renderer != null)
-                    renderer.paintCellBorder(g, rectangle);
+                    renderer.paintCellBorder((Graphics2D) g, rectangle);
             }
 
             rectangle = getCellBounds(r, 0, rectangle).union(getCellBounds(r, getColCount() - 1, null));
             if (renderer != null)
-                renderer.paintRowBorder(g, rectangle);
+                renderer.paintRowBorder((Graphics2D) g, rectangle);
         }
     }
 
+    @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
     }
 
+    @Override
     protected void paintChildren(Graphics g) {
-        paintCells(g);
-        paintMaximizedImage(g);
+        paintCells((Graphics2D) g);
+        paintMaximizedImage((Graphics2D) g);
     }
 
-    protected void paintCells(Graphics g) {
+    protected void paintCells(Graphics2D g) {
         if (getOrientation() == null)
             return;
         Color color = g.getColor();
         Font font = g.getFont();
         g.setFont(getFont());
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
-        Object hint = null;
-        if (is2d) {
-            hint = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        }
+        Object hint = g.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         Rectangle cellBounds = new Rectangle();
         Rectangle rubyBounds = new Rectangle();
 
@@ -993,14 +999,14 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
             }
         }
         if (hint != null)
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, hint);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, hint);
         if (font != null)
             g.setFont(font);
         if (color != null)
             g.setColor(color);
     }
 
-    protected void paintMaximizedImage(Graphics g) {
+    protected void paintMaximizedImage(Graphics2D g) {
         SLetterImageCell cell = getMaximizedImageCell();
         if (cell != null)
             cell.paintMaximizedImage(g, new Rectangle(0, 0, getWidth(), getHeight()));

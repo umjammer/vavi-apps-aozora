@@ -4,7 +4,6 @@
 
 package com.soso.sgui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -14,10 +13,6 @@ import java.awt.Shape;
 import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
-
-import javax.swing.Box;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 
@@ -27,15 +22,15 @@ public class SLineBorder extends LineBorder {
         this(color, thickness, roundedCorners, 0);
     }
 
-    public SLineBorder(Color color, int thickness, boolean roundedCorners, int radious) {
+    public SLineBorder(Color color, int thickness, boolean roundedCorners, int radius) {
         super(color, thickness, roundedCorners);
-        this.radious = radious;
-        if (radious < 0)
-            throw new IllegalArgumentException("radious cannot be negative but " + radious);
+        this.radius = radius;
+        if (radius < 0)
+            throw new IllegalArgumentException("radius cannot be negative but " + radius);
     }
 
-    public int getRadious() {
-        return radious;
+    public int getRadius() {
+        return radius;
     }
 
     public Insets getBorderInsets(Component c) {
@@ -44,7 +39,7 @@ public class SLineBorder extends LineBorder {
 
     public Insets getBorderInsets(Component c, Insets insets) {
         int corner = 0;
-        double theta = radious * (1.0D - Math.sin(0.78539816339744828D));
+        double theta = radius * (1.0D - Math.sin(0.78539816339744828));
         if (getRoundedCorners())
             corner = (int) Math.round(theta) + 1;
         insets.left = insets.top = insets.right = insets.bottom = thickness + corner;
@@ -71,7 +66,7 @@ public class SLineBorder extends LineBorder {
     protected Shape getBorderShapeIndexOf(int x, int y, int width, int height, int thickness) {
         boolean rounded = getRoundedCorners();
         int t = getThickness();
-        int r = getRadious();
+        int r = getRadius();
         int s = rounded ? t + r : thickness;
         int l = ((t + r) - thickness) * 2;
         GeneralPath path = new GeneralPath();
@@ -90,73 +85,23 @@ public class SLineBorder extends LineBorder {
         return path;
     }
 
+    @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-        Color color = g.getColor();
-        g.setColor(getLineColor());
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
-        if (is2d) {
+        if (g instanceof Graphics2D) {
+            Graphics2D g2 = (Graphics2D) g;
+            Color color = g.getColor();
+            g.setColor(getLineColor());
             g2.draw(getBorderOuterShape(x, y, width, height));
             if (getThickness() > 1) {
                 g2.fill(getBorderShape(x, y, width, height));
                 g2.draw(getBorderInnerShape(x, y, width, height));
             }
-        } else {
-            boolean rounded = getRoundedCorners();
-            int t = getThickness();
-            int r = getRadious();
-            int s = rounded ? t + r : 0;
-            g.fillRect(x + s, y, width - s * 2, t);
-            g.fillRect(x, y + s, t, height - s * 2);
-            g.fillRect(x + s, (y + height) - t, width - s * 2, t);
-            g.fillRect((x + width) - t, y + s, t, height - s * 2);
-            if (rounded) {
-                for (int i = 0; i < t; i++) {
-                    int l = ((t + r) - i) * 2;
-                    int d1 = i;
-                    int d2 = l + i + 1;
-                    g.drawArc(x + d1, y + d1, l, l, 90, 90);
-                    g.drawArc(x + d1, (y + height) - d2, l, l, 180, 90);
-                    g.drawArc((x + width) - d2, (y + height) - d2, l, l, 270, 90);
-                    g.drawArc((x + width) - d2, y + d1, l, l, 0, 90);
-                    if (i != 0) {
-                        g.drawArc((x + d1) - 1, y + d1, l, l, 90, 90);
-                        g.drawArc(x + d1, (y + d1) - 1, l, l, 90, 90);
-                        g.drawArc((x + d1) - 1, (y + height) - d2, l, l, 180, 90);
-                        g.drawArc(x + d1, ((y + height) - d2) + 1, l, l, 180, 90);
-                        g.drawArc(((x + width) - d2) + 1, (y + height) - d2, l, l, 270, 90);
-                        g.drawArc((x + width) - d2, ((y + height) - d2) + 1, l, l, 270, 90);
-                        g.drawArc(((x + width) - d2) + 1, y + d1, l, l, 0, 90);
-                        g.drawArc((x + width) - d2, (y + d1) - 1, l, l, 0, 90);
-                    }
-                }
-            }
+            if (color != null)
+                g.setColor(color);
         }
-        if (color != null)
-            g.setColor(color);
-    }
-
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.setSize(800, 800);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setLayout(new BorderLayout(0, 0));
-        JPanel borderPanel = new JPanel();
-        borderPanel.setBackground(Color.BLUE);
-        borderPanel.setBorder(new SLineBorder(Color.RED, 100, true, 200));
-        frame.getContentPane().add(borderPanel, BorderLayout.CENTER);
-        borderPanel.setLayout(new BorderLayout(0, 0));
-        JPanel panel = new JPanel();
-        panel.setBackground(Color.LIGHT_GRAY);
-        borderPanel.add(panel, BorderLayout.CENTER);
-        frame.getContentPane().add(Box.createHorizontalStrut(10), BorderLayout.WEST);
-        frame.getContentPane().add(Box.createHorizontalStrut(10), BorderLayout.EAST);
-        frame.getContentPane().add(Box.createVerticalStrut(10), BorderLayout.NORTH);
-        frame.getContentPane().add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
-        frame.setVisible(true);
     }
 
     private static final long serialVersionUID = 0xcbbcc96eL;
 
-    protected int radious;
+    protected int radius;
 }

@@ -5,12 +5,13 @@
 package com.soso.sgui.letter;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
 
 public interface SLetterBorderRenderer {
 
-    public abstract void paintRowBorder(Graphics g, Rectangle rowBounds);
+    void paintRowBorder(Graphics2D g, Rectangle rowBounds);
 
-    public abstract void paintCellBorder(Graphics g, Rectangle cellBounds);
+    void paintCellBorder(Graphics2D g, Rectangle cellBounds);
 }

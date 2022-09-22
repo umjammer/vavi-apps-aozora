@@ -6,7 +6,6 @@ package com.soso.sgui.letter;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -15,6 +14,7 @@ import java.util.logging.Logger;
 
 import com.soso.sgui.text.CharacterUtil;
 
+import static com.soso.sgui.letter.SLetterDefaults.FONT_RANGE_RASIO;
 
 public class SLetterGlyphCell extends SLetterCell {
 
@@ -29,12 +29,11 @@ public class SLetterGlyphCell extends SLetterCell {
         this.font = font;
     }
 
-    public void paintCell(Graphics g, Rectangle cellBounds) {
+    @Override
+    public void paintCell(Graphics2D g, Rectangle cellBounds) {
         SLetterConstraint.ORIENTATION orientation = getOrientation();
         if (orientation == null)
             return;
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
         Font font = g.getFont();
         if (font != null)
             g.setFont(font);
@@ -51,8 +50,8 @@ public class SLetterGlyphCell extends SLetterCell {
         x1 += transX;
         y1 += transY;
         AffineTransform transform = null;
-        if (is2d && theta != 0.0) {
-            transform = g2.getTransform();
+        if (theta != 0.0) {
+            transform = g.getTransform();
             AffineTransform transform1 = new AffineTransform(transform);
             transform1.rotate(theta, x2, y2);
             if (isConstraintSet(SLetterConstraint.ROTATE.LR_MIRROR)) {
@@ -60,7 +59,7 @@ public class SLetterGlyphCell extends SLetterCell {
                 transform1.scale(1.0D, -1D);
                 transform1.translate(0.0, -y2);
             }
-            g2.setTransform(transform1);
+            g.setTransform(transform1);
         }
         g.drawString(String.valueOf(main), x1, y1);
         if (logger.isLoggable(Level.FINE)) {
@@ -72,7 +71,7 @@ public class SLetterGlyphCell extends SLetterCell {
             g.setColor(color);
         }
         if (transform != null)
-            g2.setTransform(transform);
+            g.setTransform(transform);
         g.setFont(font);
     }
 
@@ -116,7 +115,7 @@ public class SLetterGlyphCell extends SLetterCell {
         if (isConstraintSet(SLetterConstraint.TRANS.PUNCTURETE)) {
             transX += (orientation.isLeftToRight() ? 0 : rectangle.width / 2);
         } else if (isConstraintSet(SLetterConstraint.TRANS.SMALLCHAR)) {
-            int w = (int) ((width / 4) * 0.7861513F);
+            int w = (int) ((width / 4) * FONT_RANGE_RASIO);
             transX += (orientation.isLeftToRight() ? -w : w);
         } else if (isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_HEAD)) {
             transX += (-rectangle.height / 4);
@@ -151,8 +150,6 @@ public class SLetterGlyphCell extends SLetterCell {
             SLetterConstraint.ORIENTATION orientation = getOrientation();
             if (orientation == null)
                 return;
-            boolean is2d = g instanceof Graphics2D;
-            Graphics2D g2 = is2d ? (Graphics2D) g : null;
             Font originalFont = g.getFont();
             int h = orientation.isHorizonal() ? rubyBounds.height : rubyBounds.height / rubys.length;
             int w = orientation.isHorizonal() ? rubyBounds.width / rubys.length : rubyBounds.width;
@@ -172,14 +169,14 @@ public class SLetterGlyphCell extends SLetterCell {
                 int y1 = rectangle1.y + ((rectangle1.height + asc) - desc) / 2;
                 int x2 = rectangle1.x + rectangle1.width / 2;
                 int y2 = rectangle1.y + rectangle1.height / 2;
-                double theta = 0.0D;
+                double theta = 0.0;
                 if (!orientation.isHorizonal() && CharacterUtil.isToRotate(ruby)) {
                     theta = Math.PI / 2;
                     if (!orientation.isTopToButtom())
-                        theta = 0.0D - theta;
+                        theta = 0.0 - theta;
                 }
-                if (is2d && theta != 0.0D)
-                    g2.rotate(theta, x2, y2);
+                if (theta != 0.0D)
+                    g.rotate(theta, x2, y2);
                 g.drawString(String.valueOf(ruby), x1, y1);
                 if (logger.isLoggable(Level.FINE)) {
                     Color color = g.getColor();
@@ -189,8 +186,8 @@ public class SLetterGlyphCell extends SLetterCell {
                     g.drawRect(x1, y1, width, desc);
                     g.setColor(color);
                 }
-                if (is2d && theta != 0.0D)
-                    g2.rotate(0.0D - theta, x2, y2);
+                if (theta != 0.0D)
+                    g.rotate(0.0D - theta, x2, y2);
             }
 
             g.setFont(originalFont);

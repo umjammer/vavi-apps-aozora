@@ -28,6 +28,8 @@ import com.soso.aozora.data.AozoraBunkoRuby;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import vavi.util.Debug;
+import vavi.util.properties.annotation.Property;
+import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
@@ -36,6 +38,7 @@ import vavi.util.Debug;
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2011/09/14 umjammer initial version <br>
  */
+@PropsEntity(url = "file:local.properties")
 public class SLetterPaneTest {
 
     /** */
@@ -57,19 +60,25 @@ Debug.println(entry);
         return zip.getInputStream(entry);
     }
 
+    @Property(name = "aozora.zip")
+    String file;
+
     /**
      * @param args 0: input
      */
     public static void main(String[] args) throws Exception {
-        String file = args[0];
+        SLetterConstraintTest app = new SLetterConstraintTest();
+        PropsEntity.Util.bind(app);
+
+        String file = app.file != null ? app.file : args[0];
 
         InputStream text = getTextInputStream(new File(file));
 
         Reader reader = new BufferedReader(new InputStreamReader(text, StandardCharsets.UTF_8));
         Writer writer = new StringWriter();
 
-        AozoraBunkoRuby app = new AozoraBunkoRuby(reader, writer);
-        app.printHtml();
+        AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);
+        converter.printHtml();
 
         List<Character> chars = writer.toString().chars().mapToObj(c -> (char) c).collect(Collectors.toList());
 Debug.println("chars: " + chars.size());

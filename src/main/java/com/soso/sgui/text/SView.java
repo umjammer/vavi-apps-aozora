@@ -16,7 +16,6 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.text.AttributedString;
-
 import javax.swing.JComponent;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -82,19 +81,17 @@ class SView extends View implements TabableView, Cloneable {
         Rectangle rectangle = allocation instanceof Rectangle ? (Rectangle) allocation : allocation.getBounds();
         Color color = getBackground();
         Color disabledColor = getForeground();
-        Object obj = container;
-        if (container instanceof JTextComponent && !((JTextComponent) obj).isEnabled())
-            disabledColor = ((JTextComponent) obj).getDisabledTextColor();
+        if (container instanceof JTextComponent && !container.isEnabled())
+            disabledColor = ((JTextComponent) container).getDisabledTextColor();
         if (color != null) {
             g.setColor(color);
             g.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         }
-        Highlighter highlighter = ((JTextComponent) (obj = container)).getHighlighter();
+        Highlighter highlighter = ((JTextComponent) container).getHighlighter();
         if ((container instanceof JTextComponent) && highlighter instanceof LayeredHighlighter)
-            ((LayeredHighlighter) highlighter).paintLayeredHighlights(g, so, eo, allocation, ((JTextComponent) obj), this);
+            ((LayeredHighlighter) highlighter).paintLayeredHighlights(g, so, eo, allocation, ((JTextComponent) container), this);
         if (getElement().getAttributes().isDefined(StyleConstants.ComposedTextAttribute)) {
-            if (((obj = getContainer()) instanceof JComponent) && (g instanceof Graphics2D)) {
-//                Object obj1 = null;
+            if ((getContainer() instanceof JComponent) && (g instanceof Graphics2D)) {
                 setBounds_a(allocation.getBounds());
                 flag = true;
             }
@@ -115,7 +112,7 @@ class SView extends View implements TabableView, Cloneable {
                     if (s1 > eo || e1 < so)
                         continue;
                     if (s1 <= so && e1 >= eo) {
-                        paint_a(g, allocation, selectedTextColor, so, eo);
+                        paint_a((Graphics2D) g, allocation, selectedTextColor, so, eo);
                         flag = true;
                         break;
                     }
@@ -125,7 +122,7 @@ class SView extends View implements TabableView, Cloneable {
                     }
                     s1 = Math.max(so, s1);
                     e1 = Math.min(eo, e1);
-                    paint_a(g, allocation, selectedTextColor, s1, e1);
+                    paint_a((Graphics2D) g, allocation, selectedTextColor, s1, e1);
                     bytes_e[s1 - so]++;
                     bytes_e[e1 - so]--;
                     p++;
@@ -139,7 +136,7 @@ class SView extends View implements TabableView, Cloneable {
                         while (i < l && bytes_e[i] == 0)
                             i++;
                         if (l1 != i)
-                            paint_a(g, allocation, disabledColor, so + l1, so + i);
+                            paint_a((Graphics2D) g, allocation, disabledColor, so + l1, so + i);
                         int l2 = 0;
                         while (i < l && (l2 += bytes_e[i]) != 0)
                             i++;
@@ -151,10 +148,10 @@ class SView extends View implements TabableView, Cloneable {
             }
         }
         if (!flag)
-            paint_a(g, allocation, disabledColor, so, eo);
+            paint_a((Graphics2D) g, allocation, disabledColor, so, eo);
     }
 
-    protected final void paint_a(Graphics g, Shape allocation, Color color, int start, int end) {
+    protected final void paint_a(Graphics2D g, Shape allocation, Color color, int start, int end) {
         g.setColor(color);
         paint_a(g, allocation, start, end);
         boolean isUnderline = isUnderline();
@@ -187,7 +184,7 @@ class SView extends View implements TabableView, Cloneable {
         }
     }
 
-    protected final void paint_a(Graphics g, Shape allocation, int start, int end) {
+    protected final void paint_a(Graphics2D g, Shape allocation, int start, int end) {
         g.setFont(getFont_c());
         Rectangle bounds = (allocation instanceof Rectangle) ? (Rectangle) allocation : allocation.getBounds();
         float span = getPreferredSpan(0);
@@ -204,8 +201,6 @@ class SView extends View implements TabableView, Cloneable {
             h += getTabbedSpan_b(getStartOffset(), start, bounds.y);
         Segment segment = getSegment_a(start, end);
         double halfPI = Math.PI / 2;
-        boolean is2d = g instanceof Graphics2D;
-        Graphics2D g2 = is2d ? (Graphics2D) g : null;
         boolean flag1 = segment.count > 2 &&
                 getContainer().getHeight() < bounds.height &&
                 CharacterUtil.isLineHeadForbidden(segment.array[(segment.offset + segment.count) - 1]) &&
@@ -222,22 +217,22 @@ class SView extends View implements TabableView, Cloneable {
             }
             int w3 = metrics.charWidth(c1);
             int k3 = (int) (w3 * alignment);
-            if (is2d && CharacterUtil.isToRotateKana(c1)) {
+            if (CharacterUtil.isToRotateKana(c1)) {
                 float ha = CharacterUtil.getHorizontalAlign(c1);
                 int x0 = h + desc;
                 int y0 = ((-w) + asc / 2) - leading - (int) (desc * ha);
-                g2.rotate(halfPI, 0.0D, 0.0D);
-                g2.drawChars(segment.array, ofs, 1, x0, y0);
-                g2.rotate(-halfPI, 0.0D, 0.0D);
+                g.rotate(halfPI, 0.0D, 0.0D);
+                g.drawChars(segment.array, ofs, 1, x0, y0);
+                g.rotate(-halfPI, 0.0D, 0.0D);
                 h += charWidth(metrics, c1);
                 continue;
             }
-            if (is2d && CharacterUtil.isToRotate(c1)) {
+            if (CharacterUtil.isToRotate(c1)) {
                 int x2 = h + desc;
                 int x3 = ((-w) + asc / 2) - leading - desc / 2;
-                g2.rotate(halfPI, 0.0D, 0.0D);
-                g2.drawChars(segment.array, ofs, 1, x2, x3);
-                g2.rotate(-halfPI, 0.0D, 0.0D);
+                g.rotate(halfPI, 0.0D, 0.0D);
+                g.drawChars(segment.array, ofs, 1, x2, x3);
+                g.rotate(-halfPI, 0.0D, 0.0D);
                 h += charWidth(metrics, c1);
                 continue;
             }
@@ -490,7 +485,6 @@ class SView extends View implements TabableView, Cloneable {
     private int getTabbedSpan_b(int start, int end, int x) {
         FontMetrics fontmetrics = getFontMetrics_j();
         Segment segment = getSegment_a(start, end);
-        boolean is2d = getGraphics() instanceof Graphics2D;
         int span = x;
         char c = segment.first();
 
@@ -498,11 +492,7 @@ class SView extends View implements TabableView, Cloneable {
             if (CharacterUtil.isTab(c)) {
                 span = nextTabStop(span, pos - start);
             } else {
-                if (is2d) {
-                    span += charWidth(fontmetrics, c);
-                } else {
-                    span += fontmetrics.getHeight();
-                }
+                span += charWidth(fontmetrics, c);
             }
             c = segment.next();
         }
@@ -512,7 +502,6 @@ class SView extends View implements TabableView, Cloneable {
     private int c(int span, int length, int p) {
         FontMetrics fontmetrics = getFontMetrics_j();
         Segment segment = getSegment_a(span, length);
-        boolean is2d = getGraphics() instanceof Graphics2D;
         int tabStop = 0;
         int pos = span;
         char c = segment.first();
@@ -521,11 +510,7 @@ class SView extends View implements TabableView, Cloneable {
             if (CharacterUtil.isTab(c)) {
                 tabStop = nextTabStop(tabStop, pos - span);
             } else {
-                if (is2d) {
-                    tabStop += charWidth(fontmetrics, c);
-                } else {
-                    tabStop += fontmetrics.getHeight();
-                }
+                tabStop += charWidth(fontmetrics, c);
             }
             if (tabStop >= p) {
                 return pos;

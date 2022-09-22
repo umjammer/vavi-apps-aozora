@@ -4,11 +4,10 @@
 
 package com.soso.sgui.letter;
 
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 
@@ -103,9 +102,9 @@ public abstract class SLetterCell {
             return null;
     }
 
-    public abstract void paintCell(Graphics g, Rectangle cellBounds);
+    public abstract void paintCell(Graphics2D g, Rectangle cellBounds);
 
-    public abstract void paintRuby(Graphics g, Rectangle rubyBounds);
+    public abstract void paintRuby(Graphics2D g, Rectangle rubyBounds);
 
     public abstract String getText();
 

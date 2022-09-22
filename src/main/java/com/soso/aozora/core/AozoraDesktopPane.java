@@ -9,20 +9,14 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JInternalFrame;
@@ -35,7 +29,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
 import javax.swing.LookAndFeel;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
@@ -47,7 +40,6 @@ import com.soso.aozora.data.AozoraBookmarks;
 import com.soso.aozora.data.AozoraComment;
 import com.soso.aozora.data.AozoraWork;
 import com.soso.aozora.data.AozoraWorkParserHandler;
-import com.soso.aozora.html.TagReader;
 import com.soso.aozora.list.AozoraListPane;
 import com.soso.aozora.viewer.AozoraViewerPane;
 import com.soso.sgui.SDesktopPane;
@@ -83,36 +75,30 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
 
         private void showWork() {
             getAzContext().getRootMediator().focusWork(getWork());
-            getAzContext().getRootMediator().getAozoraAuthorAsynchronous(getWork().getAuthorID(), new AozoraAuthorParserHandler() {
-                public void author(AozoraAuthor author) {
-                    getAzContext().getRootMediator().showViewer(author, getWork());
-                }
-            });
+            getAzContext().getRootMediator().getAozoraAuthorAsynchronous(getWork().getAuthorID(), author -> getAzContext().getRootMediator().showViewer(author, getWork()));
         }
 
         private void initGUI() {
-            AozoraWorkParserHandler handler = new AozoraWorkParserHandler() {
-                public void work(AozoraWork work) {
-                    setWork(work);
-                    if (work != null) {
-                        setText(work.getTitleName());
-                        addMouseListener(new MouseAdapter() {
-                            public void mouseClicked(MouseEvent e) {
-                                showWork();
-                                ((JPopupMenu) getParent()).menuSelectionChanged(false);
-                            }
-                        });
-                        JMenuItem openItem = new JMenuItem("しおりを開く");
-                        openItem.addActionListener(new ActionListener() {
-                            public void actionPerformed(ActionEvent e) {
-                                showWork();
-                            }
-                        });
-                        add(openItem, 0);
-                    } else {
-                        setText("見つかりません");
-                        setToolTipText("作品ID[" + getWorkID() + "]");
-                    }
+            AozoraWorkParserHandler handler = work -> {
+                setWork(work);
+                if (work != null) {
+                    setText(work.getTitleName());
+                    addMouseListener(new MouseAdapter() {
+                        public void mouseClicked(MouseEvent e) {
+                            showWork();
+                            ((JPopupMenu) getParent()).menuSelectionChanged(false);
+                        }
+                    });
+                    JMenuItem openItem = new JMenuItem("しおりを開く");
+                    openItem.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            showWork();
+                        }
+                    });
+                    add(openItem, 0);
+                } else {
+                    setText("見つかりません");
+                    setToolTipText("作品ID[" + getWorkID() + "]");
                 }
             };
             AozoraWork work = getAzContext().getRootMediator().getAozoraWork(getWorkID());
@@ -163,21 +149,10 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
         setBackground(new Color(0xfefeff));
         JPanel graphics2DCheckerPane = new JPanel() {
             public void paint(Graphics g) {
-                boolean is2D = g instanceof Graphics2D;
-                if (!is2D)
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            JOptionPane.showInternalConfirmDialog(null, new String[] {
-                                "この Java VM は、Graphics2D をサポートしていないので、",
-                                "一部表示が乱れる箇所があります。"
-                            }, "Graphics2D 未サポート", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE);
-                        }
-                    });
                 logger.info("System | Java VM Name : " + System.getProperty("java.vm.name"));
                 logger.info("System | Java Version : " + System.getProperty("java.version"));
                 logger.info("System | Java Vendor  : " + System.getProperty("java.vendor"));
                 logger.info("System | Graphics " + g.getClass());
-                logger.info("System | " + (is2D ? "Graphics2D found." : " !! NO Graphics2D FOUND !!"));
                 getParent().remove(this);
             }
         };
