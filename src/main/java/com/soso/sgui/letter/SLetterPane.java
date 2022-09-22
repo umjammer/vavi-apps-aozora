@@ -135,6 +135,7 @@ public class SLetterPane extends JPanel {
         }
     }
 
+    /** letter location */
     protected static class MatrixIndex implements Comparable<MatrixIndex> {
 
         protected int row() {
@@ -170,6 +171,7 @@ public class SLetterPane extends JPanel {
         }
     }
 
+    /** text selection */
     protected static class SelectionModel {
 
         protected void init() {
@@ -205,7 +207,7 @@ public class SLetterPane extends JPanel {
         }
 
         protected void selectionStart(MatrixIndex index) {
-logger.fine("Selection|Start|" + index);
+logger.finer("Selection|Start|" + index);
             start = index;
             end = null;
             selectionFinished = false;
@@ -213,13 +215,13 @@ logger.fine("Selection|Start|" + index);
 
         protected void selectionEndUpdate(MatrixIndex index) {
             if (!isSelectionFinished()) {
-logger.fine("Selection|EndUpdate|" + index);
+logger.finer("Selection|EndUpdate|" + index);
                 end = index;
             }
         }
 
         protected void selectionFinish() {
-logger.fine("Selection|Finished|" + start + "|" + end);
+logger.finer("Selection|Finished|" + start + "|" + end);
             selectionFinished = true;
         }
 
@@ -229,6 +231,14 @@ logger.fine("Selection|Finished|" + start + "|" + end);
 
         protected SelectionModel() {
             init();
+        }
+
+        @Override
+        public String toString() {
+            return "SelectionModel{" +
+                    "start=" + start +
+                    ", end=" + end +
+                    '}';
         }
     }
 
@@ -488,12 +498,11 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
     }
 
     protected void copyToClipBoard() {
-        logger.fine("COPY|Start");
+logger.fine("COPY|Start");
         StringBuilder sb = new StringBuilder();
         for (SLetterCell cell : getSelectedCells()) {
             sb.append(cell.getText());
         }
-
         StringSelection selection = new StringSelection(sb.toString());
         getToolkit().getSystemClipboard().setContents(selection, selection);
     }
@@ -739,18 +748,18 @@ new Exception().printStackTrace();
     }
 
     public SLetterCell[] getSelectedCells() {
-        List<SLetterCell> result = new ArrayList<SLetterCell>();
+        List<SLetterCell> result = new ArrayList<>();
         if (getSelectionModel().isSelected()) {
             MatrixIndex start = getSelectionModel().getSelectionStart();
             MatrixIndex end = getSelectionModel().getSelectionEnd();
             if (start.compareTo(end) > 0) {
-                MatrixIndex matrix2 = start;
+                MatrixIndex tmp = start;
                 start = end;
-                end = matrix2;
+                end = tmp;
             }
             for (int row = start.row(); row <= end.row(); row++) {
                 for (int col = row != start.row() ? 0 : start.col();
-                     row != end.row() ? col >= matrix_[row].length : col > end.col();
+                     row != end.row() ? col < matrix_[row].length : col <= end.col();
                      col++) {
 
                     SLetterCell cell = matrix_[row][col];
