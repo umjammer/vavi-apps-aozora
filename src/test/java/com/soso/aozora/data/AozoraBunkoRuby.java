@@ -17,52 +17,58 @@ import vavi.util.Debug;
 
 
 /**
+ * aozora text to html converter
  *
+ * TODO ruby start is wrong
  */
 public final class AozoraBunkoRuby {
 
     private String text;
 
-    private List<Integer> liKanjiStart;
-    private List<Integer> liFuriganaOpening;
-    private List<Integer> liFuriganaClosing;
-    private List<Integer> liBoutenOpening;
-    private List<Integer> liBoutenClosing;
+    private List<Integer> kanjiStarts;
+    private List<Integer> furiganaOpenings;
+    private List<Integer> furiganaClosings;
+    private List<Integer> emphasisOpenings;
+    private List<Integer> emphasisClosings;
     private List<Integer> liKanjiBou;
 
     private HashMap<String, String> tenStyles;
     private HashMap<String, String> senStyles;
 
-    private static final String BOUTEN = "\u508d\u70b9";
-    private static final String BOUSEN = "\u7dda";
-    private static final String SPACING = "\u5B57\u4E0B\u3052";
+    private static final String BOUTEN = "傍点";
+    private static final String BOUSEN = "線";
+    private static final String SPACING = "字下げ";
 
-    private static final String FW_INTS = "\uFF10\uFF11\uFF12\uFF13\uFF14\uFF15\uFF16\uFF17\uFF18\uFF19";
+    private static final String FW_INTS = "０１２３４５６７８９";
 
     private Writer writer;
 
+    private boolean bookmark = false;
+    private boolean rpTag = false;
+
     /** */
     public AozoraBunkoRuby(Reader reader, Writer writer) {
-        this.liKanjiStart = new ArrayList<>();
-        this.liFuriganaOpening = new ArrayList<>();
-        this.liFuriganaClosing = new ArrayList<>();
-        this.liBoutenOpening = new ArrayList<>();
-        this.liBoutenClosing = new ArrayList<>();
+        this.kanjiStarts = new ArrayList<>();
+        this.furiganaOpenings = new ArrayList<>();
+        this.furiganaClosings = new ArrayList<>();
+        this.emphasisOpenings = new ArrayList<>();
+        this.emphasisClosings = new ArrayList<>();
         this.liKanjiBou = new ArrayList<>();
 
         this.tenStyles = new HashMap<>();
-        this.tenStyles.put("\u306b\u4E38\u508D\u70B9", "\u25CF");
-        this.tenStyles.put("\u306b\u767D\u4E38\u508D\u70B9", "\u25CB");
-        this.tenStyles.put("\u306b\u9ED2\u4E09\u89D2\u508D\u70B9", "\u25B2");
-        this.tenStyles.put("\u306b\u767D\u4E09\u89D2\u508D\u70B9", "\u25B3");
-        this.tenStyles.put("\u306b\u4E8C\u91CD\u4E38\u508D\u70B9", "\u25CE");
-        this.tenStyles.put("\u306b\u3070\u3064\u508D\u70B9", "\u00D7");
+        //
+        this.tenStyles.put("に丸傍点", "●");
+        this.tenStyles.put("に白丸傍点", "○");
+        this.tenStyles.put("に黒三角傍点", "▲");
+        this.tenStyles.put("に白三角傍点", "△");
+        this.tenStyles.put("に二重丸傍点", "◎");
+        this.tenStyles.put("にばつ傍点", "×");
 
         this.senStyles = new HashMap<>();
-        this.senStyles.put("\u306b\u4e8c\u91cd\u508d\u7dda", "text-decoration-style: double;");
-        this.senStyles.put("\u306b\u9396\u7dda", "text-decoration-style: dotted;");
-        this.senStyles.put("\u306b\u7834\u7dda", "text-decoration-style: dashed;");
-        this.senStyles.put("\u306b\u6ce2\u7dda", "text-decoration-style: wavy;");
+        this.senStyles.put("に二重傍線", "text-decoration-style: double;");
+        this.senStyles.put("に鎖線", "text-decoration-style: dotted;");
+        this.senStyles.put("に破線", "text-decoration-style: dashed;");
+        this.senStyles.put("に波線", "text-decoration-style: wavy;");
 
         readText(reader);
         this.writer = writer;
@@ -70,27 +76,27 @@ public final class AozoraBunkoRuby {
 
     /** */
     private void replacements() {
-        this.text = this.text.replaceAll("\uFF3B\uFF03\u633F\u7D75\uFF08", "<img src=\"");
-        this.text = this.text.replaceAll("\uFF09\u5165\u308B\uFF3D", "\">");
+        this.text = this.text.replaceAll("［＃挿絵（", "<img src=\"");
+        this.text = this.text.replaceAll("）入る］", "\">");
 
-        this.text = this.text.replaceAll("\uFF3B\uFF03\u6539\u9801\uFF3D", "<br>");
+        this.text = this.text.replaceAll("［＃改頁］", "<br>");
     }
 
     /** */
     private void printDebug(Level level) {
         Debug.printf(Level.FINER, "%d %d %d %d %d %d\n",
-                liKanjiStart.size(),
-                liFuriganaOpening.size(),
-                liFuriganaClosing.size(),
-                liBoutenOpening.size(),
-                liBoutenClosing.size(),
+                kanjiStarts.size(),
+                furiganaOpenings.size(),
+                furiganaClosings.size(),
+                emphasisOpenings.size(),
+                emphasisClosings.size(),
                 liKanjiBou.size());
 
         int count1 = 0, count2 = 0;
         for (int i = 0; i < this.text.length(); i++) {
-            if (this.text.charAt(i) == '\u300a') {
+            if (this.text.charAt(i) == '《') {
                 count1++;
-            } else if (this.text.charAt(i) == '\u300b') {
+            } else if (this.text.charAt(i) == '》') {
                 count2++;
             }
         }
@@ -112,26 +118,26 @@ public final class AozoraBunkoRuby {
 
         int i = 0, j = 0, curr = 0;
 
-        int kssize = this.liKanjiStart.size(), kbsize = this.liKanjiBou.size();
+        int kssize = this.kanjiStarts.size(), kbsize = this.liKanjiBou.size();
         while (i < kssize && j < kbsize) {
-Debug.printf(Level.FINER, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, liKanjiStart.get(i), liFuriganaClosing.get(i), liKanjiBou.get(j), liBoutenClosing.get(j));
-            if (liKanjiStart.get(i) < liKanjiBou.get(j)) {
-                sb.append(this.text.substring(curr, liKanjiStart.get(i)));
-                sb.append(furiganaToRubyTag(liKanjiStart.get(i), liFuriganaOpening.get(i), liFuriganaClosing.get(i)));
-                curr = liFuriganaClosing.get(i) + 1;
+Debug.printf(Level.FINER, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, kanjiStarts.get(i), furiganaClosings.get(i), liKanjiBou.get(j), emphasisClosings.get(j));
+            if (kanjiStarts.get(i) < liKanjiBou.get(j)) {
+                sb.append(this.text, curr, kanjiStarts.get(i));
+                sb.append(furiganaToRubyTag(kanjiStarts.get(i), furiganaOpenings.get(i), furiganaClosings.get(i)));
+                curr = furiganaClosings.get(i) + 1;
                 i++;
             } else {
-                sb.append(this.text.substring(curr, liKanjiBou.get(j)));
-                sb.append(boutenToRubyTag(liKanjiBou.get(j), liBoutenOpening.get(j), liBoutenClosing.get(j)));
-                curr = liBoutenClosing.get(j) + 1;
+                sb.append(this.text, curr, liKanjiBou.get(j));
+                sb.append(emphasisToRubyTag(liKanjiBou.get(j), emphasisOpenings.get(j), emphasisClosings.get(j)));
+                curr = emphasisClosings.get(j) + 1;
                 j++;
             }
         }
 
-        while (i < this.liKanjiStart.size()) {
-            sb.append(this.text.substring(curr, liKanjiStart.get(i)));
-            sb.append(furiganaToRubyTag(liKanjiStart.get(i), liFuriganaOpening.get(i), liFuriganaClosing.get(i)));
-            curr = liFuriganaClosing.get(i) + 1;
+        while (i < this.kanjiStarts.size()) {
+            sb.append(this.text, curr, kanjiStarts.get(i));
+            sb.append(furiganaToRubyTag(kanjiStarts.get(i), furiganaOpenings.get(i), furiganaClosings.get(i)));
+            curr = furiganaClosings.get(i) + 1;
             i++;
         }
 
@@ -140,9 +146,9 @@ Debug.printf(Level.FINER, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, liKanj
 Debug.printf(Level.FINER, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
             if (curr >= liKanjiBou.get(j))
                 break;
-            sb.append(this.text.substring(curr, liKanjiBou.get(j)));
-            sb.append(boutenToRubyTag(liKanjiBou.get(j), liBoutenOpening.get(j), liBoutenClosing.get(j)));
-            curr = liBoutenClosing.get(j) + 1;
+            sb.append(this.text, curr, liKanjiBou.get(j));
+            sb.append(emphasisToRubyTag(liKanjiBou.get(j), emphasisOpenings.get(j), emphasisClosings.get(j)));
+            curr = emphasisClosings.get(j) + 1;
             j++;
         }
 
@@ -155,10 +161,10 @@ Debug.printf(Level.FINER, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
     public String bookmark(String text) {
         StringBuilder sb = new StringBuilder();
         int curr = 0, count = 1, idx;
-        while ((idx = text.indexOf('\u3002', curr)) != -1) {
+        while ((idx = text.indexOf('。', curr)) != -1) {
 Debug.printf(Level.FINER, "%d %d\n", curr, idx);
-            sb.append(text.substring(curr, idx));
-            sb.append("<a name=\"save_").append(count).append("\" href=\"#save_").append(count).append("\">\u3002</a>");
+            sb.append(text, curr, idx);
+            sb.append("<a name=\"save_").append(count).append("\" href=\"#save_").append(count).append("\">。</a>");
             curr = idx + 1;
             count++;
         }
@@ -169,34 +175,35 @@ Debug.printf(Level.FINER, "%d %d\n", curr, idx);
     private void getMarkerIndices() {
         for (int i = 0; i < text.length(); i++) {
             // <<
-            if (this.text.charAt(i) == '\u300a') {
-                this.liFuriganaOpening.add(i);
+            if (this.text.charAt(i) == '《') {
+                this.furiganaOpenings.add(i);
 
+                // TODO check is this algorithm can ruby kanji only?
                 int idx;
-                for (idx = i - 1; isCJKIdeograph(this.text.charAt(idx)) && this.text.charAt(idx) != '\uff5c'; idx--) ;
+                for (idx = i - 1; isCJKIdeograph(this.text.charAt(idx)) && this.text.charAt(idx) != '｜'; idx--) ;
                 if (idx == i - 1) {
-                    for (idx = i - 1; this.text.charAt(idx) != '\uff5c'; idx--) ;
+                    for (idx = i - 1; this.text.charAt(idx) != '｜'; idx--) ;
                 }
 
-                this.liKanjiStart.add(idx + 1);
+                this.kanjiStarts.add(idx + 1);
 
-                for (idx = i + 1; this.text.charAt(idx) != '\u300b'; idx++) ;
-                this.liFuriganaClosing.add(idx);
+                for (idx = i + 1; this.text.charAt(idx) != '》'; idx++) ;
+                this.furiganaClosings.add(idx);
                 i = idx + 1;
             }
 //			// >>
 //			else if (this.text.charAt(i) == '\u300b') {
-//				this.liFuriganaClosing.add(i);
+//				this.furiganaClosings.add(i);
 //			}
             // [
-            else if (this.text.charAt(i) == '\uff3b') {
-                this.liBoutenOpening.add(i);
+            else if (this.text.charAt(i) == '［') {
+                this.emphasisOpenings.add(i);
 
                 int eidx, ws = -1, we = -1;
-                for (eidx = i + 1; this.text.charAt(eidx) != '\uff3d'; eidx++) {
-                    if (this.text.charAt(eidx) == '\u300c')
+                for (eidx = i + 1; this.text.charAt(eidx) != '］'; eidx++) {
+                    if (this.text.charAt(eidx) == '「')
                         ws = eidx;
-                    else if (this.text.charAt(eidx) == '\u300d')
+                    else if (this.text.charAt(eidx) == '」')
                         we = eidx;
                 }
                 String btext = this.text.substring(i + 1, eidx);
@@ -204,7 +211,7 @@ Debug.printf(Level.FINER, "%d %d\n", curr, idx);
                     this.liKanjiBou.add(i - (we - ws - 1));
                 else
                     this.liKanjiBou.add(i);
-                this.liBoutenClosing.add(eidx);
+                this.emphasisClosings.add(eidx);
                 i = eidx + 1;
             }
         }
@@ -212,51 +219,60 @@ Debug.printf(Level.FINER, "%d %d\n", curr, idx);
 
     /** */
     private String furiganaToRubyTag(int kanjiIndex, int startIndex, int endIndex) {
-        StringBuilder sbFurigana = new StringBuilder();
-        int i;
+        StringBuilder ruby = new StringBuilder();
 
-        sbFurigana.append("<rp>").append(this.text.charAt(startIndex)).append("</rp><rt>");
+        if (rpTag)
+            ruby.append("<rp>").append(this.text.charAt(startIndex)).append("</rp>");
+        ruby.append("<rt>");
 Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
-        sbFurigana.append(this.text.substring(startIndex + 1, endIndex));
-        sbFurigana.append("</rt><rp>").append(this.text.charAt(endIndex)).append("</rp></ruby>");
+        ruby.append(this.text, startIndex + 1, endIndex);
+        ruby.append("</rt>");
+        if (rpTag)
+            ruby.append("<rp>").append(this.text.charAt(endIndex)).append("</rp>");
+        ruby.append("</ruby>");
 
-        sbFurigana.insert(0, "</rb>");
-        sbFurigana.insert(0, this.text.substring(kanjiIndex, startIndex));
-        sbFurigana.insert(0, "<ruby><rb>");
+        ruby.insert(0, "</rb>");
+        ruby.insert(0, this.text.substring(kanjiIndex, startIndex));
+        ruby.insert(0, "<ruby><rb>");
 
-        return sbFurigana.toString();
+        return ruby.toString();
     }
 
     /** */
-    private String boutenToRubyTag(int kanjiIndex, int startIndex, int endIndex) {
-        String btext = this.text.substring(startIndex + 1, endIndex);
-        int wordStart = btext.indexOf("\u300c");
-        int wordEnd = btext.indexOf("\u300d");
+    private String emphasisToRubyTag(int kanjiIndex, int startIndex, int endIndex) {
+        String emphasis = this.text.substring(startIndex + 1, endIndex);
+        int wordStart = emphasis.indexOf("「");
+        int wordEnd = emphasis.indexOf("」");
         int wordLength = wordEnd - wordStart - 1;
 
         if (kanjiIndex != startIndex) {
             StringBuilder output = new StringBuilder();
-            if (btext.endsWith(BOUTEN)) {
-                String stylename = btext.substring(wordEnd + 1);
-                String style = this.tenStyles.getOrDefault(stylename, "\uFE45");
+            if (emphasis.endsWith(BOUTEN)) {
+                String styleName = emphasis.substring(wordEnd + 1);
+                String style = this.tenStyles.getOrDefault(styleName, "﹅");
                 output.append("<ruby><rb>").append(this.text.substring(kanjiIndex, startIndex));
-                output.append("<rp>\u300a</rp><rt>");
+                if (rpTag)
+                    output.append("<rp>《</rp>");
+                output.append("<rt>");
                 for (int i = 0; i < wordLength; i++)
                     output.append(style);
-                output.append("</rt><rp>\u300b</rp></ruby>");
+                output.append("</rt>");
+                if (rpTag)
+                    output.append("<rp>》</rp>");
+                output.append("</ruby>");
                 return output.toString();
-            } else if (btext.endsWith(BOUSEN)) {
-                String stylename = btext.substring(wordEnd + 1);
-                String style = this.senStyles.getOrDefault(stylename, "");
+            } else if (emphasis.endsWith(BOUSEN)) {
+                String styleName = emphasis.substring(wordEnd + 1);
+                String style = this.senStyles.getOrDefault(styleName, "");
                 output.append("<u style=\"").append(style).append("\">").append(this.text, kanjiIndex, startIndex).append("</u>");
                 return output.toString();
             }
         } else {
             StringBuilder output = new StringBuilder();
-            if (btext.endsWith(SPACING)) {
-                int hash = btext.indexOf("\uFF03");
-                int ji = btext.indexOf("\u5B57");
-                String space = btext.substring(hash + 1, ji);
+            if (emphasis.endsWith(SPACING)) {
+                int hash = emphasis.indexOf("＃");
+                int ji = emphasis.indexOf("字");
+                String space = emphasis.substring(hash + 1, ji);
                 int value = 0;
                 for (int i = 0; i < space.length(); i++) {
                     value = value * 10 + FW_INTS.indexOf(space.charAt(i));
@@ -271,9 +287,9 @@ Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
         return this.text.substring(kanjiIndex, startIndex);
     }
 
-    /** */
+    /** is kanji */
     private boolean isCJKIdeograph(char c) {
-        return Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || c == '\u3005';
+        return Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || c == '々' || c == 'ヶ';
     }
 
     /** */
@@ -311,7 +327,10 @@ Debug.println("skip end: " + line);
         pr.println("</head>");
         pr.println("<body>");
 
-        pr.println(bookmark(parse()));
+        if (bookmark)
+            pr.println(bookmark(parse()));
+        else
+            pr.println(parse());
 
         pr.println("</body>");
         pr.println("</html>");

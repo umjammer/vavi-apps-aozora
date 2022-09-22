@@ -15,6 +15,9 @@ import java.util.Scanner;
 
 /**
  * AozoraParser.
+ * <li> roby is good
+ *
+ * TODO controller "［...］" are ignored
  *
  * @author weimingtom
  * @see "http://www.aozora.gr.jp/cards/000035/card1567.html"
@@ -22,12 +25,15 @@ import java.util.Scanner;
 public class AozoraParser {
 
     private enum Type {
-        KANJI { boolean matches(char c) { return (c >= '\u4e00' && c <= '\u9fbf') || (c == '\u3005'); }},
+        KANJI { boolean matches(char c) { return (c >= '\u4e00' && c <= '\u9fbf') || (c == '\u3005'); }}, // '々'
         HIRAGANA { boolean matches(char c) { return c >= '\u3040' && c <= '\u309f'; }},
         KATAKANA { boolean matches(char c) { return c >= '\u30a0' && c <= '\u30ff'; }},
-        RUBY_OPEN { boolean matches(char c) { return c == '\u300a'; }},
-        RUBY_CLOSE { boolean matches(char c) { return c == '\u300b'; }},
-        RUBY_START { boolean matches(char c) { return c == '\uff5c'; }},
+        /** '《' */
+        RUBY_OPEN { boolean matches(char c) { return c == '《'; }},
+        /** '》' */
+        RUBY_CLOSE { boolean matches(char c) { return c == '》'; }},
+        /** '｜' */
+        RUBY_START { boolean matches(char c) { return c == '｜'; }},
         OTHER { boolean matches(char c) { return true; }};
         abstract boolean matches(char c);
         /** @see "http://www.chiark.greenend.org.uk/~pmaydell/misc/aozora_ruby.py" */
