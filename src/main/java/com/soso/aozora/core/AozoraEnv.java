@@ -40,7 +40,7 @@ public class AozoraEnv {
         PAGE_PREV_RIGHT_SHORTCUT("前のページ", "RIGHT", "前のページを表示します。（縦書き）"),
         PAGE_PREV_UP_SHORTCUT("前のページ", "UP", "前のページを表示します。（横書き）"),
         PAGE_PREV_LEFT_SHORTCUT("前のページ", "LEFT", "前のページを表示します。（TBLR）"),
-        SEARCH_IN_WORK_SHORTCUT("文章内検索", "ctrl F", "文章内検索フィールドを表示します。"),
+        SEARCH_IN_WORK_SHORTCUT("文章内検索", "meta F", "文章内検索フィールドを表示します。"),
         SEARCH_IN_WORK_NEXT_SHORTCUT("次を検索", "F3", "文章内検索で次を検索します。"),
         SEARCH_IN_WORK_PREV_SHORTCUT("前を検索", "shift F3", "文章内検索で前を検索します。"),
         SEARCH_IN_WORK_CLOSE_SHORTCUT("文章内検索を閉じる", "ESCAPE", "文章内検索フィールドを閉じます。");

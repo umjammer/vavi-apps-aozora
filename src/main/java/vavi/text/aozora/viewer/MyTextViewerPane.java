@@ -7,6 +7,7 @@ package vavi.text.aozora.viewer;
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -427,7 +428,7 @@ Debug.println(Level.FINER, "characters|" + "※※※ NOTED ※※※");
                     if (Character.isHighSurrogate(ca[i]) && Character.isSurrogatePair(ca[i], ca[i + 1])) {
 Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
                         SLetterCell cell = getCellFactory().createGlyphCell(cdata.codePointAt(i), new char[0], null);
-                    appendCell(cell);
+                        appendCell(cell);
                         i++;
                     } else {
                         SLetterCell cell = getCellFactory().createGlyphCell(ca[i]);
@@ -485,7 +486,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
         @Override
         public void newLine() {
             SLetterCell cell = getCellFactory().createGlyphCell('\n');
-                appendCell(cell);
+            appendCell(cell);
         }
 
         @Override
@@ -533,7 +534,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
                 characters("・");
             } else if (lowerElement.startsWith("/td")) {
                 characters("\t");
-        }
+            }
         }
 
         /**
@@ -569,7 +570,7 @@ if (textChar == '※') {
  Debug.println("ruby: unhandled: ※");
 }
                         SLetterCell cell = getCellFactory().createGlyphCell(textChar, rubyAssign);
-                            appendCell(cell);
+                        appendCell(cell);
                     }
                 }
             }
@@ -649,8 +650,10 @@ if (textChar == '※') {
     private int endPos = 0;
     private Stack<Integer> cachedPrevPosStack = new Stack<>();
     private JPanel buttonPanel;
-    private JButton nextButton;
-    private JButton prevButton;
+    String nextAction = "TextViewerPane.nextButton";
+    String prevAction = "TextViewerPane.prevButton";
+    boolean nextEnabled;
+    boolean prevEnabled;
     private Icon goLeftIcon;
     private Icon goRightIcon;
     private Icon goUpIcon;
@@ -698,28 +701,18 @@ if (textChar == '※') {
         goRightIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_RIGHT_ICON.getString());
         goUpIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_UP_ICON.getString());
         goDownIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_DOWN_ICON.getString());
-        nextButton = new JButton();
-        nextButton.setAction(new AbstractAction(null, goLeftIcon) {
             public void actionPerformed(ActionEvent e) {
+        nextEnabled = false;
+        AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getKeyStroke(), nextAction, new AbstractAction() {
                 next();
             }
         });
-        nextButton.setOpaque(false);
-        nextButton.setEnabled(false);
-        nextButton.setName("TextViewerPane.nextButton");
-        AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getKeyStroke(), nextButton);
-        nextButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getNameWithHelpTitle());
-        prevButton = new JButton();
-        prevButton.setAction(new AbstractAction(null, goRightIcon) {
             public void actionPerformed(ActionEvent e) {
+        prevEnabled = false;
+        AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getKeyStroke(), prevAction, new AbstractAction() {
                 prev();
             }
         });
-        prevButton.setOpaque(false);
-        prevButton.setEnabled(false);
-        prevButton.setName("TextViewerPane.prevButton");
-        AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getKeyStroke(), prevButton);
-        prevButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getNameWithHelpTitle());
         progress = new JProgressBar(0) {
             protected void paintComponent(Graphics g) {
                 if (isProgressBarRevertOrientation()) {
@@ -731,7 +724,7 @@ if (textChar == '※') {
             }
         };
         progress.addMouseListener(new MouseAdapter() {
-            public void mouseReleased(MouseEvent e) {
+            @Override public void mouseReleased(MouseEvent e) {
                 setPageByProgressClick(e.getX(), e.getY());
             }
         });
@@ -739,14 +732,32 @@ if (textChar == '※') {
         buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setLayout(new BorderLayout(3, 3));
-        buttonPanel.add(nextButton, BorderLayout.WEST);
         buttonPanel.add(progress, BorderLayout.CENTER);
-        buttonPanel.add(prevButton, BorderLayout.EAST);
         add(buttonPanel, BorderLayout.SOUTH);
         searchFieldPane = new SearchFieldPane();
+        searchFieldPane.setOpaque(false);
         searchFieldPane.setVisible(false);
         buttonPanel.add(searchFieldPane, BorderLayout.NORTH);
         textPane.addMenuItemProducer(searchFieldPane.createSearchMenuItemProducer());
+        textPane.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                int hw = getWidth() / 2;
+                Rectangle l = new Rectangle(0, 0, hw, getHeight());
+                Rectangle r = new Rectangle(hw, 0, getWidth(), getHeight());
+                if (l.contains(e.getPoint())) {
+//Debug.println("mouseClicked: next");
+                    next();
+                } else if (r.contains(e.getPoint())){
+//Debug.println("mouseClicked: prev");
+                    prev();
+                }
+            }
+        });
+        AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.SEARCH_IN_WORK_SHORTCUT.getKeyStroke(), "searchAction", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
+                setSearchEnable(true);
+            }
+        });
     }
 
     private void setup() {
@@ -776,17 +787,16 @@ if (textChar == '※') {
         try {
             t.printStackTrace();
             invokeAndWait(() -> JOptionPane.showInternalMessageDialog(MyTextViewerPane.this,
-                    String.join(",", Arrays.toString(t.getStackTrace()).split(",")),
+                    String.join("\n", Arrays.toString(t.getStackTrace()).split(",")),
                     "作品を表示できません。", JOptionPane.ERROR_MESSAGE));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void paint(Graphics g) {
-        if (!isFirstPageLoaded && (g instanceof Graphics2D))
+    public void paintComponent(Graphics g) {
+        if (!isFirstPageLoaded)
             ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-        super.paint(g);
     }
 
     void setStartPosByComment(final AozoraComment comment) {
@@ -796,6 +806,7 @@ if (textChar == '※') {
         }
         setSelection(comment.getPosition(), comment.getLength());
         SLetterCell cell = textCells.get(comment.getPosition());
+        super.paintComponent(g);
     }
 
     void setStartPos(int startPos) {
@@ -864,43 +875,41 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
     private void setupButtonEnabled() {
         if (isFirstPageLoaded)
             synchronized (textCells) {
-                prevButton.setEnabled(startPos > 0);
-                nextButton.setEnabled(endPos < textCells.size() - 1);
+                prevEnabled = startPos > 0;
+                nextEnabled = endPos < textCells.size() - 1;
             }
     }
 
     private void next() {
-        synchronized (nextButton) {
-            if (nextButton.isEnabled()) {
-                nextButton.setEnabled(false);
-                SwingUtilities.invokeLater(this::nextImpl);
-            }
+        if (nextEnabled) {
+            nextEnabled = false;
+            SwingUtilities.invokeLater(this::nextImpl);
         }
     }
 
     private void nextImpl() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
         int lastStartPos = startPos;
-        logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endPos);
+logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endPos);
         setStartPos(endPos);
         cachedPrevPosStack.push(lastStartPos);
         setupButtonEnabled();
         setupPageNumber();
-        if (nextButton.isEnabled())
-            nextButton.requestFocusInWindow();
-        else if (prevButton.isEnabled())
-            prevButton.requestFocusInWindow();
+
+        setCursor(Cursor.getDefaultCursor());
     }
 
     private void prev() {
-        synchronized (prevButton) {
-            if (prevButton.isEnabled()) {
-                prevButton.setEnabled(false);
-                SwingUtilities.invokeLater(this::prevImpl);
-            }
+        if (prevEnabled) {
+            prevEnabled = false;
+            SwingUtilities.invokeLater(this::prevImpl);
         }
     }
 
     private void prevImpl() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
         int lastStartPos = startPos;
         List<Integer> triedStartPosList = new ArrayList<>();
         StringBuilder log = new StringBuilder().append("prev");
@@ -939,10 +948,8 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         logger.info(log.toString());
         setupButtonEnabled();
         setupPageNumber();
-        if (prevButton.isEnabled())
-            prevButton.requestFocusInWindow();
-        else if (nextButton.isEnabled())
-            nextButton.requestFocusInWindow();
+
+        setCursor(Cursor.getDefaultCursor());
     }
 
     private void setPageByProgressClick(int x, int y) {
@@ -960,7 +967,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
                 pos = Math.min(size - 1, pos);
                 pos = Math.max(pos, 0);
                 setStartPos(pos);
-                if (prevButton.isEnabled())
+                if (prevEnabled)
                     prevImpl();
             }
         }
@@ -1152,64 +1159,40 @@ logger.fine("search|prev|match surrogate: " + m);
         InputMap pageButtonInputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         for (KeyStroke keyStroke : pageButtonInputMap.keys()) {
             Object actionMapKey = pageButtonInputMap.get(keyStroke);
-            if (nextButton.getName().equals(actionMapKey)) {
+            if (nextAction.equals(actionMapKey)) {
                 pageButtonInputMap.remove(keyStroke);
                 continue;
             }
-            if (prevButton.getName().equals(actionMapKey))
+            if (prevAction.equals(actionMapKey))
                 pageButtonInputMap.remove(keyStroke);
         }
 
         switch (orientation) {
         case TBRL:
-            nextButton.setIcon(goLeftIcon);
-            prevButton.setIcon(goRightIcon);
-            nextButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getNameWithHelpTitle());
-            prevButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getNameWithHelpTitle());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getKeyStroke(), nextButton.getName());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getKeyStroke(), prevButton.getName());
-            buttonPanel.add(nextButton, BorderLayout.WEST);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getKeyStroke(), nextAction);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getKeyStroke(), prevAction);
             buttonPanel.add(progress, BorderLayout.CENTER);
-            buttonPanel.add(prevButton, BorderLayout.EAST);
             buttonPanel.add(searchFieldPane, BorderLayout.NORTH);
             add(buttonPanel, BorderLayout.SOUTH);
             break;
         case LRTB:
-            nextButton.setIcon(goDownIcon);
-            prevButton.setIcon(goUpIcon);
-            nextButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_NEXT_DOWN_SHORTCUT.getNameWithHelpTitle());
-            prevButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_PREV_UP_SHORTCUT.getNameWithHelpTitle());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_DOWN_SHORTCUT.getKeyStroke(), nextButton.getName());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_UP_SHORTCUT.getKeyStroke(), prevButton.getName());
-            buttonPanel.add(nextButton, BorderLayout.SOUTH);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_DOWN_SHORTCUT.getKeyStroke(), nextAction);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_UP_SHORTCUT.getKeyStroke(), prevAction);
             buttonPanel.add(progress, BorderLayout.CENTER);
-            buttonPanel.add(prevButton, BorderLayout.NORTH);
             add(searchFieldPane, BorderLayout.SOUTH);
             add(buttonPanel, BorderLayout.EAST);
             break;
         case RLTB:
-            nextButton.setIcon(goDownIcon);
-            prevButton.setIcon(goUpIcon);
-            nextButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_NEXT_DOWN_SHORTCUT.getNameWithHelpTitle());
-            prevButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_PREV_UP_SHORTCUT.getNameWithHelpTitle());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_DOWN_SHORTCUT.getKeyStroke(), nextButton.getName());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_UP_SHORTCUT.getKeyStroke(), prevButton.getName());
-            buttonPanel.add(nextButton, BorderLayout.SOUTH);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_DOWN_SHORTCUT.getKeyStroke(), nextAction);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_UP_SHORTCUT.getKeyStroke(), prevAction);
             buttonPanel.add(progress, BorderLayout.CENTER);
-            buttonPanel.add(prevButton, BorderLayout.NORTH);
             add(searchFieldPane, BorderLayout.SOUTH);
             add(buttonPanel, BorderLayout.WEST);
             break;
         case TBLR:
-            nextButton.setIcon(goRightIcon);
-            prevButton.setIcon(goLeftIcon);
-            nextButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_NEXT_RIGHT_SHORTCUT.getNameWithHelpTitle());
-            prevButton.setToolTipText(AozoraEnv.ShortCutKey.PAGE_PREV_LEFT_SHORTCUT.getNameWithHelpTitle());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_RIGHT_SHORTCUT.getKeyStroke(), nextButton.getName());
-            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_LEFT_SHORTCUT.getKeyStroke(), prevButton.getName());
-            buttonPanel.add(nextButton, BorderLayout.EAST);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_NEXT_RIGHT_SHORTCUT.getKeyStroke(), nextAction);
+            pageButtonInputMap.put(AozoraEnv.ShortCutKey.PAGE_PREV_LEFT_SHORTCUT.getKeyStroke(), prevAction);
             buttonPanel.add(progress, BorderLayout.CENTER);
-            buttonPanel.add(prevButton, BorderLayout.WEST);
             buttonPanel.add(searchFieldPane, BorderLayout.NORTH);
             add(buttonPanel, BorderLayout.SOUTH);
             break;
