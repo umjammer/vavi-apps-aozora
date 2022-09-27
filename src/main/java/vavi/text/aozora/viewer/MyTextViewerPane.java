@@ -55,7 +55,6 @@ import javax.swing.border.MatteBorder;
 import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.core.AozoraUtil;
 import com.soso.aozora.data.AozoraCharacterUtil;
-import com.soso.aozora.data.AozoraComment;
 import com.soso.aozora.data.AozoraContentsParser;
 import com.soso.aozora.data.AozoraContentsParserHandler;
 import com.soso.sgui.SGUIUtil;
@@ -74,7 +73,7 @@ import static javax.swing.SwingUtilities.invokeAndWait;
 
 
 /**
- * based on {@link com.soso.aozora.viewer.TextViewerPane}
+ * based on "com.soso.aozora.viewer.TextViewerPane"
  *
  * TODO
  *  - half letter strings are separated into 2 letters, spacing is suck
@@ -86,13 +85,16 @@ public class MyTextViewerPane extends JPanel {
 
     private static class NoFocusButton extends JButton {
 
+        @Override
         public boolean isFocusTraversable() {
             return false;
         }
 
+        @Override
         public void requestFocus() {
         }
 
+        @Override
         public AccessibleContext getAccessibleContext() {
             AccessibleContext ac = super.getAccessibleContext();
             if (uiKey != null) {
@@ -139,12 +141,12 @@ public class MyTextViewerPane extends JPanel {
 
         private SLetterPane.MenuItemProducer createSearchMenuItemProducer() {
             SLetterPane.MenuItemProducer producer = new SLetterPane.MenuItemProducer() {
-                public JMenuItem produceMenuItem(Point p, SLetterCell[] cells, boolean isSelected) {
+                @Override public JMenuItem produceMenuItem(Point p, SLetterCell[] cells, boolean isSelected) {
                     return searchItem;
                 }
 
                 final JMenuItem searchItem = new JMenuItem(new AbstractAction("文章内検索") {
-                    public void actionPerformed(ActionEvent e) {
+                    @Override public void actionPerformed(ActionEvent e) {
                         setSearchEnable(true);
                     }
                 });
@@ -170,6 +172,7 @@ public class MyTextViewerPane extends JPanel {
                 textField.setColumns(20);
                 textField.addCaretListener(e -> resetButtonEnabled());
                 textField.addKeyListener(new KeyAdapter() {
+                    @Override
                     public void keyPressed(KeyEvent e) {
                         if (e.getKeyCode() == KeyEvent.VK_ENTER)
                             searchNext(getSearchKeyword());
@@ -185,7 +188,7 @@ public class MyTextViewerPane extends JPanel {
                 nextButton.setName("SearchFieldPane.nextButton");
                 nextButton.setAction(new AbstractAction(AozoraEnv.ShortCutKey.SEARCH_IN_WORK_NEXT_SHORTCUT.getName(),
                                                         AozoraUtil.getIcon(AozoraEnv.Env.GO_LEFT_VIEW_ICON.getString())) {
-                    public void actionPerformed(ActionEvent e) {
+                    @Override public void actionPerformed(ActionEvent e) {
                         searchNext(getSearchKeyword());
                     }
                 });
@@ -201,7 +204,7 @@ public class MyTextViewerPane extends JPanel {
                 prevButton.setName("SearchFieldPane.prevButton");
                 prevButton.setAction(new AbstractAction(AozoraEnv.ShortCutKey.SEARCH_IN_WORK_PREV_SHORTCUT.getName(),
                                                         AozoraUtil.getIcon(AozoraEnv.Env.GO_RIGHT_VIEW_ICON.getString())) {
-                    public void actionPerformed(ActionEvent e) {
+                    @Override public void actionPerformed(ActionEvent e) {
                         searchPrev(getSearchKeyword());
                     }
                 });
@@ -220,7 +223,7 @@ public class MyTextViewerPane extends JPanel {
                 closeButton.putClientProperty("paintActive", Boolean.TRUE);
                 closeButton.setBorder(new EmptyBorder(0, 0, 0, 0));
                 closeButton.setAction(new AbstractAction(null, UIManager.getIcon("InternalFrame.closeIcon")) {
-                    public void actionPerformed(ActionEvent e) {
+                    @Override public void actionPerformed(ActionEvent e) {
                         closeSearch();
                     }
                 });
@@ -252,6 +255,7 @@ public class MyTextViewerPane extends JPanel {
             setVisible(false);
         }
 
+        @Override
         public void setVisible(boolean flag) {
             super.setVisible(flag);
             SGUIUtil.setAllTextSelected(getTextField());
@@ -325,6 +329,7 @@ public class MyTextViewerPane extends JPanel {
             return cells;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder().append(super.toString());
             for (SLetterCell cell : getResult()) {
@@ -541,6 +546,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
          * @param rb target text
          * @param rt ruby text
          */
+        @Override
         public void ruby(String rb, String rt) {
             if (gaijirb != null)
                 throw new IllegalStateException("ruby[" + rb + "," + rt + "] appears while building " + gaijirb);
@@ -576,6 +582,7 @@ if (textChar == '※') {
             }
         }
 
+        @Override
         public void parseFinished() {
             MyTextViewerPane.this.parseFinished();
         }
@@ -583,6 +590,7 @@ if (textChar == '※') {
 
     private class ViewerPaneObserver extends SLetterPaneObserverHelper implements SLetterPaneObserver {
 
+        @Override
         public void colCountChanged(int oldColCount, int newColCount) {
             if (oldColCount < newColCount)
                 tryAppend();
@@ -590,6 +598,7 @@ if (textChar == '※') {
                 ensureEndPos();
         }
 
+        @Override
         public void rowCountChanged(int oldRowCount, int newRowCount) {
             logger.info("cached prev clear " + Arrays.toString(cachedPrevPosStack.toArray()));
             cachedPrevPosStack.clear();
@@ -599,10 +608,12 @@ if (textChar == '※') {
                 ensureEndPos();
         }
 
+        @Override
         public void rowSpaceChanged(int oldRowSpace, int newRowSpace) {
             settings.setRowSpace(newRowSpace);
         }
 
+        @Override
         public void fontRangeRatioChanged(float oldFontRangeRatio, float newFontRangeRatio) {
             settings.setFontRatio(newFontRangeRatio);
         }
@@ -663,6 +674,7 @@ if (textChar == '※') {
     private boolean isAllPageLoaded = false;
     private int firstStartPos;
     private SearchFieldPane searchFieldPane;
+
     URI uri;
     Reader reader;
     URL base;
@@ -701,20 +713,20 @@ if (textChar == '※') {
         goRightIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_RIGHT_ICON.getString());
         goUpIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_UP_ICON.getString());
         goDownIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_DOWN_ICON.getString());
-            public void actionPerformed(ActionEvent e) {
         nextEnabled = false;
         AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.PAGE_NEXT_LEFT_SHORTCUT.getKeyStroke(), nextAction, new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
                 next();
             }
         });
-            public void actionPerformed(ActionEvent e) {
         prevEnabled = false;
         AozoraUtil.putKeyStrokeAction(this, JComponent.WHEN_IN_FOCUSED_WINDOW, AozoraEnv.ShortCutKey.PAGE_PREV_RIGHT_SHORTCUT.getKeyStroke(), prevAction, new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) {
                 prev();
             }
         });
         progress = new JProgressBar(0) {
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 if (isProgressBarRevertOrientation()) {
                     double x = getWidth() * 0.5d;
                     double y = getHeight() * 0.5d;
@@ -794,18 +806,10 @@ if (textChar == '※') {
         }
     }
 
+    @Override
     public void paintComponent(Graphics g) {
         if (!isFirstPageLoaded)
             ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-    }
-
-    void setStartPosByComment(final AozoraComment comment) {
-        if (!isFirstPageLoaded) {
-            SwingUtilities.invokeLater(() -> setStartPosByComment(comment));
-            return;
-        }
-        setSelection(comment.getPosition(), comment.getLength());
-        SLetterCell cell = textCells.get(comment.getPosition());
         super.paintComponent(g);
     }
 

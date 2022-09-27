@@ -848,7 +848,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         for (int i = startPos; i < textCells.size(); i++) {
             SLetterCell cell = textCells.get(i);
             if (cell instanceof SLetterGlyphCell) {
-                char c = ((SLetterGlyphCell) cell).getMain();
+                char c = ((SLetterGlyphCell) cell).getMain().charAt(0); // TODO surrogate cannot search
                 if (keyword.charAt(matchIndex) == c)
                     matchIndex++;
                 else
@@ -876,7 +876,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         for (int i = startPos; i >= 0; i--) {
             SLetterCell cell = textCells.get(i);
             if (cell instanceof SLetterGlyphCell) {
-                char c = ((SLetterGlyphCell) cell).getMain();
+                char c = ((SLetterGlyphCell) cell).getMain().charAt(0); // TODO surrogate cannot search
                 if (keyword.charAt(keyword.length() - 1 - matchIndex) == c)
                     matchIndex++;
                 else

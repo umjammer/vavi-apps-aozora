@@ -45,7 +45,7 @@ public class AozoraComment implements Comparable<AozoraComment> {
     }
 
     public int compareTo(AozoraComment another) {
-        return Long.valueOf(getTimestamp()).compareTo(Long.valueOf(another.getTimestamp()));
+        return Long.compare(getTimestamp(), another.getTimestamp());
     }
 
     public boolean equals(Object obj) {

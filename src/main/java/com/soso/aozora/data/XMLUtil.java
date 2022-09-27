@@ -7,14 +7,16 @@ package com.soso.aozora.data;
 import java.util.HashMap;
 import java.util.Map;
 
+import vavi.util.Debug;
+
 
 public class XMLUtil {
 
     private static Map<String, Character> entityMap;
 
-    private static Map<String, Character> getEntityMap() {
+    static Map<String, Character> getEntityMap() {
         if (entityMap == null) {
-            entityMap = new HashMap<String, Character>();
+            entityMap = new HashMap<>();
             entityMap.put("amp", '&');
             entityMap.put("lt", '<');
             entityMap.put("gt", '>');
@@ -131,23 +133,25 @@ public class XMLUtil {
             if (ent.matches("#[0-9]+")) {
                 String dec = ent.substring(1);
                 try {
-                    int code = Integer.valueOf(dec, 10).intValue();
+                    int code = Integer.valueOf(dec, 10);
                     if (Character.isDefined(code)) {
                         cdataB.append(Character.toChars(code));
                         continue;
                     }
                 } catch (NumberFormatException e) {
+                    e.printStackTrace();
                 }
             }
             if (ent.matches("#x[0-9a-fA-F]+")) {
                 String hex = ent.substring(2);
                 try {
-                    int code = Integer.valueOf(hex, 16).intValue();
+                    int code = Integer.valueOf(hex, 16);
                     if (Character.isDefined(code)) {
                         cdataB.append(Character.toChars(code));
                         continue;
                     }
                 } catch (NumberFormatException e) {
+                    e.printStackTrace();
                 }
             }
             cdataB.append(c);

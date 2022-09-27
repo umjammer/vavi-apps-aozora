@@ -13,6 +13,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraUtil;
@@ -119,7 +120,7 @@ Debug.println("encoding set: " + encoding);
             tin = new TagReader(in);
             String tag;
             while ((tag = tin.readNextTag()) != null && !tag.toLowerCase().startsWith("body"))
-                ;
+                Debug.println(Level.FINE, "skip tag: " + tag);
             StringBuilder commentB = null;
             StringBuilder cdataB = null;
             while (true) {
@@ -207,8 +208,9 @@ Debug.println("encoding set: " + encoding);
                     handler.parseFinished();
                     break;
                 }
-                if (!isTagHandled)
+                if (!isTagHandled) {
                     handler.otherElement(tag);
+                }
             }
         } finally {
             try {

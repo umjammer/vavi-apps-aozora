@@ -80,9 +80,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <version>1.10.12</version>
       <groupId>br.ufmg.dcc.nanocomp</groupId>
       <artifactId>peg</artifactId>
       <version>0.10.0</version>

@@ -29,7 +29,7 @@ import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- * Application
+ * Application -> Component (trimming functions)
  */
 //@EnabledIf("localPropertiesExists")
 @PropsEntity(url = "file:local.properties")
@@ -42,6 +42,9 @@ public class SLetterConstraintTest {
     @Property(name = "aozora.zip")
     String file;
 
+    /**
+     * @param args none
+     */
     public static void main(String[] args) throws Exception {
         URI uri = URI.create("https://www.aozora.gr.jp/cards/000372/files/42810_23981.html");
         String title = uri.toString();
