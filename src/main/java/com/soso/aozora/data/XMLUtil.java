@@ -20,7 +20,7 @@ public class XMLUtil {
             entityMap.put("gt", '>');
             entityMap.put("quot", '"');
             entityMap.put("apos", '\'');
-            entityMap.put("nbsp", '\u0160');
+            entityMap.put("nbsp", '\u00a0');
             entityMap.put("iexcl", '\241');
             entityMap.put("cent", '\242');
             entityMap.put("pound", '\243');
