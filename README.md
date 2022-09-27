@@ -5,4 +5,26 @@
 
 # vavi-apps-aozora
 
-Tategaki Viewer
+Japanese Vertical (縦書き) Text Viewer.
+
+## References
+
+ * https://github.com/weimingtom/AozoraParser
+ * https://github.com/iWumboUWumbo2/AozoraToHTML
+ * http://x0213.org/codetable/
+ * https://www.kabipan.com/computer/mobi/aozora_kanji.html
+ * [oss](https://gist.github.com/takahashim/804099c7ab9bf23ceb07)
+ * https://glyphwiki.org/wiki/GlyphWiki (svg glyph!)
+ * https://github.com/aozorahack/aozora-parser.js (peg syntax)
+    * peg
+        * ~~https://github.com/adammurdoch/java-peg-tools~~ (buggy, wip?)
+        * https://github.com/sirthias/parboiled2 (scala, dsl on scala?)
+        * https://github.com/jeronimonunes/PEG (use pegjs by nashorn) 🎯
+ * https://github.com/taizan/vjap
+
+## TODO
+
+ * ruby
+ * use AozoraEpub3's database for external characters conversion
+ * proofreading
+   * https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473
