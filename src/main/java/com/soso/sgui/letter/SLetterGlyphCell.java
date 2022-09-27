@@ -16,15 +16,28 @@ import com.soso.sgui.text.CharacterUtil;
 
 import static com.soso.sgui.letter.SLetterDefaults.FONT_RANGE_RASIO;
 
+
+/**
+ * graphical debug "com.soso.sgui.letter.SLetterGlyphCell" level FINE
+ *
+ * TODO
+ *  - ruby gap is too narrow
+ *  - rubys are separated each text chars
+ *  - 2 bytes unicode
+ */
 public class SLetterGlyphCell extends SLetterCell {
 
     static Logger logger = Logger.getLogger(SLetterGlyphCell.class.getName());
 
     protected SLetterGlyphCell(char main, char[] rubys, Font font) {
-        if (!Character.isDefined(main)) {
-            throw new IllegalArgumentException("Character is not defined");
-        }
-        this.main = main;
+        setMain(main);
+        this.rubys = rubys;
+        this.font = font;
+    }
+
+    /** for surrogate pair */
+    protected SLetterGlyphCell(int cp, char[] rubys, Font font) {
+        setMain(cp);
         this.rubys = rubys;
         this.font = font;
     }
@@ -39,7 +52,7 @@ public class SLetterGlyphCell extends SLetterCell {
             g.setFont(font);
         int asc = g.getFontMetrics().getAscent();
         int desc = g.getFontMetrics().getDescent();
-        int width = g.getFontMetrics().charWidth(main);
+        int width = g.getFontMetrics().stringWidth(main);
         int x1 = cellBounds.x + (cellBounds.width - width) / 2;
         int y1 = cellBounds.y + ((cellBounds.height + asc) - desc) / 2;
         int x2 = cellBounds.x + cellBounds.width / 2;
@@ -75,13 +88,17 @@ public class SLetterGlyphCell extends SLetterCell {
         g.setFont(font);
     }
 
+    boolean isSurrogate() {
+        return main.length() > 1;
+    }
+
     protected double getRotateTheta(SLetterConstraint.ORIENTATION orientation) {
         if (isConstraintSet(SLetterConstraint.ROTATE.GENERALLY))
             switch (orientation) {
             case LRTB:
                 return 0.0D;
             case RLTB:
-                return !CharacterUtil.isToRotateKana(main) ? 0.0D : Math.PI;
+                return isSurrogate() ? Math.PI : !CharacterUtil.isToRotateKana(main.charAt(0)) ? 0.0D : Math.PI;
             case TBRL:
             case TBLR:
                 return Math.PI / 2;
@@ -91,7 +108,7 @@ public class SLetterGlyphCell extends SLetterCell {
             case LRTB:
                 return 0.0D;
             case RLTB:
-                return !CharacterUtil.isToRotateKana(main) ? 0.0D : -Math.PI;
+                return isSurrogate() ? -Math.PI : !CharacterUtil.isToRotateKana(main.charAt(0)) ? 0.0D : -Math.PI;
             case TBRL:
             case TBLR:
                 return -Math.PI / 2;
@@ -122,7 +139,7 @@ public class SLetterGlyphCell extends SLetterCell {
         } else if (isConstraintSet(SLetterConstraint.OVERLAY.HALF_OVER_TAIL)) {
             transX += (rectangle.height / 4);
         }
-        logger.finer("TransX=" + transX + " ," + main + "|" + rectangle);
+logger.finer("TransX=" + transX + " ," + main + "|" + rectangle);
         return transX;
     }
 
@@ -141,20 +158,31 @@ public class SLetterGlyphCell extends SLetterCell {
             int h = (asc + desc) / 4;
             transY = transY + (orientation.isHorizonal() ? 0 : -h);
         }
-        logger.finer("TransY=" + transY + " ," + main + "|" + rectangle);
+logger.finer("TransY=" + transY + " ," + main + "|" + rectangle);
         return transY;
     }
 
-    public void paintRuby(Graphics g, Rectangle rubyBounds) {
+    /** calculates ruby width or height */
+    private int adjustRubyLength(int length, int rudyLength) {
+        if (rudyLength <= 2) {
+            return Math.round((float) length / rudyLength);
+        } else {
+            // TODO the return value size is over than length, need to adjust next ruby start
+            return Math.round(length / 2f * FONT_RANGE_RASIO);
+        }
+    }
+
+    @Override
+    public void paintRuby(Graphics2D g, Rectangle rubyBounds) {
         if (rubys != null && rubys.length != 0) {
             SLetterConstraint.ORIENTATION orientation = getOrientation();
             if (orientation == null)
                 return;
             Font originalFont = g.getFont();
-            int h = orientation.isHorizonal() ? rubyBounds.height : rubyBounds.height / rubys.length;
-            int w = orientation.isHorizonal() ? rubyBounds.width / rubys.length : rubyBounds.width;
+            int h = orientation.isHorizonal() ? rubyBounds.height : adjustRubyLength(rubyBounds.height, rubys.length);
+            int w = orientation.isHorizonal() ? adjustRubyLength(rubyBounds.width, rubys.length) : rubyBounds.width;
             int center = (orientation.isHorizonal() ? rubyBounds.width : rubyBounds.height) / 2;
-            center = (int) (center * (getParent() == null ? 0.7861513F : getParent().getFontRangeRatio()));
+            center = (int) (center * (getParent() == null ? FONT_RANGE_RASIO : getParent().getFontRangeRatio()));
             Font rubyFont = new Font((font != null ? font : originalFont).getName(), (font != null ? font : originalFont).getStyle(), center);
             for (int i = 0; i < rubys.length; i++) {
                 char ruby = rubys[i];
@@ -194,12 +222,24 @@ public class SLetterGlyphCell extends SLetterCell {
         }
     }
 
-    public char getMain() {
+    // TODO return codepoint for search
+    public String getMain() {
         return main;
     }
 
-    public void setMain(char main) {
-        this.main = main;
+    public final void setMain(char main) {
+        if (!Character.isDefined(main)) {
+            throw new IllegalArgumentException(String.format("Character is not defined: %04x", (int) main));
+        }
+        this.main = String.valueOf(main);
+    }
+
+    /** for surrogate pair */
+    public final void setMain(int cp) {
+        if (!Character.isDefined(cp)) {
+            throw new IllegalArgumentException(String.format("Character is not surrogate: %08x", cp));
+        }
+        this.main = new String(new int[] {cp}, 0, 1);
     }
 
     public char[] getRubys() {
@@ -234,7 +274,7 @@ public class SLetterGlyphCell extends SLetterCell {
     }
 
     /** a letter */
-    private char main;
+    private String main;
     /** rubys TODO this is not good that having separated rubys */
     private char[] rubys;
     /** */

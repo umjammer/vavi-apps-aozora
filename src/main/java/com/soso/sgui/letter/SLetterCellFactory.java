@@ -30,6 +30,12 @@ public class SLetterCellFactory {
         return new SLetterCellFactory();
     }
 
+    public SLetterCell createKaeritenGlyphCell(char c) {
+        SLetterGlyphCell cell = new SLetterGlyphCell(c, null, null);
+        cell.addConstraint(SLetterConstraint.TRANS.SMALLCHAR);
+        return cell;
+    }
+
     public SLetterCell createGlyphCell(char c) {
         return createGlyphCell(c, null, null);
     }
@@ -63,6 +69,11 @@ public class SLetterCellFactory {
         if (CharacterUtil.isSmallKana(c))
             cell.addConstraint(SLetterConstraint.TRANS.SMALLCHAR);
         return cell;
+    }
+
+    /** for surrogate pair */
+    public SLetterCell createGlyphCell(int cp, char[] rubys, Font font) {
+        return new SLetterGlyphCell(cp, rubys, font);
     }
 
     public SLetterCell createImageCell(Image image) {

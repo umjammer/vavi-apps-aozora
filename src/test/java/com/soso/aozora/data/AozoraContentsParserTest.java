@@ -16,13 +16,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import vavi.text.aozora.converter.AozoraBunkoRuby;
+import vavi.text.aozora.converter.AozoraBunkoRubyTest;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- *
+ * AozoraContentsParserTest
  */
 @PropsEntity(url = "file:local.properties")
 public class AozoraContentsParserTest {
@@ -49,29 +51,91 @@ public class AozoraContentsParserTest {
         Reader forParse = new StringReader(writer.toString());
 
         new AozoraContentsParser(null, new AozoraContentsParserHandler() {
-            public void ruby(String rb, String rt) {
+
+            boolean reten;
+            boolean noted;
+
+            @Override public void ruby(String rb, String rt) {
                 Debug.println("ruby|" + rb + "|" + rt);
             }
 
-            public void otherElement(String element) {
-                Debug.println("element|" + element);
+            @Override public void otherElement(String element) {
+                if (element.startsWith("sub class=\"kaeriten\"")) {
+                    reten = true;
+                    return;
+                }
+                if (
+                    !element.startsWith("script") &&
+                    !element.startsWith("/script") &&
+                    !element.startsWith("!--") &&
+                    !element.startsWith("td") &&
+                    !element.startsWith("/td") &&
+                    !element.equals("span") &&
+                    !element.equals("sub") &&
+                    !element.startsWith("/sub") &&
+                    !element.startsWith("ui") &&
+                    !element.startsWith("li") &&
+                    !element.startsWith("/li") &&
+                    !element.startsWith("/span") &&
+                    !element.startsWith("/table") &&
+                    !element.startsWith("/hr") &&
+                    !element.startsWith("/a") &&
+                    !element.startsWith("tr") &&
+                    !element.startsWith("/tr") &&
+                    !element.startsWith("td") &&
+                    !element.startsWith("/td") &&
+                    !element.startsWith("div") &&
+                    !element.startsWith("/div") &&
+                    !element.startsWith("span") &&
+                    !element.startsWith("/span")
+                ) {
+                    Debug.println("element|" + element);
+                }
             }
 
-            public void newLine() {
-                Debug.println("newLine");
+            @Override public void newLine() {
+//                Debug.println("newLine");
             }
 
-            public void img(URL src, String alt, boolean isGaiji) {
+            @Override public void img(URL src, String alt, boolean isGaiji) {
                 Debug.println("img|" + (isGaiji ? "gaiji|" : "") + src + "|" + alt);
             }
 
-            public void characters(String cdata) {
-                Debug.println("characters|" + cdata);
+            @Override public void characters(String cdata) {
+                if (reten) {
+                    if (cdata.equals("レ")) {
+                        Debug.println("characters|" + "[レ点]");
+                    }
+                    reten = false;
+                    return;
+                }
+                if (noted) {
+                    if (cdata.startsWith("［＃")) {
+                        final String pattern = ".*([Uu]\\+[0-9a-fA-F]{4}).*";
+                        if (cdata.matches(pattern)) {
+                            String a = cdata.replaceFirst(pattern, "$1");
+                            Debug.printf("characters|[noted:%s]", a);
+                        }
+                        noted = false;
+                        return;
+                    }
+                }
+
+                String s = cdata.replaceAll("[\\s ]", "").trim();
+                if (!s.isEmpty()) {
+                    if (s.charAt(s.length() - 1) == '※') {
+                        noted = true;
+                        Debug.println("characters*|" + s);
+                        return;
+                    }
+                    Debug.println("characters|" + s);
+                }
             }
 
-            public void parseFinished() {
+            @Override public void parseFinished() {
                 Debug.println("end|----------------------------------------------------");
             }
-        }).parse(forParse, base);
+//        }).parse(forParse, base);
+        }).parse(url);
     }
 }

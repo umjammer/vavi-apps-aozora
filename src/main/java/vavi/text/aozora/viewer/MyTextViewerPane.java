@@ -14,6 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -65,6 +66,7 @@ import com.soso.sgui.letter.SLetterImageCell;
 import com.soso.sgui.letter.SLetterPane;
 import com.soso.sgui.letter.SLetterPaneObserver;
 import com.soso.sgui.letter.SLetterPaneObserverHelper;
+import vavi.text.UnicodeUtil;
 import vavi.util.Debug;
 
 import static javax.swing.SwingUtilities.invokeAndWait;
@@ -76,8 +78,6 @@ import static javax.swing.SwingUtilities.invokeAndWait;
  * TODO
  *  - half letter strings are separated into 2 letters, spacing is suck
  *  - half digit 2 letters pair must not be rotated
- *  - external characters should be replaced into unicode letters
- *  - unicode specification should be replaced into unicode letters
  */
 public class MyTextViewerPane extends JPanel {
 
@@ -340,6 +340,11 @@ public class MyTextViewerPane extends JPanel {
 
     private class ContentsHandler implements AozoraContentsParserHandler {
 
+        boolean kaeriten;
+        boolean notes;
+        boolean alternative;
+        SLetterGlyphCell rubyAlternative;
+
         private GaijiRubyBuilder gaijirb;
 
         private void appendCell(SLetterCell cell) {
@@ -350,20 +355,107 @@ public class MyTextViewerPane extends JPanel {
             return SLetterCellFactory.getInstance();
         }
 
+        static final String pattern = ".*[Uu]\\+([0-9a-fA-F]{4,5}).*";
+        String parseUnicode(String source) {
+            if (source.matches(pattern)) {
+                return source.replaceFirst(pattern, "$1");
+            } else {
+                return null;
+            }
+        }
+
+        @Override
         public void characters(String cdata) {
+            if (kaeriten) {
+Debug.println(Level.FINER, "characters|レ点: " + cdata);
+                // TODO too large
+//                for (char c : cdata.toCharArray()) {
+//                    SLetterCell cell = getCellFactory().createKaeritenGlyphCell(c);
+//                    appendCell(cell);
+//                }
+                // bad usage, but beautiful
+                SLetterCell cell = getCellFactory().createGlyphCell('　', cdata.toCharArray());
+                appendCell(cell);
+
+                kaeriten = false;
+                return;
+            }
+            if (notes) {
+                if (cdata.startsWith("［＃")) {
+                    if (alternative) {
+                        String a = parseUnicode(cdata);
+                        if (a != null) {
+                            char c = (char) Integer.parseInt(a, 16);
+Debug.printf("characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
+                            SLetterCell cell = getCellFactory().createGlyphCell(c);
+                            appendCell(cell);
+                        } else {
+Debug.printf(Level.WARNING, "characters|[notes:※:N/A]: %s", cdata);
+                        }
+                        alternative = false;
+                    } else if (rubyAlternative != null) {
+                        String a = parseUnicode(cdata);
+                        if (a != null) {
+                            char c = (char) Integer.parseInt(a, 16);
+Debug.printf("characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
+                            rubyAlternative.setMain(c);
+                        } else {
+Debug.printf(Level.WARNING, "characters|[notes:ruby※:N/A]: %s", cdata);
+                        }
+                        rubyAlternative = null;
+                    } else {
+Debug.println("characters|[notes:#]: " + cdata);
+                    }
+                } else {
+Debug.println("characters|[notes]: " + cdata);
+                }
+                notes = false;
+                return;
+            }
+
             if (gaijirb != null) {
                 gaijirb.append(cdata);
                 return;
             }
-            for (char c : cdata.replaceAll("\\s", "").toCharArray()) {
-                SLetterCell cell = getCellFactory().createGlyphCell(c);
-                if (cell != null)
+            // https://linuxtut.com/en/bdc62f95f6d342705001/
+            char[] ca = cdata.trim().toCharArray();
+            for (int i = 0; i < ca.length; i++) {
+                if (ca[i] == '※') {
+Debug.println(Level.FINER, "characters|" + "※※※ NOTED ※※※");
+                    alternative = true;
+                } else {
+                    if (Character.isHighSurrogate(ca[i]) && Character.isSurrogatePair(ca[i], ca[i + 1])) {
+Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
+                        SLetterCell cell = getCellFactory().createGlyphCell(cdata.codePointAt(i), new char[0], null);
                     appendCell(cell);
+                        i++;
+                    } else {
+                        SLetterCell cell = getCellFactory().createGlyphCell(ca[i]);
+                        appendCell(cell);
+                    }
+                }
             }
         }
 
+        @Override
         public void img(URL src, String alt, boolean isGaiji) {
-            Image image = null;
+Debug.println(Level.FINER, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
+            if (src.toString().matches(".*(\\d)-(\\d{2})-(\\d{2}).*")) {
+                String[] prc = src.toString().replaceFirst(".*(\\d)-(\\d{2})-(\\d{2}).*", "$1,$2,$3").split(",");
+
+                String unicode = UnicodeUtil.toUnicodeChar(Integer.parseInt(prc[0]), Integer.parseInt(prc[1]), Integer.parseInt(prc[2]));
+                // TODO why replaceFirst("[※\\(\\)]", "") doesn't work???
+                String a = alt.replaceFirst("※", "").replace("(", "").replace(")", "").trim();
+                if (unicode != null) {
+Debug.printf(Level.FINE, "image: %s -> %s, %s%s", Arrays.toString(prc), unicode, a, unicode.length() > 1 ? ", surrogate pare" : "");
+                    characters(unicode);
+                    return;
+                } else {
+Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
+                }
+            }
+
+            Image image;
             image = new ImageIcon(src).getImage();
             if (image == null) {
                 Icon errorIcon = UIManager.getIcon("OptionPane.errorIcon");
@@ -390,15 +482,20 @@ public class MyTextViewerPane extends JPanel {
             appendCell(cell);
         }
 
+        @Override
         public void newLine() {
             SLetterCell cell = getCellFactory().createGlyphCell('\n');
-            if (cell != null)
                 appendCell(cell);
         }
 
+        @Override
         public void otherElement(String element) {
             String lowerElement = element.toLowerCase();
-            if (lowerElement.startsWith("ruby")) {
+            if (lowerElement.startsWith("sub class=\"kaeriten\"")) {
+                kaeriten = true;
+            } else if (lowerElement.startsWith("span class=\"notes\"")) {
+                notes = true;
+            } else if (lowerElement.startsWith("ruby")) {
                 if (gaijirb != null)
                     throw new IllegalStateException("another rb start while building " + gaijirb);
                 gaijirb = new GaijiRubyBuilder();
@@ -429,13 +526,14 @@ public class MyTextViewerPane extends JPanel {
                        lowerElement.startsWith("/h") ||
                        lowerElement.startsWith("table") ||
                        lowerElement.startsWith("/table") ||
-                       lowerElement.startsWith("tr"))
+                       lowerElement.startsWith("tr")) {
                 newLine();
-            else if (lowerElement.startsWith("li")) {
+            } else if (lowerElement.startsWith("li")) {
                 newLine();
                 characters("・");
-            } else if (lowerElement.startsWith("/td"))
+            } else if (lowerElement.startsWith("/td")) {
                 characters("\t");
+        }
         }
 
         /**
@@ -451,8 +549,13 @@ Debug.println(Level.FINER, rb + ", " + rt);
                 char[] rubyChars = rt == null ? null : rt.toCharArray();
                 if (textChars.length == 1) {
                     SLetterCell cell = getCellFactory().createGlyphCell(textChars[0], rubyChars);
-                    if (cell != null)
+                    if (cell != null) {
                         appendCell(cell);
+                        if (textChars[0] == '※') {
+                            rubyAlternative = (SLetterGlyphCell) cell;
+Debug.println("ruby: alternative: " + rubyAlternative);
+                        }
+                    }
                 } else if (textChars.length == 0) {
                     SLetterCell cell = getCellFactory().createGlyphCell('　', rubyChars);
                     if (cell != null)
@@ -462,8 +565,10 @@ Debug.println(Level.FINER, rb + ", " + rt);
                     for (int i = 0; i < textChars.length; i++) {
                         char textChar = textChars[i];
                         char[] rubyAssign = rubyAssigns[i];
+if (textChar == '※') {
+ Debug.println("ruby: unhandled: ※");
+}
                         SLetterCell cell = getCellFactory().createGlyphCell(textChar, rubyAssign);
-                        if (cell != null)
                             appendCell(cell);
                     }
                 }
@@ -863,23 +968,27 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
 
     /** @model.api */
     private void searchNext(String keyword) {
-        logger.info("search|next|" + keyword);
         searchFieldPane.setMessage(null);
         int selectionStart = textPane.getSelectionStart();
         int startPos = this.startPos + selectionStart + 1;
         int matchIndex = 0;
+logger.info("search|next|" + startPos + " ~ " + textCells.size() + ", " + keyword);
+        int keywordCodePointLength = keyword.codePointCount(0, keyword.toCharArray().length);
         for (int i = startPos; i < textCells.size(); i++) {
             SLetterCell cell = textCells.get(i);
             if (cell instanceof SLetterGlyphCell) {
-                char c = ((SLetterGlyphCell) cell).getMain();
-                if (keyword.charAt(matchIndex) == c)
+                String m = ((SLetterGlyphCell) cell).getMain();
+                if (m.length() > 1 && keyword.charAt(matchIndex) == m.charAt(0) && keyword.charAt(matchIndex + 1) == m.charAt(1)) {
+logger.fine("search|next|match surrogate: " + m);
+                    matchIndex += 2;
+                } else if (keyword.charAt(matchIndex) == m.charAt(0))
                     matchIndex++;
                 else
                     matchIndex = 0;
                 if (matchIndex == keyword.length()) {
-                    int nextStart = (i - keyword.length()) + 1;
+                    int nextStart = (i - keywordCodePointLength) + 1;
                     logger.info("search|next| find at " + nextStart);
-                    setSelection(nextStart, keyword.length());
+                    setSelection(nextStart, keywordCodePointLength);
                     return;
                 }
             } else {
@@ -892,23 +1001,27 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
 
     /** @model.api */
     private void searchPrev(String keyword) {
-        logger.info("search|prev|" + keyword);
         searchFieldPane.setMessage(null);
         int selectionStart = textPane.getSelectionStart();
         int startPos = (this.startPos + selectionStart) - 1;
         int matchIndex = 0;
+logger.info("search|prev|" + startPos + " ~ 0, " + keyword);
+        int keywordCodePointLength = keyword.codePointCount(0, keyword.toCharArray().length);
         for (int i = startPos; i >= 0; i--) {
             SLetterCell cell = textCells.get(i);
             if (cell instanceof SLetterGlyphCell) {
-                char c = ((SLetterGlyphCell) cell).getMain();
-                if (keyword.charAt(keyword.length() - 1 - matchIndex) == c)
+                String m = ((SLetterGlyphCell) cell).getMain();
+                if (m.length() > 1 && keyword.charAt(keyword.length() - 2 - matchIndex) == m.charAt(0) && keyword.charAt(keyword.length() - 2 - matchIndex + 1) == m.charAt(1)) {
+logger.fine("search|prev|match surrogate: " + m);
+                    matchIndex += 2;
+                } else if (keyword.charAt(keyword.length() - 1 - matchIndex) == m.charAt(0))
                     matchIndex++;
                 else
                     matchIndex = 0;
                 if (matchIndex == keyword.length()) {
                     int prevStart = i;
                     logger.info("search|prev| find at " + prevStart);
-                    setSelection(prevStart, keyword.length());
+                    setSelection(prevStart, keywordCodePointLength);
                     return;
                 }
             } else {

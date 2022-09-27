@@ -136,7 +136,7 @@ public class CharacterUtil {
     private static final class HalfWidth {
 
         static boolean contains(char c) {
-            return Arrays.binarySearch(table, c) >= 0;
+            return Arrays.binarySearch(table, c) >= 0 || (0x21 <= c && c <= 0x02AF);
         }
 
         private static final char[] table = {
