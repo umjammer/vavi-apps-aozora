@@ -373,7 +373,7 @@ class TextViewerPane extends AozoraDefaultPane {
                 gaijirb.append(cell);
                 return;
             }
-            ((SLetterImageCell) cell).setMaximizable(!isGaiji);
+            ((SLetterImageCell) cell).setMagnifyable(!isGaiji);
             if (isGaiji) {
                 if (AozoraCharacterUtil.isGaijiToRotate(src.getFile())) {
                     logger.info("Gaiji | rotate | " + src + (isCache() ? " | cache" : ""));

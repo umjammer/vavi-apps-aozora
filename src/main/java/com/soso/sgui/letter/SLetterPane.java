@@ -353,7 +353,7 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
                                     if (cells.length == 1) {
                                         if (cells[0] instanceof SLetterImageCell) {
                                             SLetterImageCell imageCell = (SLetterImageCell) cells[0];
-                                            if (imageCell.isMaximizable()) {
+                                            if (imageCell.isMagnifyable()) {
                                                 setMaximizedImageCell(imageCell);
                                             }
                                         }
@@ -1018,7 +1018,7 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
     protected void paintMaximizedImage(Graphics2D g) {
         SLetterImageCell cell = getMaximizedImageCell();
         if (cell != null)
-            cell.paintMaximizedImage(g, new Rectangle(0, 0, getWidth(), getHeight()));
+            cell.paintMagnifiedImage(g, new Rectangle(0, 0, getWidth(), getHeight()));
     }
 
     public Rectangle getCellBounds(int row, int col, Rectangle bounds) {

@@ -9,17 +9,21 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.RGBImageFilter;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import vavi.util.Debug;
 
 
 public class SLetterImageCell extends SLetterGlyphCell {
@@ -60,39 +64,49 @@ public class SLetterImageCell extends SLetterGlyphCell {
         }
     }
 
-    protected SLetterImageCell(Image image, boolean resize, boolean maximizable, char[] rubys, Font font, String text) {
+    private Map<Object, Object> hints;
+
+    {
+        hints = new HashMap<>();
+        hints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    }
+
+    protected SLetterImageCell(Image image, boolean fit, boolean magnifyable, char[] rubys, Font font, String text) {
         super('※', rubys, font);
         if (image == null) {
             throw new IllegalArgumentException("image cannot be null");
         }
         this.image = image;
-        this.resize = resize;
-        this.maximizable = maximizable;
+        this.fit = fit;
+        this.magnifyable = magnifyable;
         this.text = text;
     }
 
-    public boolean isResize() {
-        return resize;
+    public boolean isFit() {
+        return fit;
     }
 
-    public void setResize(boolean resize) {
-        this.resize = resize;
+    public void setFit(boolean fit) {
+        this.fit = fit;
         SLetterPane parent = getParent();
         if (parent != null)
             parent.repaint();
     }
 
-    public boolean isMaximizable() {
-        return maximizable;
+    public boolean isMagnifyable() {
+        return magnifyable;
     }
 
-    public void setMaximizable(boolean maximizable) {
-        this.maximizable = maximizable;
+    public void setMagnifyable(boolean magnifyable) {
+        this.magnifyable = magnifyable;
         SLetterPane parent = getParent();
         if (parent != null)
             parent.repaint();
     }
 
+    @Override
     public String getText() {
         StringBuilder sb = new StringBuilder();
         if (text != null)
@@ -103,16 +117,17 @@ public class SLetterImageCell extends SLetterGlyphCell {
         return sb.toString();
     }
 
+    @Override
     protected void setParent(SLetterPane parent) {
         SLetterPane oldValue = getParent();
         if (oldValue != null)
-            oldValue.removePropertyChangeListener(getPropertyChnageListener());
+            oldValue.removePropertyChangeListener(getPropertyChangeListener());
         super.setParent(parent);
         if (parent != null)
-            parent.addPropertyChangeListener(getPropertyChnageListener());
+            parent.addPropertyChangeListener(getPropertyChangeListener());
     }
 
-    final PropertyChangeListener getPropertyChnageListener() {
+    final PropertyChangeListener getPropertyChangeListener() {
         if (propertyChangeListener == null)
             synchronized (this) {
                 if (propertyChangeListener == null)
@@ -127,18 +142,19 @@ public class SLetterImageCell extends SLetterGlyphCell {
         return propertyChangeListener;
     }
 
-    public void paintMaximizedImage(Graphics2D g, Rectangle bounds) {
-        if (!isMaximizable())
+    public void paintMagnifiedImage(Graphics2D g, Rectangle bounds) {
+        if (!isMagnifyable())
             return;
         SLetterPane parent = getParent();
         if (parent == null)
             return;
+        g.setRenderingHints(hints);
         Color color = g.getColor();
-        Composite composite = g.getComposite();
-        g.setComposite(AlphaComposite.getInstance(3, 0.7F));
-        g.setColor(Color.LIGHT_GRAY);
-        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-        g.setComposite(AlphaComposite.SrcOver);
+//        Composite composite = g.getComposite();
+//        g.setComposite(AlphaComposite.getInstance(3, 0.7F));
+//        g.setColor(Color.LIGHT_GRAY);
+//        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+//        g.setComposite(AlphaComposite.SrcOver);
         int iw = image.getWidth(parent);
         int ih = image.getHeight(parent);
         int w = Math.min(iw, Math.max(0, bounds.width - 20));
@@ -156,42 +172,49 @@ public class SLetterImageCell extends SLetterGlyphCell {
         g.setColor(Color.BLACK);
         g.drawRect(x - 1, y - 1, w + 1, h + 1);
         g.drawImage(image, x, y, w, h, getParent());
-        if (composite != null)
-            g.setComposite(composite);
+//        if (composite != null)
+//            g.setComposite(composite);
         g.setColor(color);
     }
 
+    @Override
     public void paintCell(Graphics2D g, Rectangle cellBounds) {
-        if (!drawImage_b())
+        if (!isImageDrawable()) {
+Debug.println(Level.FINE, "not image ready");
             return;
+        }
         SLetterConstraint.ORIENTATION orientation = getOrientation();
-        if (orientation == null)
+        if (orientation == null) {
+Debug.println(Level.FINE, "orientation is null");
             return;
+        }
+        g.setRenderingHints(hints);
         Color color = g.getColor();
-        int w = image_c.getWidth();
-        int h = image_c.getHeight();
+        int w = displayImage.getWidth();
+        int h = displayImage.getHeight();
         int x = cellBounds.x + (cellBounds.width - w) / 2;
         int y = cellBounds.y + (cellBounds.height - h) / 2;
         double t = getRotateTheta(orientation);
         AffineTransform trans = null;
         if (t != 0.0) {
             trans = g.getTransform();
-            AffineTransform affinetransform1 = new AffineTransform(trans);
+            AffineTransform affineTransform = new AffineTransform(trans);
             int x1 = cellBounds.x + cellBounds.width / 2;
             int y1 = cellBounds.y + cellBounds.height / 2;
-            affinetransform1.rotate(t, x1, y1);
+            affineTransform.rotate(t, x1, y1);
             if (isConstraintSet(SLetterConstraint.ROTATE.LR_MIRROR)) {
-                affinetransform1.translate(0.0, y1);
-                affinetransform1.scale(1.0, -1D);
-                affinetransform1.translate(0.0, -y1);
+                affineTransform.translate(0.0, y1);
+                affineTransform.scale(1.0, -1.0);
+                affineTransform.translate(0.0, -y1);
             }
-            g.setTransform(affinetransform1);
+            g.setTransform(affineTransform);
         }
-        if (isConstraintSet(SLetterConstraint.SELECTION.SELECTED))
-            g.drawImage(getImage_d(), x, y, getParent());
-        else
-            g.drawImage(getImage_c(), x, y, getParent());
-        if (maximizable) {
+        Image image = isConstraintSet(SLetterConstraint.SELECTION.SELECTED) ?
+                getImageSelected() : getImageUnselected();
+        g.drawImage(image, x, y, getParent());
+Debug.println(Level.FINE, "image: " + (getRubys() != null ? new String(getRubys()) : "?") + ", " + image);
+        if (magnifyable) {
+            // draw clickable marker
             g.setColor(defaultColor);
             g.drawRect(cellBounds.x, cellBounds.y, cellBounds.width, cellBounds.height);
         }
@@ -204,7 +227,7 @@ public class SLetterImageCell extends SLetterGlyphCell {
         g.setColor(color);
     }
 
-    private boolean drawImage_b() {
+    private boolean isImageDrawable() {
         SLetterPane parent = getParent();
         if (parent == null)
             return false;
@@ -215,11 +238,11 @@ public class SLetterImageCell extends SLetterGlyphCell {
         int ih = image.getHeight(parent);
         int w = iw;
         int h = ih;
-        if (resize) {
+        if (fit) {
             int size = font.getSize();
-            if (image_c != null) {
-                int w1 = image_c.getWidth();
-                int h2 = image_c.getHeight();
+            if (displayImage != null) {
+                int w1 = displayImage.getWidth();
+                int h2 = displayImage.getHeight();
                 if (w1 == size && h2 <= size || w1 <= size && h2 == size)
                     return true;
             }
@@ -230,52 +253,56 @@ public class SLetterImageCell extends SLetterGlyphCell {
             h = Math.round(ih * s);
         }
         BufferedImage image = new BufferedImage(w, h, 2);
-        image.getGraphics().drawImage(this.image, 0, 0, w, h, parent);
-        image_c = image;
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHints(hints);
+        g.drawImage(this.image, 0, 0, w, h, parent);
+        g.dispose();
+        displayImage = image;
         unselectedImage = null;
         selectedImage = null;
         return true;
     }
 
-    private Image getImage_c() {
+    private Image getImageUnselected() {
         if (unselectedImage == null) {
             SLetterPane parent = getParent();
             if (parent == null)
                 return null;
-            if (image_c == null)
+            if (displayImage == null)
                 return null;
-            unselectedImage = getImage_a(image_c, parent.getBackground(), parent.getForeground(), parent);
+            unselectedImage = getFilteredImage(displayImage, parent.getBackground(), parent.getForeground(), parent);
         }
         return unselectedImage;
     }
 
-    private Image getImage_d() {
+    private Image getImageSelected() {
         if (selectedImage == null) {
             SLetterPane parent = getParent();
             if (parent == null)
                 return null;
-            if (image_c == null)
+            if (displayImage == null)
                 return null;
-            selectedImage = getImage_a(image_c, parent.getSelectionColor(), parent.getSelectedTextColor(), parent);
+            selectedImage = getFilteredImage(displayImage, parent.getSelectionColor(), parent.getSelectedTextColor(), parent);
         }
         return selectedImage;
     }
 
-    private static BufferedImage getImage_a(BufferedImage image, Color color, Color color1, Component component) {
+    private BufferedImage getFilteredImage(BufferedImage image, Color color, Color color1, Component observer) {
         FilteredImageSource imageSource = new FilteredImageSource(image.getSource(), new s_ImageFilter(color, color1));
-        BufferedImage image1 = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics g = image1.getGraphics();
-        g.drawImage(component.createImage(imageSource), 0, 0, component);
-        return image1;
+        BufferedImage filteredImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = filteredImage.createGraphics();
+        g.setRenderingHints(hints);
+        g.drawImage(observer.createImage(imageSource), 0, 0, observer);
+        return filteredImage;
     }
 
     private static final Color defaultColor = Color.BLUE;
     private Image image;
-    private BufferedImage image_c;
+    private BufferedImage displayImage;
     private BufferedImage unselectedImage;
     private BufferedImage selectedImage;
-    private boolean resize;
-    private boolean maximizable;
+    private boolean fit;
+    private boolean magnifyable;
     private String text;
 
     private volatile PropertyChangeListener propertyChangeListener;

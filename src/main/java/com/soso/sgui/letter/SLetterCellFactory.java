@@ -10,6 +10,7 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 
 import com.soso.sgui.text.CharacterUtil;
+import vavi.util.Debug;
 
 
 public class SLetterCellFactory {
@@ -84,26 +85,24 @@ public class SLetterCellFactory {
         return createImageCell(image, true, null, null, text);
     }
 
-    public SLetterCell createImageCell(Image image, boolean resize) {
-        return createImageCell(image, resize, null, null);
+    public SLetterCell createImageCell(Image image, boolean fit) {
+        return createImageCell(image, fit, null, null);
     }
 
     public SLetterCell createImageCell(Image image, char[] rubys) {
         return createImageCell(image, true, rubys, null);
     }
 
-    public SLetterCell createImageCell(Image image, boolean resize, char[] rubys, Font font) {
-        return createImageCell(image, resize, rubys, font, null);
+    public SLetterCell createImageCell(Image image, boolean fit, char[] rubys, Font font) {
+        return createImageCell(image, fit, rubys, font, null);
     }
 
-    public SLetterCell createImageCell(Image image, boolean resize, char[] rubys, Font font, String text) {
-        return createImageCell(image, resize, false, rubys, font, text);
+    public SLetterCell createImageCell(Image image, boolean fit, char[] rubys, Font font, String text) {
+        return createImageCell(image, fit, false, rubys, font, text);
     }
 
-    public SLetterCell createImageCell(Image image, boolean resize, boolean maximizable, char[] rubys, Font font, String text) {
-//new Exception("image: " + text).printStackTrace();
-        SLetterImageCell imageCell = new SLetterImageCell(image, resize, maximizable, rubys, font, text);
-        return imageCell;
+    public SLetterCell createImageCell(Image image, boolean fit, boolean magnifyable, char[] rubys, Font font, String text) {
+        return new SLetterImageCell(image, fit, magnifyable, rubys, font, text);
     }
 
     public SLetterCell createImageCell(URL url) {
@@ -122,13 +121,13 @@ public class SLetterCellFactory {
         return createImageCell(url, true, rubys, null, null);
     }
 
-    public SLetterCell createImageCell(URL url, boolean resize, char[] rubys, Font font, String text) {
-        return createImageCell(url, resize, false, rubys, font, text);
+    public SLetterCell createImageCell(URL url, boolean fit, char[] rubys, Font font, String text) {
+        return createImageCell(url, fit, false, rubys, font, text);
     }
 
-    public SLetterCell createImageCell(URL url, boolean resize, boolean maximizable, char[] rubys, Font font, String text) {
+    public SLetterCell createImageCell(URL url, boolean fit, boolean magnifyable, char[] rubys, Font font, String text) {
         Image image = new ImageIcon(url).getImage();
-        return createImageCell(image, resize, maximizable, rubys, font, text);
+        return createImageCell(image, fit, magnifyable, rubys, font, text);
     }
 
     private static SLetterCellFactory factory;

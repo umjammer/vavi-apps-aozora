@@ -469,7 +469,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
                 gaijirb.append(cell);
                 return;
             }
-            ((SLetterImageCell) cell).setMaximizable(!isGaiji);
+            ((SLetterImageCell) cell).setMagnifyable(!isGaiji);
             if (isGaiji) {
                 if (AozoraCharacterUtil.isGaijiToRotate(src.getFile())) {
                     logger.fine("Gaiji | rotate | " + src);
