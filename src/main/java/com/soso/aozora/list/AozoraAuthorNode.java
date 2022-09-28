@@ -24,7 +24,7 @@ class AozoraAuthorNode extends DefaultMutableTreeNode {
         super(author.getName(), true);
         isWorkLoaded = false;
         this.author = author;
-        allWorkNodeList = new ArrayList<AozoraWorkNode>();
+        allWorkNodeList = new ArrayList<>();
     }
 
     public void add(MutableTreeNode newChild) {
@@ -43,7 +43,7 @@ class AozoraAuthorNode extends DefaultMutableTreeNode {
     }
 
     AozoraWorkNode[] getVisibleAozoraWorkNodes() {
-        List<AozoraWorkNode> workNodeList = new ArrayList<AozoraWorkNode>();
+        List<AozoraWorkNode> workNodeList = new ArrayList<>();
         synchronized (this) {
             int cnt = getChildCount();
             for (int i = 0; i < cnt; i++) {
@@ -51,12 +51,12 @@ class AozoraAuthorNode extends DefaultMutableTreeNode {
                 workNodeList.add(workNode);
             }
         }
-        return workNodeList.toArray(new AozoraWorkNode[workNodeList.size()]);
+        return workNodeList.toArray(new AozoraWorkNode[0]);
     }
 
     AozoraWorkNode[] getAllAozoraWorkNodes() {
         synchronized (this) {
-            return allWorkNodeList.toArray(new AozoraWorkNode[allWorkNodeList.size()]);
+            return allWorkNodeList.toArray(new AozoraWorkNode[0]);
         }
     }
 
@@ -117,7 +117,7 @@ class AozoraAuthorNode extends DefaultMutableTreeNode {
         int hit = 0;
         if (AozoraSearchUtil.searchAuthor(getAozoraAuthor(), search))
             hit++;
-        final List<AozoraWorkNode> hitWorkNodeList = new ArrayList<AozoraWorkNode>();
+        final List<AozoraWorkNode> hitWorkNodeList = new ArrayList<>();
         for (AozoraWorkNode workNode : isAll ? getAllAozoraWorkNodes() : getVisibleAozoraWorkNodes()) {
             if (AozoraSearchUtil.searchWork(workNode.getAozoraWork(), search))
                 hitWorkNodeList.add(workNode);
@@ -125,11 +125,7 @@ class AozoraAuthorNode extends DefaultMutableTreeNode {
 
         hit += hitWorkNodeList.size();
         final boolean visible = hit != 0;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                reset(hitWorkNodeList, visible);
-            }
-        });
+        SwingUtilities.invokeLater(() -> reset(hitWorkNodeList, visible));
         return hit;
     }
 

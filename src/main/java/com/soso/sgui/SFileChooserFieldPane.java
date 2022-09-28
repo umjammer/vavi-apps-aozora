@@ -35,11 +35,7 @@ public class SFileChooserFieldPane extends JPanel {
         add(comboBox, BorderLayout.CENTER);
         button = new SButton();
         button.setText("参照");
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                showFileChooser();
-            }
-        });
+        button.addActionListener(event -> showFileChooser());
         add(button, BorderLayout.EAST);
         fileChooser = new SFileChooser();
     }

@@ -150,11 +150,11 @@ public class SLetterImageCell extends SLetterGlyphCell {
             return;
         g.setRenderingHints(hints);
         Color color = g.getColor();
-//        Composite composite = g.getComposite();
-//        g.setComposite(AlphaComposite.getInstance(3, 0.7F));
-//        g.setColor(Color.LIGHT_GRAY);
-//        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-//        g.setComposite(AlphaComposite.SrcOver);
+        Composite composite = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(3, 0.7F));
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        g.setComposite(AlphaComposite.SrcOver);
         int iw = image.getWidth(parent);
         int ih = image.getHeight(parent);
         int w = Math.min(iw, Math.max(0, bounds.width - 20));
@@ -172,8 +172,8 @@ public class SLetterImageCell extends SLetterGlyphCell {
         g.setColor(Color.BLACK);
         g.drawRect(x - 1, y - 1, w + 1, h + 1);
         g.drawImage(image, x, y, w, h, getParent());
-//        if (composite != null)
-//            g.setComposite(composite);
+        if (composite != null)
+            g.setComposite(composite);
         g.setColor(color);
     }
 
@@ -212,7 +212,7 @@ Debug.println(Level.FINE, "orientation is null");
         Image image = isConstraintSet(SLetterConstraint.SELECTION.SELECTED) ?
                 getImageSelected() : getImageUnselected();
         g.drawImage(image, x, y, getParent());
-Debug.println(Level.FINE, "image: " + (getRubys() != null ? new String(getRubys()) : "?") + ", " + image);
+Debug.println(Level.FINER, "image: " + (getRubys() != null ? new String(getRubys()) : "?") + ", " + image);
         if (magnifyable) {
             // draw clickable marker
             g.setColor(defaultColor);

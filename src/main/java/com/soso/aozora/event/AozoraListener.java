@@ -13,13 +13,13 @@ import com.soso.aozora.viewer.AozoraCommentDecorator;
 
 public interface AozoraListener extends EventListener {
 
-    public abstract void lineModeChanged(AozoraEnv.LineMode lineMode);
+    void lineModeChanged(AozoraEnv.LineMode lineMode);
 
-    public abstract void cacheUpdated(String cacheID);
+    void cacheUpdated(String cacheID);
 
-    public abstract void cacheDeleted(String cacheID);
+    void cacheDeleted(String cacheID);
 
-    public abstract void commentAdded(AozoraComment comment);
+    void commentAdded(AozoraComment comment);
 
-    public abstract void commentTypeChanged(AozoraCommentDecorator.CommentType commentType);
+    void commentTypeChanged(AozoraCommentDecorator.CommentType commentType);
 }

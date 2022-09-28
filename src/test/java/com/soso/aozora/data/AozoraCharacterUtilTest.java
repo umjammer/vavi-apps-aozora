@@ -6,17 +6,13 @@
 
 package com.soso.aozora.data;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.junit.jupiter.api.Test;
 import vavi.util.Debug;
 
 import static com.soso.aozora.data.AozoraCharacterUtil.GAIJI_ALPHABET_PHONETIC_SIGN;
 import static com.soso.aozora.data.AozoraCharacterUtil.GAIJI_ALPHABET_WITH_PHONETIC;
 import static com.soso.aozora.data.AozoraCharacterUtil.isGaijiToRotate;
-import static com.soso.aozora.data.CipherUtil.decrypt;
-import static com.soso.aozora.data.CipherUtil.encrypt;
 
 
 /**
@@ -55,10 +51,5 @@ Debug.println("ERR : " + test[0]);
         }
 
 Debug.println("Test FINISH");
-    }
-
-    @Test
-    void test2() throws Exception {
-Debug.println(new String(decrypt(encrypt("OK".getBytes(StandardCharsets.UTF_8))), StandardCharsets.UTF_8));
     }
 }

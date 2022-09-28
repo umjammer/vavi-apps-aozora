@@ -10,7 +10,6 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 
 import com.soso.sgui.text.CharacterUtil;
-import vavi.util.Debug;
 
 
 public class SLetterCellFactory {

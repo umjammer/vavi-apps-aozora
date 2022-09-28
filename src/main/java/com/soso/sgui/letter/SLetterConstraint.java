@@ -9,7 +9,7 @@ import com.soso.sgui.text.CharacterUtil;
 
 public interface SLetterConstraint {
 
-    public enum ORIENTATION implements SLetterConstraint {
+    enum ORIENTATION implements SLetterConstraint {
 
         LRTB,
         TBRL,
@@ -56,7 +56,7 @@ public interface SLetterConstraint {
         }
     }
 
-    public enum OVERLAY implements SLetterConstraint {
+    enum OVERLAY implements SLetterConstraint {
         FORCE_OVER,
         LINE_TAIL_OVER,
         HALF_OVER,
@@ -74,7 +74,7 @@ public interface SLetterConstraint {
         }
     }
 
-    public enum TRANS implements SLetterConstraint {
+    enum TRANS implements SLetterConstraint {
         PUNCTURETE,
         SMALLCHAR;
         public final boolean isConcurrentable(SLetterConstraint constraint) {
@@ -83,7 +83,7 @@ public interface SLetterConstraint {
 
     }
 
-    public enum ROTATE implements SLetterConstraint {
+    enum ROTATE implements SLetterConstraint {
         GENERALLY,
         REVERSE,
         LR_MIRROR;
@@ -103,7 +103,7 @@ public interface SLetterConstraint {
         }
     }
 
-    public enum BREAK implements SLetterConstraint {
+    enum BREAK implements SLetterConstraint {
         NEW_PAGE,
         NEW_LINE,
         NEW_LINE_IF_LINE_TAIL,
@@ -126,12 +126,12 @@ public interface SLetterConstraint {
         }
     }
 
-    public enum SELECTION implements SLetterConstraint {
+    enum SELECTION implements SLetterConstraint {
         SELECTED;
         public final boolean isConcurrentable(SLetterConstraint constraint) {
             return !(constraint instanceof SELECTION);
         }
     }
 
-    public abstract boolean isConcurrentable(SLetterConstraint constraint);
+    boolean isConcurrentable(SLetterConstraint constraint);
 }

@@ -7,8 +7,6 @@ package com.soso.aozora.data;
 import java.util.HashMap;
 import java.util.Map;
 
-import vavi.util.Debug;
-
 
 public class XMLUtil {
 

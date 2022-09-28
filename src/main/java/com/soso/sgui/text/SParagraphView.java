@@ -162,11 +162,11 @@ final class SParagraphView extends ParagraphView {
                 for (int i = 0; i < count; i++) {
                     if (i != 0)
                         sb.append(", ");
-                    sb.append(String.valueOf(getView(count)));
+                    sb.append(getView(count));
                 }
 
                 sb.append("]");
-            } catch (Exception _ex) {
+            } catch (Exception ignored) {
             }
             return sb.toString();
         }
@@ -182,12 +182,12 @@ final class SParagraphView extends ParagraphView {
         this.strategy = flowStrategy;
     }
 
-    public final float nextTabStop(float x, int tabOffset) {
+    public float nextTabStop(float x, int tabOffset) {
         int h = getFontMetrics().getHeight() * 2;
         return (x / h + 1.0F) * h;
     }
 
-    public final float getAlignment(int axis) {
+    public float getAlignment(int axis) {
         switch (axis) {
         case X_AXIS:
             return 0.5F;
@@ -197,7 +197,7 @@ final class SParagraphView extends ParagraphView {
         throw new IllegalArgumentException("Invalid axis: " + axis);
     }
 
-    public final int getFlowSpan(int index) {
+    public int getFlowSpan(int index) {
         View child = getView(index);
         int adjust = 0;
         Row row = (Row) child;
@@ -207,7 +207,7 @@ final class SParagraphView extends ParagraphView {
         return span;
     }
 
-    public final int getFlowStart(int index) {
+    public int getFlowStart(int index) {
         View child = getView(index);
         short adjust = 0;
         Row row = (Row) child;
@@ -216,15 +216,15 @@ final class SParagraphView extends ParagraphView {
         return adjust;
     }
 
-    protected final boolean isAfter(int x, int y, Rectangle innerAlloc) {
+    protected boolean isAfter(int x, int y, Rectangle innerAlloc) {
         return super.isBefore(x, y, innerAlloc);
     }
 
-    protected final boolean isBefore(int x, int y, Rectangle innerAlloc) {
+    protected boolean isBefore(int x, int y, Rectangle innerAlloc) {
         return super.isAfter(x, y, innerAlloc);
     }
 
-    protected final void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
+    protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
         int count = getViewCount();
 
         for (int i = 0; i < count; i++) {
@@ -242,7 +242,7 @@ final class SParagraphView extends ParagraphView {
         }
     }
 
-    protected final void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
+    protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans) {
         long sum = 0L;
         int count = getViewCount();
         for (int i = 0; i < count; i++) {
@@ -304,7 +304,7 @@ final class SParagraphView extends ParagraphView {
         }
     }
 
-    protected final View getViewAtPoint(int x, int y, Rectangle alloc) {
+    protected View getViewAtPoint(int x, int y, Rectangle alloc) {
         int count = getViewCount();
         switch (getAxis()) {
         case X_AXIS:
@@ -329,7 +329,7 @@ final class SParagraphView extends ParagraphView {
         throw new IllegalStateException(String.valueOf(getAxis()));
     }
 
-    protected final View createRow() {
+    protected View createRow() {
         return new Row(getElement());
     }
 
@@ -341,7 +341,7 @@ final class SParagraphView extends ParagraphView {
             return g.getFontMetrics();
     }
 
-    public final String toString() {
+    public String toString() {
         StringBuilder sb = new StringBuilder(super.toString());
         try {
             sb.append("[");
@@ -349,11 +349,11 @@ final class SParagraphView extends ParagraphView {
             for (int i = 0; i < count; i++) {
                 if (i != 0)
                     sb.append(", ");
-                sb.append(String.valueOf(getView(count)));
+                sb.append(getView(count));
             }
 
             sb.append("]");
-        } catch (Exception _ex) {
+        } catch (Exception ignored) {
         }
         return sb.toString();
     }

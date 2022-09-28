@@ -60,19 +60,13 @@ public class SLinkLabel extends JLabel {
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem openMenuItem = new JMenuItem("リンクを開く(O)");
         openMenuItem.setMnemonic('O');
-        openMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                open();
-            }
-        });
+        openMenuItem.addActionListener(event -> open());
         popupMenu.add(openMenuItem);
         JMenuItem copyMenuItem = new JMenuItem("リンクをコピー(C)");
         copyMenuItem.setMnemonic('C');
-        copyMenuItem.addActionListener(new ActionListener() {
-            public final void actionPerformed(ActionEvent event) {
-                StringSelection selection = new StringSelection(getURL().toExternalForm());
-                getToolkit().getSystemClipboard().setContents(selection, selection);
-            }
+        copyMenuItem.addActionListener(event -> {
+            StringSelection selection = new StringSelection(getURL().toExternalForm());
+            getToolkit().getSystemClipboard().setContents(selection, selection);
         });
         popupMenu.add(copyMenuItem);
         popupMenu.show(this, x, y);

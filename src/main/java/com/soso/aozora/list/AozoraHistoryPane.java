@@ -75,7 +75,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
         });
         JButton deleteButton = new JButton(new AbstractAction("全ての履歴を削除") {
             public void actionPerformed(ActionEvent e) {
-                if (JOptionPane.showInternalConfirmDialog(getAzContext().getDesktopPane(), "全ての履歴を削除します。よろしいですか？", "全ての履歴を削除", 2, 3) == 0)
+                if (JOptionPane.showInternalConfirmDialog(getAzContext().getDesktopPane(), "全ての履歴を削除します。よろしいですか？", "全ての履歴を削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE) == 0)
                     removeAllEntories();
             }
         });
@@ -133,10 +133,10 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
 
     private void initTermNodes() {
         Calendar cal = Calendar.getInstance();
-        cal.set(11, 0);
-        cal.set(12, 0);
-        cal.set(13, 0);
-        cal.set(14, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
         long end = 0xffffffffL;
         long start = cal.getTimeInMillis();
@@ -144,19 +144,19 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
         String toolTip = df.format(new Date(start)) + " の履歴";
         getRootNode().add(new AozoraHistoryTermNode(title, toolTip, start, end));
         end = cal.getTimeInMillis() - 1L;
-        cal.add(5, -1);
+        cal.add(Calendar.DATE, -1);
         start = cal.getTimeInMillis();
         title = "昨日";
         toolTip = df.format(new Date(start)) + " の履歴";
         getRootNode().add(new AozoraHistoryTermNode(title, toolTip, start, end));
         end = cal.getTimeInMillis() - 1L;
-        cal.add(5, -6);
+        cal.add(Calendar.DATE, -6);
         start = cal.getTimeInMillis();
         title = "7日前より最近";
         toolTip = df.format(new Date(start)) + " から " + df.format(new Date(end)) + " の履歴";
         getRootNode().add(new AozoraHistoryTermNode(title, toolTip, start, end));
         end = cal.getTimeInMillis() - 1L;
-        cal.add(5, -23);
+        cal.add(Calendar.DATE, -23);
         start = cal.getTimeInMillis();
         title = "30日前より最近";
         toolTip = df.format(new Date(start)) + " から " + df.format(new Date(end)) + " の履歴";
@@ -191,11 +191,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
         if (SwingUtilities.isEventDispatchThread()) {
             synchronized (DATA_MUTEX) {
                 if (dataThread == null) {
-                    dataThread = new Thread(new Runnable() {
-                        public void run() {
-                            initData();
-                        }
-                    }, "AozoraHistoryPane_initData");
+                    dataThread = new Thread(() -> initData(), "AozoraHistoryPane_initData");
                     dataThread.start();
                 }
             }
@@ -214,11 +210,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
         if (SwingUtilities.isEventDispatchThread()) {
             synchronized (DATA_MUTEX) {
                 if (dataThread == null) {
-                    dataThread = new Thread(new Runnable() {
-                        public void run() {
-                            updateData();
-                        }
-                    }, "AozoraHistoryPane_updateData");
+                    dataThread = new Thread(() -> updateData(), "AozoraHistoryPane_updateData");
                     dataThread.start();
                 }
             }
@@ -247,18 +239,14 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
     }
 
     private void loadAuthorAndWork(final AozoraHistoryEntryNode entryNode) {
-        getAzContext().getRootMediator().getAozoraWorkAsynchronous(entryNode.getEntry().getBook(), new AozoraWorkParserHandler() {
-            public void work(AozoraWork work) {
-                entryNode.work(work);
-                if (work != null)
-                    getAzContext().getRootMediator().getAozoraAuthorAsynchronous(work.getAuthorID(), new AozoraAuthorParserHandler() {
-                        public void author(AozoraAuthor author) {
-                            entryNode.author(author);
-                            reload();
-                        }
-                    });
-                reload();
-            }
+        getAzContext().getRootMediator().getAozoraWorkAsynchronous(entryNode.getEntry().getBook(), work -> {
+            entryNode.work(work);
+            if (work != null)
+                getAzContext().getRootMediator().getAozoraAuthorAsynchronous(work.getAuthorID(), author -> {
+                    entryNode.author(author);
+                    reload();
+                });
+            reload();
         });
     }
 
@@ -332,17 +320,13 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
     private void reload() {
         if (!SwingUtilities.isEventDispatchThread())
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        reload();
-                    }
-                });
+                SwingUtilities.invokeAndWait(() -> reload());
             } catch (Exception e) {
                 logger.log(Level.SEVERE, e.getMessage(), e);
             }
         TreePath rootPath = new TreePath(getRootNode().getPath());
         TreePath selectionPath = tree.getSelectionPath();
-        List<TreePath> expandedPaths = new ArrayList<TreePath>();
+        List<TreePath> expandedPaths = new ArrayList<>();
         Enumeration<TreePath> e = getTree().getExpandedDescendants(rootPath);
         while (e.hasMoreElements()) {
             TreePath expandedPath = e.nextElement();
@@ -399,7 +383,7 @@ public class AozoraHistoryPane extends AozoraDefaultPane {
                 public void actionPerformed(ActionEvent e) {
                     if (JOptionPane.showInternalConfirmDialog(getAzContext().getDesktopPane(),
                           termNode.getUserObject() + " の履歴を全て削除します。よろしいですか？",
-                          termNode + " の履歴を全/て削除", 2, 3) == 0)
+                          termNode + " の履歴を全/て削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE) == 0)
                         removeEntories(termNode);
                 }
             });

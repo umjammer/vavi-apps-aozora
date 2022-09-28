@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import com.soso.aozora.html.TagReader;
 
@@ -34,79 +35,76 @@ public class AozoraAuthorParser {
     }
 
     public static void parse(Reader in, AozoraAuthorParserHandler handler) throws IOException {
-        TagReader tin = new TagReader(in);
         AozoraAuthor author = null;
-        try {
+        try (TagReader tin = new TagReader(in)) {
             String tag;
 label0:     do {
                 do {
                     tag = tin.readNextTag();
                     if (tag == null)
                         break label0;
-                    if ("author".equals(tag))
+                    switch (tag) {
+                    case "author":
                         author = new AozoraAuthor();
-                    else if ("id".equals(tag))
+                        break;
+                    case "id":
                         author.setID(tin.readToEndTag());
-                    else if ("name".equals(tag))
+                        break;
+                    case "name":
                         author.setName(tin.readToEndTag());
-                    else if ("kananame".equals(tag))
+                        break;
+                    case "kananame":
                         author.setKana(tin.readToEndTag());
-                    else if ("romanname".equals(tag))
+                        break;
+                    case "romanname":
                         author.setRomanName(tin.readToEndTag());
-                    else if ("birthday".equals(tag))
+                        break;
+                    case "birthday":
                         author.setBirthDate(tin.readToEndTag());
-                    else if ("deadday".equals(tag))
+                        break;
+                    case "deadday":
                         author.setDeadDate(tin.readToEndTag());
-                    else if ("note".equals(tag)) {
+                        break;
+                    case "note":
                         author.setNote(tin.readToEndTag());
-                    } else {
+                        break;
+                    default:
                         if (!"/author".equals(tag))
                             continue label0;
                         handler.author(author);
                         author = null;
+                        break;
                     }
                 } while (true);
             } while (!"/xml".equals(tag));
-        } finally {
-            try {
-                tin.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
     public static byte[] toBytes(AozoraAuthor author) {
-        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-        Writer out = null;
-        try {
-            try {
-                out = new OutputStreamWriter(byteOut, "utf-8");
-                out.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>").append("\n");
-                out.append("<xml>").append("\n");
-                out.append("\t").append("<author>").append("\n");
-                out.append("\t\t").append("<id>").append(author.getID()).append("</id>").append("\n");
-                out.append("\t\t").append("<name>").append(author.getName()).append("</name>").append("\n");
-                out.append("\t\t").append("<kananame>").append(author.getKana()).append("</kananame>").append("\n");
-                out.append("\t\t").append("<romanname>").append(author.getRomanName()).append("</romanname>").append("\n");
-                out.append("\t\t").append("<birthday>").append(author.getBirthDate()).append("</birthday>").append("\n");
-                out.append("\t\t").append("<deadday>").append(author.getDeadDate()).append("</deadday>").append("\n");
-                out.append("\t\t").append("<note>").append(author.getNote()).append("</note>").append("\n");
-                out.append("\t").append("</author>").append("\n");
-                out.append("</xml>").append("\n");
-                out.flush();
-            } finally {
-                out.close();
-            }
+        try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+             Writer out = new OutputStreamWriter(byteOut, StandardCharsets.UTF_8)) {
+            out.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>").append("\n");
+            out.append("<xml>").append("\n");
+            out.append("\t").append("<author>").append("\n");
+            out.append("\t\t").append("<id>").append(author.getID()).append("</id>").append("\n");
+            out.append("\t\t").append("<name>").append(author.getName()).append("</name>").append("\n");
+            out.append("\t\t").append("<kananame>").append(author.getKana()).append("</kananame>").append("\n");
+            out.append("\t\t").append("<romanname>").append(author.getRomanName()).append("</romanname>").append("\n");
+            out.append("\t\t").append("<birthday>").append(author.getBirthDate()).append("</birthday>").append("\n");
+            out.append("\t\t").append("<deadday>").append(author.getDeadDate()).append("</deadday>").append("\n");
+            out.append("\t\t").append("<note>").append(author.getNote()).append("</note>").append("\n");
+            out.append("\t").append("</author>").append("\n");
+            out.append("</xml>").append("\n");
+            out.flush();
+            return byteOut.toByteArray();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-        return byteOut.toByteArray();
     }
 
     public static AozoraAuthor loadBytes(byte[] bytes) throws IOException {
         OneAuthorParserHandler handler = new OneAuthorParserHandler();
-        parse(new InputStreamReader(new ByteArrayInputStream(bytes), "utf-8"), handler);
+        parse(new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8), handler);
         return handler.getAuthor();
     }
 }

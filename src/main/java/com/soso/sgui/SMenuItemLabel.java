@@ -25,7 +25,7 @@ public class SMenuItemLabel extends JMenuItem {
     public SMenuItemLabel() {
         setBorder(null);
         action = new AbstractAction("SMenuItemLabel.mnemonicAction") {
-            public final void actionPerformed(ActionEvent event) {
+            public void actionPerformed(ActionEvent event) {
                 fireFocasTransfer();
             }
         };

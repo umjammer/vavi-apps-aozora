@@ -31,15 +31,13 @@ public class SImageResizerPaneTest {
         });
         SButton button = new SButton();
         button.setText("test");
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                SImageResizerPane pane = new SImageResizerPane(new Dimension(300, 200), SImageResizerPane.DEFAULT_CANVAS_SIZE, null, Image.SCALE_REPLICATE);
-                Image image = pane.showImageResizerInternalDialog(frame.getLayeredPane(), "イメージリサイズ", false);
-                if (image != null) {
-                    JOptionPane.showConfirmDialog(frame, "リサイズされました", "test", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(image));
-                } else {
-                    JOptionPane.showConfirmDialog(frame, "キャンセルです", "test", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
-                }
+        button.addActionListener(event -> {
+            SImageResizerPane pane = new SImageResizerPane(new Dimension(300, 200), SImageResizerPane.DEFAULT_CANVAS_SIZE, null, Image.SCALE_REPLICATE);
+            Image image = pane.showImageResizerInternalDialog(frame.getLayeredPane(), "イメージリサイズ", false);
+            if (image != null) {
+                JOptionPane.showConfirmDialog(frame, "リサイズされました", "test", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, new ImageIcon(image));
+            } else {
+                JOptionPane.showConfirmDialog(frame, "キャンセルです", "test", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE);
             }
         });
         frame.getContentPane().add(button);

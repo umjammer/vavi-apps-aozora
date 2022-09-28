@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +112,7 @@ public class AozoraHistories {
     }
 
     private AozoraHistories() {
-        histories = new ArrayList<AozoraHistoryEntry>();
+        histories = new ArrayList<>();
     }
 
     public void addHistory(String book, int position) {
@@ -123,12 +124,12 @@ public class AozoraHistories {
     }
 
     public AozoraHistoryEntry[] getHistories(String book) {
-        List<AozoraHistoryEntry> hits = new ArrayList<AozoraHistoryEntry>();
+        List<AozoraHistoryEntry> hits = new ArrayList<>();
         for (AozoraHistoryEntry history : histories) {
             if (history.getBook().equals(book))
                 hits.add(history);
         }
-        return hits.toArray(new AozoraHistoryEntry[hits.size()]);
+        return hits.toArray(new AozoraHistoryEntry[0]);
     }
 
     public void removeHistory(AozoraHistoryEntry remove) {
@@ -136,7 +137,7 @@ public class AozoraHistories {
     }
 
     public AozoraHistoryEntry[] toArray() {
-        return histories.toArray(new AozoraHistoryEntry[histories.size()]);
+        return histories.toArray(new AozoraHistoryEntry[0]);
     }
 
     public static AozoraHistories create() {
@@ -171,7 +172,7 @@ public class AozoraHistories {
             File file = getHistoriesFile();
             if (!file.exists() && !file.getParentFile().exists())
                 file.getParentFile().mkdirs();
-            writer = new OutputStreamWriter(new FileOutputStream(file), enc);
+            writer = new OutputStreamWriter(Files.newOutputStream(file.toPath()), enc);
             HistoriesXMLBuilder builder = new HistoriesXMLBuilder(writer);
             builder.build(this, enc);
         } finally {

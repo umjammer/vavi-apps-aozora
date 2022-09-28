@@ -6,7 +6,6 @@ package com.soso.aozora.core;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -14,7 +13,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
@@ -32,6 +30,9 @@ import com.soso.sgui.SGUIUtil;
 import com.soso.sgui.letter.SLetterPane;
 
 
+/**
+ * Toolbar.
+ */
 public class AozoraMenuPane extends AozoraDefaultPane {
 
     public AozoraMenuPane(AozoraContext context) {
@@ -253,7 +254,7 @@ public class AozoraMenuPane extends AozoraDefaultPane {
             Graphics commentNoneGraphics = commentNoneImage.getGraphics();
             commentBalloneIcon.paintIcon(null, commentNoneGraphics, 0, 0);
             commentNoneGraphics.setColor(Color.RED);
-            commentNoneGraphics.setFont(new Font("Monospaced", 1, 16));
+            commentNoneGraphics.setFont(new Font("Monospaced", Font.BOLD, 16));
             commentNoneGraphics.drawString("\327", 1, 16);
             commentNoneIcon = new ImageIcon(commentNoneImage);
             commentButton = new JButton();

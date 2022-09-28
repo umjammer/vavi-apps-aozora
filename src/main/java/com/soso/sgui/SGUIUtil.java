@@ -84,7 +84,7 @@ public class SGUIUtil {
     @SuppressWarnings({"unchecked"})
     public static <T> T[] getChildInstanceOf(Container container, Class<T> clazz) {
         try {
-            List<Object> children = new ArrayList<Object>();
+            List<Object> children = new ArrayList<>();
             setChildInstanceOf(container, clazz, children);
             return children.toArray((T[]) Array.newInstance(clazz, children.size()));
         } catch (Exception e) {
@@ -121,6 +121,7 @@ public class SGUIUtil {
         comp.setMinimumSize(size);
     }
 
+    /** selects all */
     public static void setAllTextSelected(JTextComponent comp) {
         comp.requestFocusInWindow();
         comp.setSelectionStart(0);

@@ -14,8 +14,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
@@ -158,7 +156,7 @@ Debug.println("shutdownHook: " + getClass().getName());
         }
     }
 
-    final void setSize_a(Dimension size) {
+    void setSize_a(Dimension size) {
         if (size == null) {
             size_v.width = imageBounds.width;
             size_v.height = imageBounds.height;

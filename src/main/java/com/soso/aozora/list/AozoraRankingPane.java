@@ -47,7 +47,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
         URL getURL(Date date) {
             Calendar cal = getTodayCalender();
             cal.setTime(date);
-            String fileName = "monthly."+ new SimpleDateFormat("yyyy.MM").format(cal.getTime()) + getSuffix();
+            String fileName = new SimpleDateFormat("yyyy_MM").format(cal.getTime()) + getSuffix();
             try {
                 return new URL(AozoraEnv.getRankingDataURL(), fileName);
             } catch (Exception e) {
@@ -65,7 +65,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
     private static class AozoraMonthlyAuthorRankingPane extends AozoraMonthlyBaseRankingPane {
 
         String getSuffix() {
-            return ".author.txt";
+            return "_txt.html";
         }
 
         AozoraMonthlyAuthorRankingPane(AozoraContext context) {
@@ -76,7 +76,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
     private static class AozoraMonthlyWorkRankingPane extends AozoraMonthlyBaseRankingPane {
 
         String getSuffix() {
-            return ".card.txt";
+            return "_txt.html";
         }
 
         AozoraMonthlyWorkRankingPane(AozoraContext context) {
@@ -109,7 +109,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
         URL getURL(Date date) {
             Calendar cal = getTodayCalender();
             cal.setTime(date);
-            String fileName = "weekly."+ new SimpleDateFormat("yyyy.MM.dd").format(cal.getTime()) + getSuffix();
+            String fileName = new SimpleDateFormat("yyyy_MM").format(cal.getTime()) + getSuffix();
             try {
                 return new URL(AozoraEnv.getRankingDataURL(), fileName);
             } catch (Exception e) {
@@ -127,7 +127,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
     private static class AozoraWeeklyAuthorRankingPane extends AozoraWeeklyBaseRankingPane {
 
         String getSuffix() {
-            return ".author.txt";
+            return "_txt.html";
         }
 
         AozoraWeeklyAuthorRankingPane(AozoraContext context) {
@@ -138,7 +138,7 @@ public class AozoraRankingPane extends AozoraDefaultPane implements ChangeListen
     private static class AozoraWeeklyWorkRankingPane extends AozoraWeeklyBaseRankingPane {
 
         String getSuffix() {
-            return ".card.txt";
+            return "txt_html";
         }
 
         AozoraWeeklyWorkRankingPane(AozoraContext context) {

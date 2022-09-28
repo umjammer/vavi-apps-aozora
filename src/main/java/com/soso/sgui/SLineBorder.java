@@ -72,16 +72,16 @@ public class SLineBorder extends LineBorder {
         GeneralPath path = new GeneralPath();
         path.append(new Line2D.Float((x + width) - s, y + thickness, x + s, y + thickness), true);
         if (rounded)
-            path.append(new Arc2D.Float(x + thickness, y + thickness, l, l, 90F, 90F, 0), true);
+            path.append(new Arc2D.Float(x + thickness, y + thickness, l, l, 90F, 90F, Arc2D.OPEN), true);
         path.append(new Line2D.Float(x + thickness, y + s, x + thickness, (y + height) - s), true);
         if (rounded)
-            path.append(new Arc2D.Float(x + thickness, (y + height) - l - thickness - 1, l, l, 180F, 90F, 0), true);
+            path.append(new Arc2D.Float(x + thickness, (y + height) - l - thickness - 1, l, l, 180F, 90F, Arc2D.OPEN), true);
         path.append(new Line2D.Float(x + s, (y + height) - thickness - 1, (x + width) - s, (y + height) - thickness - 1), true);
         if (rounded)
-            path.append(new Arc2D.Float((x + width) - l - thickness - 1, (y + height) - l - thickness - 1, l, l, 270F, 90F, 0), true);
+            path.append(new Arc2D.Float((x + width) - l - thickness - 1, (y + height) - l - thickness - 1, l, l, 270F, 90F, Arc2D.OPEN), true);
         path.append(new Line2D.Float((x + width) - thickness - 1, (y + height) - s, (x + width) - thickness - 1, y + s), true);
         if (rounded)
-            path.append(new Arc2D.Float((x + width) - l - thickness - 1, y + thickness, l, l, 0.0F, 90F, 0), true);
+            path.append(new Arc2D.Float((x + width) - l - thickness - 1, y + thickness, l, l, 0.0F, 90F, Arc2D.OPEN), true);
         return path;
     }
 

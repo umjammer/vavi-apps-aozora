@@ -105,14 +105,12 @@ public class SImageIcon extends ImageIcon {
             final Graphics theG = g;
             final int theX = x;
             final int theY = y;
-            Thread thread = new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        Thread.sleep(500L);
-                        paintImage(theOwner, theG, theX, theY);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            Thread thread = new Thread(() -> {
+                try {
+                    Thread.sleep(500L);
+                    paintImage(theOwner, theG, theX, theY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             });
             thread.start();

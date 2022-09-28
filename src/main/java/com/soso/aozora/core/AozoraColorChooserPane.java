@@ -98,11 +98,7 @@ class AozoraColorChooserPane extends JPanel {
         if (foregroundChooser == null) {
             foregroundChooser = new JColorChooser(getAzContext().getSettings().getForeground());
             foregroundChooser.setPreviewPanel(createEmptyPreview());
-            foregroundChooser.getSelectionModel().addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    foregroundSelected();
-                }
-            });
+            foregroundChooser.getSelectionModel().addChangeListener(e -> foregroundSelected());
         }
         return foregroundChooser;
     }
@@ -111,11 +107,7 @@ class AozoraColorChooserPane extends JPanel {
         if (backgroundChooser == null) {
             backgroundChooser = new JColorChooser(getAzContext().getSettings().getBackground());
             backgroundChooser.setPreviewPanel(createEmptyPreview());
-            backgroundChooser.getSelectionModel().addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent e) {
-                    backgroundSelected();
-                }
-            });
+            backgroundChooser.getSelectionModel().addChangeListener(e -> backgroundSelected());
         }
         return backgroundChooser;
     }

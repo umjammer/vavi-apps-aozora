@@ -36,5 +36,5 @@ class AozoraTreeSelectionManagerImpl implements AozoraTreeSelectionManager {
         }
     }
 
-    private final Set<JTree> treeSet = new HashSet<JTree>();
+    private final Set<JTree> treeSet = new HashSet<>();
 }

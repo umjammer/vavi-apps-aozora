@@ -9,7 +9,6 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -24,7 +23,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import vavi.util.Debug;
 
 
 @Deprecated
@@ -296,7 +294,7 @@ public class AozoraSettingFileHandler {
         File home = createUserHomePath();
         if (!home.exists()) {
             String crtMsg = createCrtMsg(home.getAbsolutePath());
-            int result = JOptionPane.showConfirmDialog(parent, crtMsg, "設定確認", 0);
+            int result = JOptionPane.showConfirmDialog(parent, crtMsg, "設定確認", JOptionPane.YES_NO_OPTION);
             if (result == 0)
                 home.mkdir();
             else

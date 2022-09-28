@@ -12,8 +12,6 @@ import java.awt.HeadlessException;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -34,7 +32,7 @@ import javax.swing.event.InternalFrameEvent;
 public class SOptionPane extends JOptionPane {
 
     public static String[] safetyMessage(String message) {
-        ArrayList<String> messages = new ArrayList<String>();
+        ArrayList<String> messages = new ArrayList<>();
         String[] lines = message.split("[\r\n]");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int w = (int) (screenSize.width * 0.9F);
@@ -198,7 +196,7 @@ public class SOptionPane extends JOptionPane {
         if (parent instanceof JInternalFrame)
             try {
                 ((JInternalFrame) parent).setSelected(true);
-            } catch (PropertyVetoException _ex) {
+            } catch (PropertyVetoException ignored) {
             }
         Object value = optionPane.getValue();
         if (comp != null && comp.isShowing())
@@ -272,7 +270,7 @@ public class SOptionPane extends JOptionPane {
         ((Container) comp).validate();
         try {
             iframe.setSelected(true);
-        } catch (PropertyVetoException _ex) {
+        } catch (PropertyVetoException ignored) {
         }
         return iframe;
     }

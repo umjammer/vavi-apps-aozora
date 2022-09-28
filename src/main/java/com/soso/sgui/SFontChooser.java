@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
+import javax.swing.WindowConstants;
 
 
 public class SFontChooser extends JPanel {
@@ -151,11 +152,11 @@ public class SFontChooser extends JPanel {
             names = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
         }
 
-        public final String[] getFontFamilyNames() {
+        public String[] getFontFamilyNames() {
             return names;
         }
 
-        public final int getFontFamilyNameIndex(String name) {
+        public int getFontFamilyNameIndex(String name) {
             for (int i = 0; i < names.length; i++)
                 if (name.equals(names[i]))
                     return i;
@@ -163,11 +164,11 @@ public class SFontChooser extends JPanel {
             return -1;
         }
 
-        public final Integer[] getSizes() {
+        public Integer[] getSizes() {
             return sizes;
         }
 
-        public final int getSizeIndex(int size) {
+        public int getSizeIndex(int size) {
             for (int i = 0; i < sizes.length; i++)
                 if (size == sizes[i])
                     return i;
@@ -175,7 +176,7 @@ public class SFontChooser extends JPanel {
             return -1;
         }
 
-        public final int getSizeRoundIndex(int size) {
+        public int getSizeRoundIndex(int size) {
             for (int i = 0; i < sizes.length; i++)
                 if (size <= sizes[i])
                     return i;
@@ -183,23 +184,23 @@ public class SFontChooser extends JPanel {
             return -1;
         }
 
-        public final String[] getStyleNames() {
+        public String[] getStyleNames() {
             return styleNames;
         }
 
-        public final int[] getStyleTypes() {
+        public int[] getStyleTypes() {
             return styleTypes;
         }
 
-        public final int styleNameToType(String name) {
+        public int styleNameToType(String name) {
             for (int i = 0; i < styleNames.length; i++)
-                if (name == styleNames[i])
+                if (name.equals(styleNames[i]))
                     return getStyleTypes()[i];
 
             return -1;
         }
 
-        public final int getStyleTypeIndex(int type) {
+        public int getStyleTypeIndex(int type) {
             for (int i = 0; i < styleTypes.length; i++)
                 if (type == styleTypes[i])
                     return i;
@@ -299,7 +300,7 @@ public class SFontChooser extends JPanel {
             textArea_e.setBackground(Color.white);
             textArea_e.setText("abc ABC あいう　アイウ　漢字");
             textArea_e.addComponentListener(new ComponentAdapter() {
-                public final void componentResized(ComponentEvent event) {
+                public void componentResized(ComponentEvent event) {
                     firePropertyChange(SFontChooser.eventName, event, event.getComponent());
                 }
             });
@@ -321,14 +322,12 @@ public class SFontChooser extends JPanel {
 
     public static Font showInternalFrame(JDesktopPane desktopPane, String title, Font font) {
         final SFontChooser chooser = new SFontChooser(font);
-        chooser.addPropertyChangeListener(eventName, new PropertyChangeListener() {
-            public final void propertyChange(PropertyChangeEvent event) {
-                JInternalFrame iframe = SGUIUtil.getParentInstanceOf(chooser, JInternalFrame.class);
-                if (iframe != null)
-                    iframe.pack();
-            }
+        chooser.addPropertyChangeListener(eventName, event -> {
+            JInternalFrame iframe = SGUIUtil.getParentInstanceOf(chooser, JInternalFrame.class);
+            if (iframe != null)
+                iframe.pack();
         });
-        int r = JOptionPane.showInternalConfirmDialog(desktopPane, chooser, title, 2, -1, null);
+        int r = JOptionPane.showInternalConfirmDialog(desktopPane, chooser, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
         if (r == 0)
             return chooser.getSelectedFont();
         else
@@ -342,11 +341,9 @@ public class SFontChooser extends JPanel {
         iframe.setTitle(title);
         iframe.setDefaultCloseOperation(2);
         FontChooserPane fontchooserpane = createFontChooserPane(font);
-        fontchooserpane.setCloseAction(new ActionListener() {
-            public final void actionPerformed(ActionEvent event) {
-                iframe.setModal(false);
-                iframe.setVisible(false);
-            }
+        fontchooserpane.setCloseAction(event -> {
+            iframe.setModal(false);
+            iframe.setVisible(false);
         });
         iframe.add(fontchooserpane);
         fontchooserpane.addTextSizeChangeListener(iframe);
@@ -368,13 +365,9 @@ public class SFontChooser extends JPanel {
         dialog.setModal(true);
         dialog.setTitle(title);
         dialog.setAlwaysOnTop(true);
-        dialog.setDefaultCloseOperation(2);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         FontChooserPane pane = createFontChooserPane(font);
-        pane.setCloseAction(new ActionListener() {
-            public final void actionPerformed(ActionEvent event) {
-                dialog.setVisible(false);
-            }
-        });
+        pane.setCloseAction(event -> dialog.setVisible(false));
         dialog.add(pane);
         pane.addTextSizeChangeListener(dialog);
         dialog.pack();
@@ -399,11 +392,9 @@ public class SFontChooser extends JPanel {
         JInternalFrame iframe1 = new JInternalFrame();
         JButton button = new JButton();
         button.setText("execute");
-        button.addActionListener(new ActionListener() {
-            public final void actionPerformed(ActionEvent event) {
-                Font font = SFontChooser.showInternalFrame(desktopPane, "フォントの変更", iframe.getFont());
-                SGUIUtil.setFontAll(iframe, font);
-            }
+        button.addActionListener(event -> {
+            Font font = SFontChooser.showInternalFrame(desktopPane, "フォントの変更", iframe.getFont());
+            SGUIUtil.setFontAll(iframe, font);
         });
         iframe1.add(button);
         iframe1.pack();
@@ -444,7 +435,7 @@ public class SFontChooser extends JPanel {
     private Font font_h;
 
     // Unreferenced inner class com/soso/sgui/O
-    class O_ActionListener implements ActionListener {
+    static class O_ActionListener implements ActionListener {
 
         public final void actionPerformed(ActionEvent event) {
             SFontChooser.getTextArea_d(a).setFont(new Font(SFontChooser.getComboBox_a(a).getSelectedItem().toString(), a.getModel().styleNameToType(SFontChooser.getComboBox_c(a).getSelectedItem().toString()), (Integer) SFontChooser.getComboBox_b(a).getSelectedItem()));

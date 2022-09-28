@@ -7,5 +7,5 @@ package com.soso.aozora.data;
 
 public interface AozoraWorkParserHandler {
 
-    public abstract void work(AozoraWork work);
+    void work(AozoraWork work);
 }

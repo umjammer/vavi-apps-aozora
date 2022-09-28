@@ -25,7 +25,7 @@ class AozoraNewWorkTopicLoader implements AozoraTopicLoader {
     }
 
     public AozoraTopicNode[] loadTopics() {
-        List<AozoraTopicNode> topics = new ArrayList<AozoraTopicNode>();
+        List<AozoraTopicNode> topics = new ArrayList<>();
         try {
             AozoraIndex oldIndex = AozoraIndex.getIndex(oldIndexURL);
             AozoraIndex curIndex = AozoraIndex.getIndex(curIndexURL);
@@ -36,7 +36,7 @@ class AozoraNewWorkTopicLoader implements AozoraTopicLoader {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return topics.toArray(new AozoraTopicNode[topics.size()]);
+        return topics.toArray(new AozoraTopicNode[0]);
     }
 
     private final AozoraContext context;

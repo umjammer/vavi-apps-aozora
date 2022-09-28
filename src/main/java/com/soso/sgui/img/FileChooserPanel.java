@@ -41,25 +41,23 @@ final class FileChooserPanel extends JPanel {
         add(textField, BorderLayout.CENTER);
         SButton button = new SButton();
         button.setText("参照...");
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                File file = getSelectedFile(hints);
-                if (file != null) {
-                    if (!file.exists()) {
-                        imageResizePane.setImage_a((Image) null);
-                        textField.setText("ファイルは存在しません。\t" + file.getAbsolutePath());
-                        return;
-                    }
-                    try {
-                        textField.setText(file.getAbsolutePath());
-                        Image image = getToolkit().getImage(file.getAbsolutePath());
-                        imageResizePane.setImage_a(image);
-                        return;
-                    } catch (Exception _ex) {
-                        imageResizePane.setImage_a((Image) null);
-                    }
-                    textField.setText("表示できないファイルです。\t" + file.getAbsolutePath());
+        button.addActionListener(event -> {
+            File file = getSelectedFile(hints);
+            if (file != null) {
+                if (!file.exists()) {
+                    imageResizePane.setImage_a((Image) null);
+                    textField.setText("ファイルは存在しません。\t" + file.getAbsolutePath());
+                    return;
                 }
+                try {
+                    textField.setText(file.getAbsolutePath());
+                    Image image = getToolkit().getImage(file.getAbsolutePath());
+                    imageResizePane.setImage_a(image);
+                    return;
+                } catch (Exception _ex) {
+                    imageResizePane.setImage_a((Image) null);
+                }
+                textField.setText("表示できないファイルです。\t" + file.getAbsolutePath());
             }
         });
         add(button, BorderLayout.EAST);
@@ -93,7 +91,7 @@ final class FileChooserPanel extends JPanel {
         }
     }
 
-    final void setHints(int hints) {
+    void setHints(int hints) {
         this.hints = hints;
     }
 }

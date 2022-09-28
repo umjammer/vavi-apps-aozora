@@ -7,5 +7,5 @@ package com.soso.aozora.list;
 
 interface AozoraTopicLoader {
 
-    public abstract AozoraTopicNode[] loadTopics();
+    AozoraTopicNode[] loadTopics();
 }

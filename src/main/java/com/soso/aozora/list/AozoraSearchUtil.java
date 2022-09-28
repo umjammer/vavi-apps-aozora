@@ -46,7 +46,7 @@ class AozoraSearchUtil {
 
     private static boolean indexOf(String src, String search) {
         if (src != null)
-            return src.indexOf(search) != -1;
+            return src.contains(search);
         else
             return false;
     }

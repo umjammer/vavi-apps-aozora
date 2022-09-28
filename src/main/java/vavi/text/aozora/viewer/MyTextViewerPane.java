@@ -83,38 +83,38 @@ public class MyTextViewerPane extends JPanel {
 
     static Logger logger = Logger.getLogger(MyTextViewerPane.class.getName());
 
-    private static class NoFocusButton extends JButton {
-
-        @Override
-        public boolean isFocusTraversable() {
-            return false;
-        }
-
-        @Override
-        public void requestFocus() {
-        }
-
-        @Override
-        public AccessibleContext getAccessibleContext() {
-            AccessibleContext ac = super.getAccessibleContext();
-            if (uiKey != null) {
-                ac.setAccessibleName(UIManager.getString(uiKey));
-                uiKey = null;
-            }
-            return ac;
-        }
-
-        private String uiKey;
-
-        public NoFocusButton(String uiKey) {
-            this.uiKey = uiKey;
-            setFocusPainted(false);
-            setMargin(new Insets(0, 0, 0, 0));
-            setOpaque(true);
-        }
-    }
-
     private class SearchFieldPane extends JPanel {
+
+        private class NoFocusButton extends JButton {
+
+            @Override
+            public boolean isFocusTraversable() {
+                return false;
+            }
+
+            @Override
+            public void requestFocus() {
+            }
+
+            @Override
+            public AccessibleContext getAccessibleContext() {
+                AccessibleContext ac = super.getAccessibleContext();
+                if (uiKey != null) {
+                    ac.setAccessibleName(UIManager.getString(uiKey));
+                    uiKey = null;
+                }
+                return ac;
+            }
+
+            private String uiKey;
+
+            public NoFocusButton(String uiKey) {
+                this.uiKey = uiKey;
+                setFocusPainted(false);
+                setMargin(new Insets(0, 0, 0, 0));
+                setOpaque(true);
+            }
+        }
 
         private JLabel titleLabel;
         private JTextField textField;
@@ -357,9 +357,7 @@ public class MyTextViewerPane extends JPanel {
             MyTextViewerPane.this.appendCell(cell);
         }
 
-        private SLetterCellFactory getCellFactory() {
-            return SLetterCellFactory.getInstance();
-        }
+        private SLetterCellFactory cellFactory = SLetterCellFactory.getInstance();
 
         static final String pattern = ".*[Uu]\\+([0-9a-fA-F]{4,5}).*";
         String parseUnicode(String source) {
@@ -380,7 +378,7 @@ Debug.println(Level.FINER, "characters|レ点: " + cdata);
 //                    appendCell(cell);
 //                }
                 // bad usage, but beautiful
-                SLetterCell cell = getCellFactory().createGlyphCell('　', cdata.toCharArray());
+                SLetterCell cell = cellFactory.createGlyphCell('　', cdata.toCharArray());
                 appendCell(cell);
 
                 kaeriten = false;
@@ -393,7 +391,7 @@ Debug.println(Level.FINER, "characters|レ点: " + cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
 Debug.printf("characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
-                            SLetterCell cell = getCellFactory().createGlyphCell(c);
+                            SLetterCell cell = cellFactory.createGlyphCell(c);
                             appendCell(cell);
                         } else {
 Debug.printf(Level.WARNING, "characters|[notes:※:N/A]: %s", cdata);
@@ -432,7 +430,7 @@ Debug.println(Level.FINER, "characters|" + "※※※ NOTED ※※※");
                 } else {
                     if (Character.isHighSurrogate(ca[i]) && Character.isSurrogatePair(ca[i], ca[i + 1])) {
 Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
-                        SLetterCell cell = getCellFactory().createGlyphCell(cdata.codePointAt(i), new char[0], null);
+                        SLetterCell cell = cellFactory.createGlyphCell(cdata.codePointAt(i), new char[0], null);
                         appendCell(cell);
                         i++;
                     } else {
@@ -469,7 +467,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
                 image.getGraphics().fillRect(0, 0, errorIcon.getIconWidth(), errorIcon.getIconHeight());
                 errorIcon.paintIcon(MyTextViewerPane.this, image.getGraphics(), 0, 0);
             }
-            SLetterCell cell = getCellFactory().createImageCell(image, alt);
+            SLetterCell cell = cellFactory.createImageCell(image, alt);
             if (gaijirb != null) {
                 gaijirb.append(cell);
                 return;
@@ -490,7 +488,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
 
         @Override
         public void newLine() {
-            SLetterCell cell = getCellFactory().createGlyphCell('\n');
+            SLetterCell cell = cellFactory.createGlyphCell('\n');
             appendCell(cell);
         }
 
@@ -555,7 +553,7 @@ Debug.println(Level.FINER, rb + ", " + rt);
                 char[] textChars = rb.toCharArray();
                 char[] rubyChars = rt == null ? null : rt.toCharArray();
                 if (textChars.length == 1) {
-                    SLetterCell cell = getCellFactory().createGlyphCell(textChars[0], rubyChars);
+                    SLetterCell cell = cellFactory.createGlyphCell(textChars[0], rubyChars);
                     if (cell != null) {
                         appendCell(cell);
                         if (textChars[0] == '※') {
@@ -564,7 +562,7 @@ Debug.println("ruby: alternative: " + rubyAlternative);
                         }
                     }
                 } else if (textChars.length == 0) {
-                    SLetterCell cell = getCellFactory().createGlyphCell('　', rubyChars);
+                    SLetterCell cell = cellFactory.createGlyphCell('　', rubyChars);
                     if (cell != null)
                         appendCell(cell);
                 } else {
@@ -575,7 +573,7 @@ Debug.println("ruby: alternative: " + rubyAlternative);
 if (textChar == '※') {
  Debug.println("ruby: unhandled: ※");
 }
-                        SLetterCell cell = getCellFactory().createGlyphCell(textChar, rubyAssign);
+                        SLetterCell cell = cellFactory.createGlyphCell(textChar, rubyAssign);
                         appendCell(cell);
                     }
                 }
@@ -647,7 +645,7 @@ if (textChar == '※') {
         public void setRowSpace(int rowSpace) {
             this.rowSpace = rowSpace;
         }
-        float fontRatio = 0.9f;
+        float fontRatio = AozoraEnv.DEFAULT_FONT_RATIO;
         public float getFontRatio() {
             return fontRatio;
         }

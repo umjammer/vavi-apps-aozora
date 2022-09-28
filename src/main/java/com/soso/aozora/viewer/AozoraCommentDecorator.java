@@ -27,10 +27,10 @@ public abstract class AozoraCommentDecorator implements SLetterCellDecorator {
             return description;
         }
 
-        private String title;
-        private String description;
+        private final String title;
+        private final String description;
 
-        private CommentType(String title, String description) {
+        CommentType(String title, String description) {
             this.title = title;
             this.description = description;
         }

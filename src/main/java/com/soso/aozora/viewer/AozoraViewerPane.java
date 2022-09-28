@@ -125,7 +125,7 @@ public class AozoraViewerPane extends AozoraDefaultPane {
         SLinkLabel shortcutLinkLabel = new SLinkLabel(shortcutURL);
         Font font = shortcutLinkLabel.getFont();
         if (font != null)
-            shortcutLinkLabel.setFont(new Font(font.getName(), 0, font.getSize() - 1));
+            shortcutLinkLabel.setFont(new Font(font.getName(), Font.PLAIN, font.getSize() - 1));
         Dimension prefSize = shortcutLinkLabel.getPreferredSize();
         shortcutLinkLabel.setMinimumSize(new Dimension(prefSize.height != 0 ? prefSize.height : 16,
                                                        prefSize.width != 0 ? Math.min(100, prefSize.width) : 100));
@@ -145,7 +145,7 @@ public class AozoraViewerPane extends AozoraDefaultPane {
     }
 
     private void bookmark() {
-        getAzContext().getBookmarks().addBookmark(getWork().getID(), Integer.valueOf(textViewer.getStartPos()));
+        getAzContext().getBookmarks().addBookmark(getWork().getID(), textViewer.getStartPos());
         try {
             getAzContext().getBookmarks().store();
             JOptionPane.showInternalMessageDialog(getAzContext().getDesktopPane(), "しおりをはさみました");
@@ -174,11 +174,7 @@ public class AozoraViewerPane extends AozoraDefaultPane {
     }
 
     public void focus() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                textViewer.requestFocusInWindow();
-            }
-        });
+        SwingUtilities.invokeLater(() -> textViewer.requestFocusInWindow());
     }
 
     public void close() {

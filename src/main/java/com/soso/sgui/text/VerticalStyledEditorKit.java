@@ -25,11 +25,11 @@ public class VerticalStyledEditorKit extends StyledEditorKit {
                 for (int i = 0; i < count; i++) {
                     if (i != 0)
                         sb.append(", ");
-                    sb.append(String.valueOf(getView(count)));
+                    sb.append(getView(count));
                 }
 
                 sb.append("]");
-            } catch (Exception _ex) {
+            } catch (Exception ignored) {
             }
             return sb.toString();
         }
@@ -54,7 +54,7 @@ public class VerticalStyledEditorKit extends StyledEditorKit {
                   .append("; height:")
                   .append(getPreferredSpan(Y_AXIS))
                   .append("]");
-            } catch (Exception _ex) {
+            } catch (Exception ignored) {
             }
             return sb.toString();
         }

@@ -8,7 +8,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -24,7 +23,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
 import javax.swing.JTabbedPane;
@@ -90,11 +88,7 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
                         }
                     });
                     JMenuItem openItem = new JMenuItem("しおりを開く");
-                    openItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            showWork();
-                        }
-                    });
+                    openItem.addActionListener(e -> showWork());
                     add(openItem, 0);
                 } else {
                     setText("見つかりません");
@@ -107,20 +101,18 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
             else
                 getAzContext().getRootMediator().getAozoraWorkAsynchronous(getWorkID(), handler);
             JMenuItem deleteItem = new JMenuItem("しおりを削除");
-            deleteItem.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    if (SOptionPane.showSInternalConfirmDialog(getAzContext().getDesktopPane(),
-                                                               (getWork() == null ? "作品ID[" + getWorkID() + "]"
-                                                                                  : "[" + getWork().getTitleName() + "]") +
-                                                                                  "のしおりを削除してよろしいですか？",
-                                                               "削除の確認", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                        logger.info("delete boolmark ID:" + getWorkID() + "; work:" + getWork());
-                        getAzContext().getBookmarks().removeBookmark(getWorkID());
-                        try {
-                            getAzContext().getBookmarks().store();
-                        } catch (Exception e1) {
-                            e1.printStackTrace(System.err);
-                        }
+            deleteItem.addActionListener(e -> {
+                if (SOptionPane.showSInternalConfirmDialog(getAzContext().getDesktopPane(),
+                                                           (getWork() == null ? "作品ID[" + getWorkID() + "]"
+                                                                              : "[" + getWork().getTitleName() + "]") +
+                                                                              "のしおりを削除してよろしいですか？",
+                                                           "削除の確認", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    logger.info("delete boolmark ID:" + getWorkID() + "; work:" + getWork());
+                    getAzContext().getBookmarks().removeBookmark(getWorkID());
+                    try {
+                        getAzContext().getBookmarks().store();
+                    } catch (Exception e1) {
+                        e1.printStackTrace(System.err);
                     }
                 }
             });
@@ -147,17 +139,6 @@ public class AozoraDesktopPane extends SDesktopPane implements AozoraRootMediato
     private void initGUI() {
         lastViewPoint = new Point(INIT_X, INIT_Y);
         setBackground(new Color(0xfefeff));
-        JPanel graphics2DCheckerPane = new JPanel() {
-            public void paint(Graphics g) {
-                logger.info("System | Java VM Name : " + System.getProperty("java.vm.name"));
-                logger.info("System | Java Version : " + System.getProperty("java.version"));
-                logger.info("System | Java Vendor  : " + System.getProperty("java.vendor"));
-                logger.info("System | Graphics " + g.getClass());
-                getParent().remove(this);
-            }
-        };
-        graphics2DCheckerPane.setBounds(0, 0, 1, 1);
-        add(graphics2DCheckerPane);
     }
 
     public void showViewer(AozoraAuthor author, AozoraWork work) {

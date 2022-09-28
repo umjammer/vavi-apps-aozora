@@ -26,9 +26,7 @@ public class AozoraManifest {
             ClassLoader ccl = Thread.currentThread().getContextClassLoader();
             Enumeration<?> urls = ccl.getResources(MANIFEST_PATH);
             while (urls.hasMoreElements()) {
-                InputStream in = null;
-                try {
-                    in = AozoraUtil.getInputStream((URL) urls.nextElement());
+                try (InputStream in = AozoraUtil.getInputStream((URL) urls.nextElement())) {
                     if (in != null) {
                         Manifest manifest = new Manifest(in);
                         String title = manifest.getMainAttributes().getValue("Implementation-Title");
@@ -37,9 +35,6 @@ public class AozoraManifest {
                             return aozoraManifest;
                         }
                     }
-                } finally {
-                    if (in != null)
-                        in.close();
                 }
             }
             throw new FileNotFoundException("META-INF/MANIFEST.MF for Aozora Viewer");

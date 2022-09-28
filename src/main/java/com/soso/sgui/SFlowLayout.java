@@ -17,7 +17,7 @@ import java.util.List;
 
 public class SFlowLayout implements LayoutManager {
 
-    class class_d {
+    static class class_d {
     }
 
     static class Comp extends Component {
@@ -441,7 +441,6 @@ public class SFlowLayout implements LayoutManager {
 
     public void layoutContainer(Container parent) {
         synchronized (parent.getTreeLock()) {
-            // JVM INSTR monitorenter ;
             int ph = parent.getHeight();
             int pw = parent.getWidth();
             boolean isVertical = axis == VERTICAL;
@@ -454,33 +453,20 @@ public class SFlowLayout implements LayoutManager {
             int h2;
             int w2;
 
-            if (isVertical) { // goto _L2; else goto _L1
-// _L1:
+            if (isVertical) {
                 h2 = ph - bh;
-                // j1;
-                // k1;
-                // goto _L3
                 w2 = pw - bw;
-// _L2:
             } else {
                 h2 = pw - bw;
-                // i1;
-                // l1;
-                // _L3:
                 w2 = ph - bh;
             }
-            // JVM INSTR isub ;
-            // int i3;
-            // i3;
-            List<Group> groups = new ArrayList<Group>();
+            List<Group> groups = new ArrayList<>();
             Group group = null;
             int j3 = 0;
             int count = parent.getComponentCount();
             int l3 = -1;
 
-// _L20:
-            for (int i = 0; i < count; i++) { // goto _L5; else goto _L4
-// _L4:
+            for (int i = 0; i < count; i++) {
                 Component component = parent.getComponent(i);
                 int w1;
                 int h1;
@@ -534,10 +520,10 @@ public class SFlowLayout implements LayoutManager {
                         groups.add(group);
                         break;
                     }
-                    continue; // 825
+                    continue;
                 }
                 if (!component.isVisible())
-                    continue; // 825
+                    continue;
                 Dimension dimension = component.getPreferredSize();
                 component.setSize(dimension);
                 if (isVertical) {
@@ -551,30 +537,16 @@ public class SFlowLayout implements LayoutManager {
                     group = new Group(this, null);
                     groups.add(group);
                 }
-                if (i2 == 0) { // goto _L7; else goto _L6
-// _L6:
-                    if (isVertical) { // goto _L9; else goto _L8
-// _L8:
-                    // component;
-                    // j2;
-                    // 0;
-                    // goto _L10
+                if (i2 == 0) {
+                    if (isVertical) {
                         component.setLocation(x2, 0);
-// _L9:
                     } else {
-                        // component;
-                        // 0;
-                        // j2;
-// _L10:
                         component.setLocation(0, x2);
                     }
-                    // setLocation();
                     i2 = w1;
                     k2 = x2 + h1;
                     group.addComponent(component);
                     group.a = i2;
-                    // goto _L11
-// _L7:
                 } else {
                     int k5;
                     if (l3 < 0) {
@@ -583,49 +555,24 @@ public class SFlowLayout implements LayoutManager {
                         k5 = i2 + l3 + w1;
                         l3 = -1;
                     }
-                    if (k5 > h2 && !nowrap) { // goto _L13; else goto _L12
-// _L12:
+                    if (k5 > h2 && !nowrap) {
                         i2 = w1;
                         k2 = (x2 = k2 + lineSpace) + h1;
-                        if (isVertical) { // goto _L15; else goto _L14
-// _L14:
-                        // component;
-                        // j2;
-                        // 0;
-                        // goto _L16
+                        if (isVertical) {
                             component.setLocation(x2, 0);
-// _L15:
                         } else {
-                            // component;
-                            // 0;
-                            // j2;
-// _L16:
                             component.setLocation(0, x2);
                         }
-                        // setLocation();
                         group = new Group(this, null);
                         groups.add(group);
                         group.addComponent(component);
                         group.a = i2;
-                        // goto _L11
-// _L13:
                     } else {
-                        if (isVertical) { // goto _L18; else goto _L17
-// _L17:
-                        // component;
-                        // j2;
-                        // k5 - i5;
-                        // goto _L19
+                        if (isVertical) {
                             component.setLocation(x2, k5 - w1);
-// _L18:
                         } else {
-                            // component;
-                            // k5 - i5;
-                            // j2;
-// _L19:
                             component.setLocation(k5 - w1, x2);
                         }
-                        // setLocation();
                         i2 = k5;
                         int l5 = x2 + h1;
                         if (l5 > k2)
@@ -633,19 +580,13 @@ public class SFlowLayout implements LayoutManager {
                         group.addComponent(component);
                         group.a = i2;
                         if (group.size_b < h1)
-//                            continue; /* Loop/switch isn't completed */
                             break;
-// _L11:
                     }
                 }
                 group.size_b = h1;
-// 825
-                // i4++;
-                // goto _L20
-// _L5:
             }
 
-            Group[] gs = groups.toArray(new Group[groups.size()]);
+            Group[] gs = groups.toArray(new Group[0]);
             a(gs, isVertical, k2);
             a(gs, isVertical);
             b(gs, isVertical, h2);
@@ -659,14 +600,7 @@ public class SFlowLayout implements LayoutManager {
                     comp.setLocation(point.x, point.y);
                 }
             }
-
-//            return;
         }
-        // Exception exception;
-        // exception;
-        // obj;
-        // JVM INSTR monitorexit ;
-        // throw exception;
     }
 
     private void a(Group[] groups, boolean isVertical, int i1) {
@@ -696,8 +630,7 @@ label0: {
             }
             flag2 = true;
         }
-        for (int i = 0; i < groups.length; i++) {
-            Group group = groups[i];
+        for (Group group : groups) {
             if (group.isVisible)
                 continue;
             int count = group.size();
@@ -727,66 +660,32 @@ label0: {
             return;
 
         boolean isCenter = fix == CENTER;
-// _L15:
-        for (int i = 0; i < groups.length; i++) { // goto _L2; else goto _L1
-// _L1:
-            Group group = groups[i];
+        for (Group group : groups) {
             if (group.isVisible)
-                continue; // 260
+                continue;
             int count = group.size();
-// _L14:
-            for (int j = 0; j < count; j++) { // goto _L4; else goto _L3
-// _L3:
+            for (int j = 0; j < count; j++) {
                 Component component = group.getComponent(j);
                 if (component instanceof Comp)
-                    continue; // 254
+                    continue;
                 Point point = component.getLocation();
-                if (isVertical) { // goto _L6; else goto _L5
-// _L5:
+                if (isVertical) {
                     int p1 = isCenter ? (group.size_b - component.getWidth()) / 2 : group.size_b - component.getWidth();
-                    if (origin == LEFT_TOP || origin == LEFT_BOTTOM) { // goto _L8; else goto _L7
-// _L7:
-                    // point;
-                    // point.x + l1;
-                    // goto _L9
+                    if (origin == LEFT_TOP || origin == LEFT_BOTTOM) {
                         point.x += p1;
-// _L8:
                     } else {
-                        // point;
-                        // point.x - l1;
-                        // _L9:
                         point.x -= p1;
                     }
-                    // x;
-                    // goto _L10
-// _L6:
                 } else {
                     int p1 = isCenter ? (group.size_b - component.getHeight()) / 2 : group.size_b - component.getHeight();
-                    if (origin == LEFT_TOP || origin == RIGHT_TOP) { // goto _L12; else goto _L11
-// _L11:
-                    // point;
-                    // point.y + l1;
-                    // goto _L13
+                    if (origin == LEFT_TOP || origin == RIGHT_TOP) {
                         point.y += p1;
-// _L12:
                     } else {
-                        // point;
-                        // point.y - l1;
-// _L13:
                         point.y -= p1;
                     }
-                    // y;
-// _L10:
                 }
                 component.setLocation(point.x, point.y);
-// 254
-                // goto _L14
-// _L4:
             }
-// 260
-            // i1++;
-            // goto _L15
-// _L2:
         }
     }
 
@@ -809,13 +708,9 @@ label0: {
         if (origin == RIGHT_BOTTOM || !isVertical && origin == RIGHT_TOP || isVertical && origin == LEFT_BOTTOM)
             flag4 = true;
         
-// _L17:
-        for (int i = 0; i < groups.length; i++) { // goto _L2; else goto _L1
-// _L1:
-            Group group = groups[i];
-
+        for (Group group : groups) {
             if (group.isVisible)
-                continue; // 731
+                continue;
 
             int max_k1 = i1 - group.a;
             int count = group.size();
@@ -825,39 +720,17 @@ label0: {
             int l2;
             Component component1 = null;
 
-            if (group.count_c > 0 && max_k1 > 0) { // goto _L4; else goto _L3
-// _L3:
+            if (group.count_c > 0 && max_k1 > 0) {
                 quotient = max_k1 / group.count_c;
                 reminder = max_k1 % group.count_c;
                 l2 = 0;
-// _L10:
                 for (int j = 0; j < count; j++) {
-                    if (flag4) { // goto _L6; else goto _L5
-// _L5:
-                    // t1;
-                    // l1 - i3 - 1;
-                    // goto _L7
+                    if (flag4) {
                         component1 = group.getComponent(count - j - 1);
-// _L6:
                     } else {
-                        // t1;
-                        // i3;
-// _L7:
                         component1 = group.getComponent(j);
                     }
-                    // a();
-
-                    // JVM INSTR dup ;
-                    // Component component1;
-                    // component1;
-                    // JVM INSTR instanceof #2 <Class I>;
                     if (component1 instanceof Comp) {
-                        // JVM INSTR ifeq 362;
-                        // goto _L8 _L9
-                        // _L8:
-                        // break MISSING_BLOCK_LABEL_326;
-                        // _L9:
-                        // break MISSING_BLOCK_LABEL_362;
                         Comp comp = (Comp) component1;
                         if (comp.type == 4) {
                             l2 += quotient;
@@ -866,7 +739,6 @@ label0: {
                                 reminder--;
                             }
                         }
-                        // break MISSING_BLOCK_LABEL_420;
                     } else {
                         if (l2 > 0) {
                             Point point1 = component1.getLocation();
@@ -877,61 +749,40 @@ label0: {
                             component1.setLocation(point1.x, point1.y);
                         }
                     }
-// 420
-                    // if(true) // goto _L10; else goto _L4
-// _L4: 429
                 }
-                continue; // 731
+                continue;
             }
 
             if (!flag1 || max_k1 == 0)
-                continue; // 731
+                continue;
 
-            if (alignBoth && max_k1 > 0 && count > 1) { // goto _L12; else goto _L11
-// _L11:
+            if (alignBoth && max_k1 > 0 && count > 1) {
                 quotient = max_k1 / (count - 1);
                 reminder = max_k1 % (count - 1);
                 l2 = 0;
-// _L16:
                 for (int i3 = 0; i3 < count; i3++) {
-                    if (l2 > 0) { // break MISSING_BLOCK_LABEL_569;
-                        if (flag4) { // goto _L14; else goto _L13
-// _L13:
-                            // t1;
-                            // l1 - i3 - 1;
-                            // goto _L15
+                    if (l2 > 0) {
+                        if (flag4) {
                             component1 = group.getComponent(count - i3 - 1);
-// _L14:
                         } else {
-                            // t1;
-                            // i3;
-// _L15:
                             component1 = group.getComponent(i3);
                         }
-                        // a();
-                        // JVM INSTR dup ;
-                        // component1;
-                        // getLocation();
                         Point point2 = component1.getLocation();
-                        // point2;
                         if (isVertical)
                             point2.y += l2;
                         else
                             point2.x += l2;
                         component1.setLocation(point2.x, point2.y);
                     }
-// 569
                     l2 += quotient;
                     if (reminder > 0) {
                         l2++;
                         reminder--;
                     }
-                    // if(true) // goto _L16; else goto _L12
-// _L12:
                 }
-                continue; // 731
+                continue;
             }
-// 596
+
             for (int j = 0; j < count; j++) {
                 Component component = group.getComponent(j);
                 if ((component) instanceof Comp)
@@ -948,14 +799,11 @@ label0: {
                 else
                     point.x += max_k1;
                 component.setLocation(point.x, point.y);
-                // goto _L17
             }
-// 731
-// _L2:
         }
     }
 
-    private void a(Group[] groups, boolean isVertical, int i1, int j1, int k1) {
+    private void a(Group[] groups, boolean isVertical, int col, int row, int length) {
         boolean flag1 = true;
         if (valign == LEADING && origin == LEFT_TOP ||
             !isVertical && valign == LEADING && origin == RIGHT_TOP ||
@@ -970,59 +818,38 @@ label0: {
             valignCenter = true;
         else if (valign == BOTH)
             valignBoth = true;
-        boolean flag4 = false;
+        boolean asc = false;
         if (origin == RIGHT_BOTTOM || !isVertical && origin == LEFT_BOTTOM || isVertical && origin == RIGHT_TOP)
-            flag4 = true;
-        int l1;
+            asc = true;
+        int size;
         int quotient;
         int reminder;
         int j3;
-        l1 = j1 - i1;
+        size = row - col;
 
-        if (k1 > 0 && l1 > 0) { // break MISSING_BLOCK_LABEL_405;
+        if (length > 0 && size > 0) {
 
-            quotient = l1 / k1;
-            reminder = l1 % k1;
+            quotient = size / length;
+            reminder = size % length;
             j3 = 0;
-// _L8:
-            for (int i = 0; i < groups.length; i++) { // goto _L2; else goto _L1
-// _L1:
+
+            for (int i = 0; i < groups.length; i++) {
                 Group group;
-                if (flag4) { // goto _L4; else goto _L3
-// _L3:
-                // at;
-                // at.length - l3 - 1;
-                // goto _L5
+                if (asc) {
                     group = groups[groups.length - i - 1];
-// _L4:
                 } else {
-                    // at;
-                    // l3;
-// _L5:
                     group = groups[i];
                 }
-                // JVM INSTR aaload ;
-                // JVM INSTR dup ;
-                // t t3;
-                // t3;
-
-                // d;
-                // JVM INSTR ifeq 301;
-                // goto _L6 _L7
                 if (group.isVisible) {
-// _L6:
-                    // break MISSING_BLOCK_LABEL_280;
-// _L7:
-                    // break MISSING_BLOCK_LABEL_301;
                     j3 += quotient;
                     if (reminder > 0) {
                         j3++;
                         reminder--;
                     }
-                    continue; // 398
+                    continue;
                 } else {
                     if (j3 <= 0)
-                        continue; // 398
+                        continue;
                 }
 
                 int count = group.size();
@@ -1037,39 +864,25 @@ label0: {
                         point2.y += j3;
                     component2.setLocation(point2.x, point2.y);
                 }
-                // goto _L8
-// _L2:
             }
 
             return;
         }
-// 405
-        if (flag1 && l1 != 0) { // break MISSING_BLOCK_LABEL_865;
 
-            if (valignBoth && l1 > 0 && groups.length > 1) { // break MISSING_BLOCK_LABEL_606;
-                quotient = l1 / (groups.length - 1);
-                reminder = l1 % (groups.length - 1);
+        if (flag1 && size != 0) {
+
+            if (valignBoth && size > 0 && groups.length > 1) {
+                quotient = size / (groups.length - 1);
+                reminder = size % (groups.length - 1);
                 j3 = 0;
-                
-// _L14:
-                for (int j = 0; j < groups.length; j++) { // goto _L10; else goto _L9
-// _L9:
+
+                for (int j = 0; j < groups.length; j++) {
                     Group group;
-                    if (flag4) { // goto _L12; else goto _L11
-// _L11:
-                    // at;
-                    // at.length - l3 - 1;
-                    // goto _L13
+                    if (asc) {
                         group = groups[groups.length - j - 1];
-// _L12:
                     } else {
-                        // at;
-                        // l3;
-// _L13:
                         group = groups[j];
                     }
-                    // JVM INSTR aaload ;
-                    // t3;
                     if (j3 > 0) {
                         int count = group.size();
                         for (int k = 0; k < count; k++) {
@@ -1090,16 +903,13 @@ label0: {
                         j3++;
                         reminder--;
                     }
-                    // goto _L14
-// _L10:
                 }
                 return;
             }
-// 606
+
             if (valignCenter || valignBoth) {
-                int j2 = l1 / 2;
-                for (int j = 0; j < groups.length; j++) {
-                    Group group = groups[j];
+                int halfSize = size / 2;
+                for (Group group : groups) {
                     if (group.isVisible)
                         continue;
                     int count = group.size();
@@ -1109,17 +919,16 @@ label0: {
                             continue;
                         Point point1 = component1.getLocation();
                         if (isVertical)
-                            point1.x += j2;
+                            point1.x += halfSize;
                         else
-                            point1.y += j2;
+                            point1.y += halfSize;
                         component1.setLocation(point1.x, point1.y);
                     }
                 }
                 return;
             }
 
-            for (int i = 0; i < groups.length; i++) {
-                Group group = groups[i];
+            for (Group group : groups) {
                 if (group.isVisible)
                     continue;
                 int count = group.size();
@@ -1129,14 +938,13 @@ label0: {
                         continue;
                     Point point = component.getLocation();
                     if (isVertical)
-                        point.x += l1;
+                        point.x += size;
                     else
-                        point.y += l1;
+                        point.y += size;
                     component.setLocation(point.x, point.y);
                 }
             }
         }
-// 865
     }
 
     // origin

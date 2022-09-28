@@ -15,11 +15,11 @@ final class SImage {
         this.size = size;
     }
 
-    final Image getImage() {
+    Image getImage() {
         return image;
     }
 
-    final Dimension getSize() {
+    Dimension getSize() {
         return size;
     }
 }

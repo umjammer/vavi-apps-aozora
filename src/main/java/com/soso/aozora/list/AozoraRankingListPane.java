@@ -109,18 +109,10 @@ class AozoraRankingListPane extends AozoraDefaultPane {
         void resetLabelText() {
             switch (type) {
             case card:
-                getAzContext().getRootMediator().getAozoraWorkAsynchronous(entry.getID(), new AozoraWorkParserHandler() {
-                    public void work(AozoraWork work) {
-                        setAozoraWork(work);
-                    }
-                });
+                getAzContext().getRootMediator().getAozoraWorkAsynchronous(entry.getID(), work -> setAozoraWork(work));
                 break;
             case author:
-                getAzContext().getRootMediator().getAozoraAuthorAsynchronous(entry.getID(), new AozoraAuthorParserHandler() {
-                    public void author(AozoraAuthor author) {
-                        setAozoraAuthor(author);
-                    }
-                });
+                getAzContext().getRootMediator().getAozoraAuthorAsynchronous(entry.getID(), author -> setAozoraAuthor(author));
                 break;
             default:
                 throw new IllegalStateException("Unknown ranking type:" + type);
@@ -139,11 +131,9 @@ class AozoraRankingListPane extends AozoraDefaultPane {
 
         void setTitleText(final String text) {
             final JLabel theLabel = titleLabel;
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    theLabel.setText(text);
-                    repaint();
-                }
+            SwingUtilities.invokeLater(() -> {
+                theLabel.setText(text);
+                repaint();
             });
         }
 

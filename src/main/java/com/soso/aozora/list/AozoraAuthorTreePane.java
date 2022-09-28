@@ -7,14 +7,12 @@ package com.soso.aozora.list;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
@@ -28,6 +26,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraDefaultPane;
@@ -136,7 +135,7 @@ class AozoraAuthorTreePane extends AozoraDefaultPane implements TreeSelectionLis
         ToolTipManager.sharedInstance().registerComponent(tree);
         tree.setRootVisible(false);
         tree.collapseRow(0);
-        tree.getSelectionModel().setSelectionMode(1);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(this);
         tree.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -161,11 +160,7 @@ class AozoraAuthorTreePane extends AozoraDefaultPane implements TreeSelectionLis
             logger.info("Workaround for JTree preffered height bug | " + getAuthorNode() + " | " + getPreferredSize());
             fireNodeChanged();
             collapse();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    workaround_checkRowHeight();
-                }
-            });
+            SwingUtilities.invokeLater(() -> workaround_checkRowHeight());
         }
     }
 

@@ -79,12 +79,12 @@ public class AozoraEnv {
             return getName() + " (" + getHelpTitle() + ")";
         }
 
-        private String name;
-        private KeyStroke keyStroke;
-        private String helpTitle;
-        private String helpDescription;
+        private final String name;
+        private final KeyStroke keyStroke;
+        private final String helpTitle;
+        private final String helpDescription;
 
-        private ShortCutKey(String name, String keyStroke, String helpDescription) {
+        ShortCutKey(String name, String keyStroke, String helpDescription) {
             this.name = name;
             this.keyStroke = KeyStroke.getKeyStroke(keyStroke);
             this.helpTitle = keyStrokeToHelpTitle(keyStroke);
@@ -149,8 +149,8 @@ public class AozoraEnv {
 
         private static final String BUNDLE_NAME = "env";
 
-        private String keyName;
-        private String defaultValue;
+        private final String keyName;
+        private final String defaultValue;
 
         Env(String keyName, String defaultValue) {
             this.keyName = keyName;
@@ -166,7 +166,7 @@ public class AozoraEnv {
             return isConnectable;
         }
 
-        boolean isConnectable;
+        final boolean isConnectable;
 
         LineMode(boolean isConnectable) {
             this.isConnectable = isConnectable;
@@ -223,7 +223,7 @@ public class AozoraEnv {
 
     public static URL getRankingDataURL() {
         try {
-            return new URL(getDataURL(), "./ranking/");
+            return new URL(getDataURL(), "./access_ranking/");
         } catch (MalformedURLException e) {
             throw new IllegalStateException(e);
         }
@@ -287,37 +287,13 @@ public class AozoraEnv {
         }
     }
 
-    public static URL getPremierNewURL() {
-        try {
-            return new URL(getDataURL(), "../cgi/premier_new.cgi");
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static URL getPremierPayURL(String id) {
-        try {
-            return new URL(getDataURL(), "../cgi/premier_pay.cgi?id=" + id);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static URL getPremierCheckURL(String id) {
-        try {
-            return new URL(getDataURL(), "../cgi/premier_check.cgi?id=" + id);
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     private static URL getDataURL() throws MalformedURLException {
         return new URL(Env.AOZORA_DATA_URL.getString());
     }
 
     public static File getUserHomeDir() {
         String userHome = System.getProperty("user.home");
-        return new File(userHome, ".soso");
+        return new File(userHome, ".config/soso");
     }
 
     public static URL getAozoraBunkoURL() {

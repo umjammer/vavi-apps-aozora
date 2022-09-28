@@ -65,7 +65,7 @@ class XMLBuilder {
     void startDocument(String enc) throws IOException {
         out.append("<?xml version=\"1.0\" encoding=\"").append(enc).append("\"?>");
         newLine();
-        stack = new Stack<ElementStatus>();
+        stack = new Stack<>();
     }
 
     void startElement(String elm) throws IOException {

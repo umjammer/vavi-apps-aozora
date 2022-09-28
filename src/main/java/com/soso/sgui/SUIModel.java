@@ -60,7 +60,7 @@ public class SUIModel {
         for (int i = 0; i < fields.length; i++)
             try {
                 names[i] = fields[i].get(fields[i].getName()).toString();
-            } catch (Exception _ex) {
+            } catch (Exception ignored) {
             }
 
         return names;

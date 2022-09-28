@@ -11,7 +11,6 @@ import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Container;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;

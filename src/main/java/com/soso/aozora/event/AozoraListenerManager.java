@@ -43,17 +43,13 @@ public class AozoraListenerManager implements AozoraListener {
 
     private AozoraListener[] getListeners() {
         synchronized (listeners) {
-            return listeners.toArray(new AozoraListener[listeners.size()]);
+            return listeners.toArray(new AozoraListener[0]);
         }
     }
 
     public void lineModeChanged(final AozoraEnv.LineMode lineMode) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    lineModeChanged(lineMode);
-                }
-            });
+            SwingUtilities.invokeLater(() -> lineModeChanged(lineMode));
         } else {
             for (AozoraListener listener : getListeners()) {
                 try {
@@ -67,11 +63,7 @@ public class AozoraListenerManager implements AozoraListener {
 
     public void cacheUpdated(final String cacheID) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    cacheUpdated(cacheID);
-                }
-            });
+            SwingUtilities.invokeLater(() -> cacheUpdated(cacheID));
         } else {
             for (AozoraListener listener : getListeners()) {
                 try {
@@ -85,11 +77,7 @@ public class AozoraListenerManager implements AozoraListener {
 
     public void cacheDeleted(final String cacheID) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    cacheDeleted(cacheID);
-                }
-            });
+            SwingUtilities.invokeLater(() -> cacheDeleted(cacheID));
         } else {
             for (AozoraListener listener : getListeners()) {
                 try {
@@ -103,11 +91,7 @@ public class AozoraListenerManager implements AozoraListener {
 
     public void commentAdded(final AozoraComment comment) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    commentAdded(comment);
-                }
-            });
+            SwingUtilities.invokeLater(() -> commentAdded(comment));
         } else {
             for (AozoraListener listener : getListeners()) {
                 try {
@@ -121,11 +105,7 @@ public class AozoraListenerManager implements AozoraListener {
 
     public void commentTypeChanged(final AozoraCommentDecorator.CommentType commentType) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    commentTypeChanged(commentType);
-                }
-            });
+            SwingUtilities.invokeLater(() -> commentTypeChanged(commentType));
         } else if (commentType != getAzContext().getSettings().getCommentType()) {
             getAzContext().getSettings().setCommentType(commentType);
         } else {

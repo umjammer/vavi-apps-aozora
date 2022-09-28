@@ -160,11 +160,7 @@ class TextViewerPane extends AozoraDefaultPane {
             if (textField == null) {
                 textField = new JTextField();
                 textField.setColumns(20);
-                textField.addCaretListener(new CaretListener() {
-                    public void caretUpdate(CaretEvent e) {
-                        resetButtonEnabled();
-                    }
-                });
+                textField.addCaretListener(e -> resetButtonEnabled());
                 textField.addKeyListener(new KeyAdapter() {
                     public void keyPressed(KeyEvent e) {
                         if (e.getKeyCode() == KeyEvent.VK_ENTER)
@@ -264,7 +260,7 @@ class TextViewerPane extends AozoraDefaultPane {
         private static final int STATUS_RB = 1;
         private static final int STATUS_RT = 2;
 
-        private final List<SLetterCell> rb = new ArrayList<SLetterCell>();
+        private final List<SLetterCell> rb = new ArrayList<>();
         private final StringBuilder rt = new StringBuilder();
 
         int status;
@@ -311,7 +307,7 @@ class TextViewerPane extends AozoraDefaultPane {
         }
 
         SLetterCell[] getResult() {
-            SLetterCell[] cells = rb.toArray(new SLetterCell[rb.size()]);
+            SLetterCell[] cells = rb.toArray(new SLetterCell[0]);
             if (cells.length != 0) {
                 char[][] rtArray = TextViewerPane.splitRT(rt.toString().toCharArray(), cells.length);
                 for (int i = 0; i < cells.length; i++)
@@ -497,10 +493,10 @@ class TextViewerPane extends AozoraDefaultPane {
 
     private final AozoraWork work;
     private SLetterPane textPane;
-    private List<SLetterCell> textCells = new ArrayList<SLetterCell>();
+    private List<SLetterCell> textCells = new ArrayList<>();
     private int startPos = 0;
     private int endPos = 0;
-    private Stack<Integer> cachedPrevPosStack = new Stack<Integer>();
+    private Stack<Integer> cachedPrevPosStack = new Stack<>();
     private JPanel buttonPanel;
     private JButton nextButton;
     private JButton prevButton;
@@ -592,11 +588,7 @@ class TextViewerPane extends AozoraDefaultPane {
 
     private void setup() {
         try {
-            new Thread(new Runnable() {
-                public void run() {
-                    setupAsynchronous();
-                }
-            }, "AozoraContentsParser-Thread").start();
+            new Thread(() -> setupAsynchronous(), "AozoraContentsParser-Thread").start();
         } catch (Exception e) {
             disposeWithError(e);
         }
@@ -616,11 +608,7 @@ class TextViewerPane extends AozoraDefaultPane {
     void disposeWithError(final Throwable t) {
         try {
             t.printStackTrace(System.err);
-            SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    SOptionPane.showInternalErrorDialog(TextViewerPane.this, "作品を表示できません。", t, false);
-                }
-            });
+            SwingUtilities.invokeAndWait(() -> SOptionPane.showInternalErrorDialog(TextViewerPane.this, "作品を表示できません。", t, false));
             JInternalFrame parentFrame = SGUIUtil.getParentInstanceOf(this, JInternalFrame.class);
             if (parentFrame != null)
                 parentFrame.dispose();
@@ -637,11 +625,7 @@ class TextViewerPane extends AozoraDefaultPane {
 
     void setStartPosByComment(final AozoraComment comment) {
         if (!isFirstPageLoaded) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setStartPosByComment(comment);
-                }
-            });
+            SwingUtilities.invokeLater(() -> setStartPosByComment(comment));
             return;
         }
         setSelection(comment.getPosition(), comment.getLength());
@@ -650,15 +634,7 @@ class TextViewerPane extends AozoraDefaultPane {
             if ((decorator instanceof AozoraCommentBalloonDecorator) &&
                 ((AozoraCommentBalloonDecorator) decorator).getComment() == comment) {
                 final AozoraCommentBalloonDecorator theDecorator = (AozoraCommentBalloonDecorator) decorator;
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                theDecorator.moveToFront();
-                            }
-                        });
-                    }
-                });
+                SwingUtilities.invokeLater(() -> SwingUtilities.invokeLater(() -> theDecorator.moveToFront()));
             }
         }
     }
@@ -738,11 +714,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         synchronized (nextButton) {
             if (nextButton.isEnabled()) {
                 nextButton.setEnabled(false);
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        nextImpl();
-                    }
-                });
+                SwingUtilities.invokeLater(() -> nextImpl());
             }
         }
     }
@@ -764,28 +736,24 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         synchronized (prevButton) {
             if (prevButton.isEnabled()) {
                 prevButton.setEnabled(false);
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        prevImpl();
-                    }
-                });
+                SwingUtilities.invokeLater(() -> prevImpl());
             }
         }
     }
 
     private void prevImpl() {
         int lastStartPos = startPos;
-        List<Integer> tryedStartPosList = new ArrayList<Integer>();
+        List<Integer> tryedStartPosList = new ArrayList<>();
         StringBuilder log = new StringBuilder().append("prev");
         if (cachedPrevPosStack.size() != 0) {
-            log.append(",cached," + Arrays.toString(cachedPrevPosStack.toArray()));
+            log.append(",cached,").append(Arrays.toString(cachedPrevPosStack.toArray()));
             int cachedPrevPos = cachedPrevPosStack.pop();
             setStartPos(cachedPrevPos);
             tryedStartPosList.add(cachedPrevPos);
         }
         int diff;
         while ((diff = endPos - lastStartPos) != 0) {
-            log.append("," + startPos);
+            log.append(",").append(startPos);
             int tryStartPos = startPos - diff;
             if (tryStartPos < 0) {
                 setStartPos(0);
@@ -808,7 +776,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
             log.append("<").append(startPos);
         }
 
-        log.append("|lastStart=" + lastStartPos + "|thisEnd=" + endPos);
+        log.append("|lastStart=").append(lastStartPos).append("|thisEnd=").append(endPos);
         logger.info(log.toString());
         setupButtonEnabled();
         setupPageNumber();

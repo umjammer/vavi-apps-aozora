@@ -9,9 +9,9 @@ import javax.swing.JTree;
 
 interface AozoraTreeSelectionManager {
 
-    public abstract void addTree(JTree tree);
+    void addTree(JTree tree);
 
-    public abstract void setSelectOnly(JTree selectedTree);
+    void setSelectOnly(JTree selectedTree);
 
-    public abstract void removeTree(JTree tree);
+    void removeTree(JTree tree);
 }

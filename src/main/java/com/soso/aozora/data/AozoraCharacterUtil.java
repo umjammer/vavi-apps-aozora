@@ -7,6 +7,9 @@ package com.soso.aozora.data;
 import java.util.Arrays;
 
 
+/**
+ * Gaiji character rotation.
+ */
 public class AozoraCharacterUtil {
 
     public static boolean isGaijiToRotate(String name) {

@@ -16,11 +16,11 @@ import javax.swing.UIManager;
 public class AozoraIniFileBean {
 
     public AozoraIniFileBean() {
-        bookmark = new HashMap<String, Integer>();
+        bookmark = new HashMap<>();
         systemFont = new Font("Dialog", Font.PLAIN, 16);
         lookAndFeel = UIManager.getLookAndFeel();
-        rowSpace = 10;
-        fontRatio = 0.9F;
+        rowSpace = AozoraEnv.DEFAULT_RAW_SPACE;
+        fontRatio = AozoraEnv.DEFAULT_FONT_RATIO;
         foreground = AozoraEnv.DEFAULT_FOREGROUND_COLOR;
         background = AozoraEnv.DEFAULT_BACKGROUND_COLOR;
     }

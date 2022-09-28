@@ -11,6 +11,7 @@ import java.awt.event.ComponentEvent;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,9 +27,7 @@ import javax.swing.tree.TreePath;
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraEnv;
-import com.soso.aozora.core.AozoraMenuPane;
 import com.soso.aozora.core.AozoraUtil;
-import com.soso.aozora.event.AozoraListenerAdapter;
 import com.soso.aozora.html.TagReader;
 import com.soso.aozora.html.TagUtil;
 
@@ -82,13 +81,11 @@ public class AozoraTopicPane extends AozoraDefaultPane implements AozoraTopicMed
             status = TopicLoadStatus.INIT;
         }
         clearTopics();
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    loadNewWorkTopic();
-                } catch (Exception e) {
-                    logger.log(Level.SEVERE, e.getMessage(), e);
-                }
+        new Thread(() -> {
+            try {
+                loadNewWorkTopic();
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, e.getMessage(), e);
             }
         }, "AozoraTopicLoader").start();
     }
@@ -104,7 +101,7 @@ public class AozoraTopicPane extends AozoraDefaultPane implements AozoraTopicMed
         TagReader tin = null;
         try {
             URL backupListURL = new URL(AozoraEnv.getBackupURL(), "?C=N;O=D");
-            tin = new TagReader(new InputStreamReader(AozoraUtil.getInputStream(backupListURL), "UTF-8"));
+            tin = new TagReader(new InputStreamReader(AozoraUtil.getInputStream(backupListURL), StandardCharsets.UTF_8));
             String tag;
 label0:     do
                 do {
@@ -112,7 +109,7 @@ label0:     do
                     do {
                         if ((tag = tin.readNextTag()) == null)
                             break label0;
-                        if (!tag.startsWith("a") || tag.indexOf("href") == -1)
+                        if (!tag.startsWith("a") || !tag.contains("href"))
                             continue label0;
                         href = TagUtil.getAttValue(tag, "href");
                     } while (!href.startsWith("index.") || !href.endsWith(".txt"));

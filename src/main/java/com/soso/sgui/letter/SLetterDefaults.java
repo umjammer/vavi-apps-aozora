@@ -6,7 +6,6 @@ package com.soso.sgui.letter;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
@@ -124,9 +123,9 @@ public final class SLetterDefaults {
         protected static final Color ROW_BORDER_COLOR = new Color(153, 102, 51);
         protected static final Color CELL_BORDER_COLOR = new Color(170, 102, 51);
         protected static final Color CELL_CENTER_LINE_COLOR = new Color(170, 136, 85);
-        protected static final Stroke ROW_BORDER_STROKE = new BasicStroke(1.0F, 0, 0, 10F, null, 0.0F);
-        protected static final Stroke CELL_BORDER_STROKE = new BasicStroke(1.0F, 0, 0, 10F, null, 0.0F);
-        protected static final Stroke CELL_CENTER_LINE_STROKE = new BasicStroke(1.0F, 0, 0, 10F, new float[] { 1.0F, 1.0F }, 0.0F);
+        protected static final Stroke ROW_BORDER_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10F, null, 0.0F);
+        protected static final Stroke CELL_BORDER_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10F, null, 0.0F);
+        protected static final Stroke CELL_CENTER_LINE_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10F, new float[] { 1.0F, 1.0F }, 0.0F);
 
         private SLetterConstraint.ORIENTATION orientation;
         private Color rowBorderColor;

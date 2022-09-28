@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import com.soso.aozora.html.TagReader;
 
@@ -122,9 +123,7 @@ label0:     do
     public static byte[] toBytes(AozoraWork work) {
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
         try {
-            Writer out = null;
-            try {
-                out = new OutputStreamWriter(byteOut, "utf-8");
+            try (Writer out = new OutputStreamWriter(byteOut, StandardCharsets.UTF_8)) {
                 out.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>").append("\n");
                 out.append("<xml>").append("\n");
                 out.append("\t").append("<data>").append("\n");
@@ -155,8 +154,6 @@ label0:     do
                 out.append("\t").append("</data>").append("\n");
                 out.append("</xml>").append("\n");
                 out.flush();
-            } finally {
-                out.close();
             }
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -166,7 +163,7 @@ label0:     do
 
     public static AozoraWork loadBytes(byte[] bytes) throws IOException {
         OneWorkParserHandler handler = new OneWorkParserHandler();
-        parse(new InputStreamReader(new ByteArrayInputStream(bytes), "utf-8"), handler, false);
+        parse(new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8), handler, false);
         return handler.getWork();
     }
 }

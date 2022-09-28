@@ -52,7 +52,7 @@ public class SFlowLayoutTest {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setContentPane(panel);
         frame.addComponentListener(new ComponentAdapter() {
-            public final void componentResized(ComponentEvent event) {
+            public void componentResized(ComponentEvent event) {
                 panel.doLayout();
                 Dimension size = panel.getSize();
                 Dimension preferredSize = panel.getPreferredSize();

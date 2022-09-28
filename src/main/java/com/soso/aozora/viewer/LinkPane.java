@@ -17,7 +17,6 @@ import javax.swing.JLabel;
 import javax.swing.border.TitledBorder;
 
 import com.soso.aozora.boot.AozoraContext;
-import com.soso.aozora.core.AozoraContentPane;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.data.AozoraAuthor;

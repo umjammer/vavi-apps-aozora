@@ -29,7 +29,6 @@ import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 
 import com.soso.aozora.boot.AozoraContext;
-import com.soso.aozora.core.AozoraContentPane;
 import com.soso.aozora.core.AozoraDefaultPane;
 import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.data.AozoraAuthor;
@@ -76,7 +75,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
 
     private void initGUI() {
         selectionManager = new AozoraTreeSelectionManagerImpl();
-        authorNodeList = new ArrayList<AozoraAuthorNode>();
+        authorNodeList = new ArrayList<>();
         setLayout(new BorderLayout());
         scroll = new JScrollPane();
         add(scroll, BorderLayout.CENTER);
@@ -113,13 +112,11 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
                 case KeyEvent.VK_ENTER:
-                    new Thread(new Runnable() {
-                        public void run() {
-                            setSearchEnabled(false);
-                            setSearchResult(true);
-                            search();
-                            setSearchEnabled(true);
-                        }
+                    new Thread(() -> {
+                        setSearchEnabled(false);
+                        setSearchResult(true);
+                        search();
+                        setSearchEnabled(true);
                     }, "AozoraSearch").start();
                     break;
                 }
@@ -138,15 +135,13 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
         searchAllButton = new SButton();
         searchAllButton.setAction(new AbstractAction("全検索") {
             public void actionPerformed(ActionEvent e) {
-                new Thread(new Runnable() {
-                    public void run() {
-                        setSearchStop(false);
-                        setSearchEnabled(false);
-                        loadAllWorks();
-                        setSearchResult(true);
-                        searchAll();
-                        setSearchEnabled(true);
-                    }
+                new Thread(() -> {
+                    setSearchStop(false);
+                    setSearchEnabled(false);
+                    loadAllWorks();
+                    setSearchResult(true);
+                    searchAll();
+                    setSearchEnabled(true);
                 }, "AozoraAllSearch").start();
             }
         });
@@ -154,14 +149,12 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
         searchAddButton = new SButton();
         searchAddButton.setAction(new AbstractAction("絞り込み") {
             public void actionPerformed(ActionEvent e) {
-                new Thread(new Runnable() {
-                    public void run() {
-                        setSearchStop(false);
-                        setSearchEnabled(false);
-                        setSearchResult(true);
-                        search();
-                        setSearchEnabled(true);
-                    }
+                new Thread(() -> {
+                    setSearchStop(false);
+                    setSearchEnabled(false);
+                    setSearchResult(true);
+                    search();
+                    setSearchEnabled(true);
                 }, "AozoraSearch").start();
             }
         });
@@ -169,14 +162,12 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
         searchResetButton = new SButton();
         searchResetButton.setAction(new AbstractAction("再表示") {
             public void actionPerformed(ActionEvent e) {
-                new Thread(new Runnable() {
-                    public void run() {
-                        setSearchStop(false);
-                        setSearchEnabled(false);
-                        setSearchResult(false);
-                        searchReset();
-                        setSearchEnabled(true);
-                    }
+                new Thread(() -> {
+                    setSearchStop(false);
+                    setSearchEnabled(false);
+                    setSearchResult(false);
+                    searchReset();
+                    setSearchEnabled(true);
                 }, "AozoraResetSearch").start();
             }
         });
@@ -238,25 +229,23 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        new Thread(new Runnable() {
-            public void run() {
-                progressLabel.setText("初期化");
-                progressBar.setMaximum(100);
-                progressBar.setMinimum(0);
-                progressBar.setValue(progressBar.getMinimum());
-                while (progressBar.isEnabled()) {
-                    int next = progressBar.getValue() + 1;
-                    if (next > progressBar.getMaximum())
-                        next = progressBar.getMinimum();
-                    progressBar.setValue(next);
-                    try {
-                        Thread.sleep(100L);
-                    } catch (InterruptedException e) {
-                        logger.log(Level.SEVERE, e.getMessage(), e);
-                    }
+        new Thread(() -> {
+            progressLabel.setText("初期化");
+            progressBar.setMaximum(100);
+            progressBar.setMinimum(0);
+            progressBar.setValue(progressBar.getMinimum());
+            while (progressBar.isEnabled()) {
+                int next = progressBar.getValue() + 1;
+                if (next > progressBar.getMaximum())
+                    next = progressBar.getMinimum();
+                progressBar.setValue(next);
+                try {
+                    Thread.sleep(100L);
+                } catch (InterruptedException e) {
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
-                progressBar.setValue(progressBar.getMaximum());
             }
+            progressBar.setValue(progressBar.getMaximum());
         }, "AozoraListLoader_sync_progressBar").start();
         loader = new AozoraListLoader(this);
         new Thread(loader, "AozoraListLoader").start();
@@ -299,11 +288,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
             if (isSearchStop())
                 return;
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        authorNode.searchReset();
-                    }
-                });
+                SwingUtilities.invokeAndWait(() -> authorNode.searchReset());
                 progressBar.setValue(progressBar.getValue() + 1);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -320,11 +305,7 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
             if (isSearchStop())
                 return;
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        loadWorks(authorNode);
-                    }
-                });
+                SwingUtilities.invokeAndWait(() -> loadWorks(authorNode));
                 progressBar.setValue(progressBar.getValue() + 1);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -419,32 +400,28 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
             throw new IllegalArgumentException("workID cannot be null nor blank");
         String authorID = matchAuthorID(workID);
         if (authorID != null) {
-            AozoraAuthorParserHandler authorCallback = new AozoraAuthorParserHandler() {
-                public void author(AozoraAuthor author) {
-                    if (author == null) {
+            AozoraAuthorParserHandler authorCallback = author -> {
+                if (author == null) {
+                    callback.work(null);
+                    return;
+                }
+                final AozoraAuthorNode authorNode = getAozoraAuthorNode(author.getID());
+                if (authorNode == null) {
+                    callback.work(null);
+                    return;
+                }
+                Runnable worksCallback = () -> {
+                    AozoraWorkNode workNode = authorNode.getAozoraWorkNode(workID);
+                    if (workNode != null)
+                        callback.work(workNode.getAozoraWork());
+                    else
                         callback.work(null);
-                        return;
-                    }
-                    final AozoraAuthorNode authorNode = getAozoraAuthorNode(author.getID());
-                    if (authorNode == null) {
-                        callback.work(null);
-                        return;
-                    }
-                    Runnable worksCallback = new Runnable() {
-                        public void run() {
-                            AozoraWorkNode workNode = authorNode.getAozoraWorkNode(workID);
-                            if (workNode != null)
-                                callback.work(workNode.getAozoraWork());
-                            else
-                                callback.work(null);
-                        }
-                    };
-                    synchronized (authorNode) {
-                        if (authorNode.isWorkLoaded())
-                            worksCallback.run();
-                        else
-                            loader.loadWorksAsynchronus(authorNode, worksCallback);
-                    }
+                };
+                synchronized (authorNode) {
+                    if (authorNode.isWorkLoaded())
+                        worksCallback.run();
+                    else
+                        loader.loadWorksAsynchronous(authorNode, worksCallback);
                 }
             };
             getAozoraAuthorAsynchronous(authorID, authorCallback);
@@ -467,16 +444,14 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
         if (authorID == null || authorID.length() == 0) {
             throw new IllegalArgumentException("authorID cannot be null nor blank");
         } else {
-            Runnable authorsCallback = new Runnable() {
-                public void run() {
-                    AozoraAuthorNode authorNode = getAozoraAuthorNode(authorID);
-                    if (authorNode != null)
-                        callback.author(authorNode.getAozoraAuthor());
-                    else
-                        callback.author(null);
-                }
+            Runnable authorsCallback = () -> {
+                AozoraAuthorNode authorNode = getAozoraAuthorNode(authorID);
+                if (authorNode != null)
+                    callback.author(authorNode.getAozoraAuthor());
+                else
+                    callback.author(null);
             };
-            loader.loadAuthorsAsynchronus(authorsCallback);
+            loader.loadAuthorsAsynchronous(authorsCallback);
             return;
         }
     }
@@ -496,13 +471,9 @@ public class AozoraListPane extends AozoraDefaultPane implements AozoraListMedia
     public void focusAuthor(AozoraAuthor author) {
         final AozoraAuthorNode authorNode = getAozoraAuthorNode(author.getID());
         if (authorNode != null) {
-            Runnable callback = new Runnable() {
-                public void run() {
-                    authorNode.focus(null, true, true);
-                }
-            };
+            Runnable callback = () -> authorNode.focus(null, true, true);
             if (!authorNode.isWorkLoaded())
-                loader.loadWorksAsynchronus(authorNode, callback);
+                loader.loadWorksAsynchronous(authorNode, callback);
             else
                 callback.run();
         }

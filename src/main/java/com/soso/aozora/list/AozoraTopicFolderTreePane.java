@@ -29,6 +29,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import com.soso.aozora.boot.AozoraContext;
 import com.soso.aozora.core.AozoraDefaultPane;
@@ -145,7 +146,7 @@ class AozoraTopicFolderTreePane extends AozoraDefaultPane implements TreeSelecti
         isTopicLoaded = false;
         this.topicMediator = topicMediator;
         topicFolderNode = new AozoraTopicFolderNode(name);
-        topicLoaders = new ArrayList<AozoraTopicLoader>();
+        topicLoaders = new ArrayList<>();
         initGUI();
     }
 
@@ -155,7 +156,7 @@ class AozoraTopicFolderTreePane extends AozoraDefaultPane implements TreeSelecti
         tree.setRootVisible(false);
         tree.setCellRenderer(new TopicTreeCellRenderer());
         tree.collapseRow(0);
-        tree.getSelectionModel().setSelectionMode(1);
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(this);
         tree.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -177,11 +178,7 @@ class AozoraTopicFolderTreePane extends AozoraDefaultPane implements TreeSelecti
             logger.info("Workaround for JTree preffered height bug | " + getFolderNode() + " | " + getPreferredSize());
             fireNodeChanged();
             collapse();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    workaround_checkRowHeight();
-                }
-            });
+            SwingUtilities.invokeLater(() -> workaround_checkRowHeight());
         }
     }
 

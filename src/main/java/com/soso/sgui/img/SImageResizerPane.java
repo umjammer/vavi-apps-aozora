@@ -79,11 +79,9 @@ public class SImageResizerPane extends JPanel {
                 doNotifyAll();
             }
         });
-        setDisposer(new Runnable() {
-            public final void run() {
-                iframe.setModal(false);
-                iframe.dispose();
-            }
+        setDisposer(() -> {
+            iframe.setModal(false);
+            iframe.dispose();
         });
         iframe.setVisible(true);
         while (!waiting) {
@@ -169,11 +167,7 @@ public class SImageResizerPane extends JPanel {
         grassPanel.setImagePanel(imagePanel);
         grassPanel.startTask();
         if (image != null)
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setImage_a(image);
-                }
-            });
+            SwingUtilities.invokeLater(() -> setImage_a(image));
     }
 
     private void initGUI() {
@@ -230,31 +224,19 @@ public class SImageResizerPane extends JPanel {
         originalButton.setSelected(true);
         originalButton.setBackground(backgroundColor);
         originalButton.setText("オリジナルサイズを保持");
-        originalButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                setSizeOption(SizeOption.ORIGINAL);
-            }
-        });
+        originalButton.addActionListener(event -> setSizeOption(SizeOption.ORIGINAL));
         group.add(originalButton);
         panel.add(originalButton);
         JRadioButton ratioExtendedButton = new JRadioButton();
         ratioExtendedButton.setBackground(backgroundColor);
         ratioExtendedButton.setText("縦横比を保持して伸縮");
-        ratioExtendedButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                setSizeOption(SizeOption.RATIO_EXTEND);
-            }
-        });
+        ratioExtendedButton.addActionListener(event -> setSizeOption(SizeOption.RATIO_EXTEND));
         group.add(ratioExtendedButton);
         panel.add(ratioExtendedButton);
         JRadioButton fullExtendedButton = new JRadioButton();
         fullExtendedButton.setBackground(backgroundColor);
         fullExtendedButton.setText("最大サイズに伸縮");
-        fullExtendedButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                setSizeOption(SizeOption.FULL_EXTEND);
-            }
-        });
+        fullExtendedButton.addActionListener(event -> setSizeOption(SizeOption.FULL_EXTEND));
         group.add(fullExtendedButton);
         panel.add(fullExtendedButton);
         panel.add(Box.createGlue());
@@ -268,20 +250,12 @@ public class SImageResizerPane extends JPanel {
         cancelButton = new SButton();
         SGUIUtil.setSizeALL(cancelButton, buttonSize);
         cancelButton.setText("取り消し");
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                b(isAnimated());
-            }
-        });
+        cancelButton.addActionListener(event -> b(isAnimated()));
         panel.add(cancelButton);
         approveButton = new SButton();
         SGUIUtil.setSizeALL(approveButton, buttonSize);
         approveButton.setText("完了");
-        approveButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                showInternalDialog(isAnimated());
-            }
-        });
+        approveButton.addActionListener(event -> showInternalDialog(isAnimated()));
         panel.add(approveButton);
         approveButton.setEnabled(false);
         return panel;

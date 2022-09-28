@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +67,7 @@ public class AozoraBookmarks {
         public void startBoolmark(Attributes attributes) {
             String name = attributes.getValue(ATT_BOOKMARK_BOOK);
             int position = Integer.parseInt(attributes.getValue(ATT_BOOKMARK_POSITION));
-            getBookmarks().addBookmark(name, Integer.valueOf(position));
+            getBookmarks().addBookmark(name, position);
         }
 
         private final AozoraBookmarks bookmarks;
@@ -96,12 +97,12 @@ public class AozoraBookmarks {
     }
 
     private AozoraBookmarks() {
-        bookmarks = new ArrayList<AozoraBookmarkEntry>();
+        bookmarks = new ArrayList<>();
     }
 
     public void addBookmark(String book, Integer page) {
         removeBookmark(book);
-        bookmarks.add(new AozoraBookmarkEntry(book, page.intValue()));
+        bookmarks.add(new AozoraBookmarkEntry(book, page));
     }
 
     public AozoraBookmarkEntry getBookmark(String book) {
@@ -126,7 +127,7 @@ public class AozoraBookmarks {
     }
 
     public AozoraBookmarkEntry[] toArray() {
-        return bookmarks.toArray(new AozoraBookmarkEntry[bookmarks.size()]);
+        return bookmarks.toArray(new AozoraBookmarkEntry[0]);
     }
 
     public static AozoraBookmarks create() {
@@ -161,7 +162,7 @@ public class AozoraBookmarks {
             File file = getBookmarksFile();
             if (!file.exists() && !file.getParentFile().exists())
                 file.getParentFile().mkdirs();
-            writer = new OutputStreamWriter(new FileOutputStream(file), enc);
+            writer = new OutputStreamWriter(Files.newOutputStream(file.toPath()), enc);
             BookmarksXMLBuilder builder = new BookmarksXMLBuilder(writer);
             builder.build(this, enc);
         } finally {

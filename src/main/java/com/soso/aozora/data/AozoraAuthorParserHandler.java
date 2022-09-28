@@ -7,5 +7,5 @@ package com.soso.aozora.data;
 
 public interface AozoraAuthorParserHandler {
 
-    public abstract void author(AozoraAuthor author);
+    void author(AozoraAuthor author);
 }

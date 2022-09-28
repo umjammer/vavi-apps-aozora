@@ -82,9 +82,9 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
         }
     }
 
-    public static interface SLookAndFeelChooserListener extends EventListener {
+    public interface SLookAndFeelChooserListener extends EventListener {
 
-        public abstract void lookAndFeelSelected(SLookAndFeelChooserEvent event);
+        void lookAndFeelSelected(SLookAndFeelChooserEvent event);
     }
 
     public static void showInternalDialog(Container parent, String title, LookAndFeel[] lookAndFeels) throws UnsupportedLookAndFeelException {
@@ -101,7 +101,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
         LookAndFeelCache cache = new LookAndFeelCache(UIManager.getLookAndFeel());
         try {
             SLookAndFeelChooser chooser = new SLookAndFeelChooser(lookAndFeels, comp);
-            int result = JOptionPane.showInternalConfirmDialog(parent, chooser, title, 2, -1, null);
+            int result = JOptionPane.showInternalConfirmDialog(parent, chooser, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
             if (result == 0)
                 cache.setLookAndFeel(chooser.getSelectedLookAndFeel());
         } finally {
@@ -122,7 +122,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
             iframe.setClosable(true);
             final SLookAndFeelChooser chooser = new SLookAndFeelChooser(lookAndFeels, iframe);
             chooser.addAction(new AbstractAction("　適用　") {
-                public final void actionPerformed(ActionEvent event) {
+                public void actionPerformed(ActionEvent event) {
                     iframe.setModal(false);
                     iframe.dispose();
                     cache.setLookAndFeel(chooser.getSelectedLookAndFeel());
@@ -203,7 +203,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
             dialog.getContentPane().add(chooser);
             dialog.pack();
             dialog.addWindowListener(new WindowAdapter() {
-                public final void windowClosing(WindowEvent event) {
+                public void windowClosing(WindowEvent event) {
                     dialog.dispose();
                 }
             });
@@ -234,7 +234,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
     }
 
     private void initGUI() {
-        listeners = new ArrayList<SLookAndFeelChooserListener>();
+        listeners = new ArrayList<>();
         setLayout(new BorderLayout());
         desktopPane = new JDesktopPane();
         SGUIUtil.setSizeALL(desktopPane, new Dimension(300, 200));
@@ -242,11 +242,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
         JButton button = new JButton();
         button.setText("Button");
         button.setBounds(5, 5, 100, 32);
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                showInternalFrame();
-            }
-        });
+        button.addActionListener(event -> showInternalFrame());
         desktopPane.add(button);
         showInternalFrame();
         JPanel panel = new JPanel();
@@ -324,7 +320,7 @@ public class SLookAndFeelChooser extends JPanel implements ItemListener {
     }
 
     public SLookAndFeelChooserListener[] getSLookAndFeelChooserListeners() {
-        return listeners.toArray(new SLookAndFeelChooserListener[listeners.size()]);
+        return listeners.toArray(new SLookAndFeelChooserListener[0]);
     }
 
     public void removeSLookAndFeelChooserListener(SLookAndFeelChooserListener listener) {

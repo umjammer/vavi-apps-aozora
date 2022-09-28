@@ -6,6 +6,7 @@ package com.soso.aozora.list;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -66,7 +67,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
             }
             if (element != null) {
                 loadWorksImmediate(element.getAuthorNode());
-                syncEventDispached();
+                syncEventDispatched();
                 element.callback();
             }
         }
@@ -80,25 +81,17 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
     }
 
     private void loadAuthor() {
-        Reader authorsIn = null;
         try {
-            try {
-                authorsIn = new InputStreamReader(AozoraUtil.getInputStream(AozoraEnv.getAuthorListURL()), "UTF-8");
+            try (Reader authorsIn = new InputStreamReader(AozoraUtil.getInputStream(AozoraEnv.getAuthorListURL()), StandardCharsets.UTF_8)) {
                 AozoraAuthorParser.parse(authorsIn, this);
                 mediator.setAuthorLoaded(true);
-            } finally {
-                try {
-                    authorsIn.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
             mediator.setSearchEnabled(true);
             synchronized (this) {
                 isAuthorLoaded = true;
-                
+
                 for (Runnable callback : authorLoadCallback) {
-                    syncEventDispached();
+                    syncEventDispatched();
                     callback.run();
                 }
             }
@@ -107,19 +100,17 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
         }
     }
 
-    private void syncEventDispached() {
+    private void syncEventDispatched() {
         if (!SwingUtilities.isEventDispatchThread())
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                    }
+                SwingUtilities.invokeAndWait(() -> {
                 });
             } catch (Exception e) {
                 e.printStackTrace();
             }
     }
 
-    void loadAuthorsAsynchronus(Runnable callback) {
+    void loadAuthorsAsynchronous(Runnable callback) {
         synchronized (this) {
             if (isAuthorLoaded)
                 callback.run();
@@ -128,7 +119,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
         }
     }
 
-    void loadWorksAsynchronus(AozoraAuthorNode authorNode, Runnable callback) {
+    void loadWorksAsynchronous(AozoraAuthorNode authorNode, Runnable callback) {
         synchronized (workLoadQueue) {
             WorkLoadQueueElement element = new WorkLoadQueueElement(authorNode, callback);
             workLoadQueue.add(element);
@@ -137,20 +128,11 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
     }
 
     void loadWorksImmediate(AozoraAuthorNode authorNode) {
-        Reader worksIn = null;
-        try {
-            String authorID = authorNode.getAozoraAuthor().getID();
-            if (!authorNode.isWorkLoaded()) {
-                worksIn = new InputStreamReader(AozoraUtil.getInputStream(AozoraEnv.getWorkURL(authorID)), "UTF-8");
+        String authorID = authorNode.getAozoraAuthor().getID();
+        if (!authorNode.isWorkLoaded()) {
+            try (Reader worksIn = new InputStreamReader(AozoraUtil.getInputStream(AozoraEnv.getWorkURL(authorID)), StandardCharsets.UTF_8)) {
                 AozoraWorkParser.parse(worksIn, this);
                 authorNode.setWorkLoaded(true);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (worksIn != null)
-                    worksIn.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -159,15 +141,11 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
 
     public void author(AozoraAuthor author) {
         if (isStop)
-            throw new IllegalStateException(new InterruptedException("stoped by user"));
+            throw new IllegalStateException(new InterruptedException("stopped by user"));
         if (!SwingUtilities.isEventDispatchThread()) {
             try {
                 final AozoraAuthor theAuthor = author;
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        author(theAuthor);
-                    }
-                });
+                SwingUtilities.invokeAndWait(() -> author(theAuthor));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -191,11 +169,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
         if (!SwingUtilities.isEventDispatchThread()) {
             try {
                 final AozoraWork theWork = work;
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        work(theWork);
-                    }
-                });
+                SwingUtilities.invokeAndWait(() -> work(theWork));
                 Thread.sleep(10L);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -233,7 +207,7 @@ class AozoraListLoader implements Runnable, AozoraAuthorParserHandler, AozoraWor
 
     private final AozoraListMediator mediator;
     private boolean isAuthorLoaded;
-    private final Queue<WorkLoadQueueElement> workLoadQueue = new ConcurrentLinkedQueue<WorkLoadQueueElement>();
-    private final List<Runnable> authorLoadCallback = new ArrayList<Runnable>();
+    private final Queue<WorkLoadQueueElement> workLoadQueue = new ConcurrentLinkedQueue<>();
+    private final List<Runnable> authorLoadCallback = new ArrayList<>();
     private boolean isStop;
 }

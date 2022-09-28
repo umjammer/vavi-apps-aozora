@@ -184,11 +184,7 @@ public class AozoraContext {
                 }, "オンラインへの切り替え", 1, 2, null, null, null, null, "再試行", "強制", null)) {
                 case 0:
                     logger.info("テスト接続を再試行します。");
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            setLineMode(lineMode);
-                        }
-                    });
+                    SwingUtilities.invokeLater(() -> setLineMode(lineMode));
                     return;
                 case 1:
                     logger.info("テスト接続に失敗しましたが、" + lineMode + " に設定します。");

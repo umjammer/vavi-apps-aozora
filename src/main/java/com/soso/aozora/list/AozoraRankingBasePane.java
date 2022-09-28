@@ -7,13 +7,12 @@ package com.soso.aozora.list;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -35,6 +33,7 @@ import com.soso.aozora.core.AozoraEnv;
 import com.soso.aozora.core.AozoraUtil;
 import com.soso.sgui.SButton;
 import com.soso.sgui.SGUIUtil;
+import vavi.util.Debug;
 
 
 abstract class AozoraRankingBasePane extends AozoraDefaultPane {
@@ -57,25 +56,21 @@ abstract class AozoraRankingBasePane extends AozoraDefaultPane {
         buttonPane.setLayout(new BorderLayout());
         prevButton = new SButton();
         prevButton.setIcon(AozoraUtil.getIcon(AozoraEnv.Env.GO_LEFT_VIEW_ICON.getString()));
-        prevButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Date curDate = getCurrentDate();
-                if (curDate == null)
-                    curDate = getInitDate();
-                setCurrentDate(getPrevDate(curDate));
-            }
+        prevButton.addActionListener(e -> {
+            Date curDate = getCurrentDate();
+            if (curDate == null)
+                curDate = getInitDate();
+            setCurrentDate(getPrevDate(curDate));
         });
         SGUIUtil.setSizeALL(prevButton, new Dimension(18, 18));
         buttonPane.add(prevButton, BorderLayout.WEST);
         nextButton = new SButton();
         nextButton.setIcon(AozoraUtil.getIcon(AozoraEnv.Env.GO_RIGHT_VIEW_ICON.getString()));
-        nextButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Date curDate = getCurrentDate();
-                if (curDate == null)
-                    curDate = getInitDate();
-                setCurrentDate(getNextDate(curDate));
-            }
+        nextButton.addActionListener(e -> {
+            Date curDate = getCurrentDate();
+            if (curDate == null)
+                curDate = getInitDate();
+            setCurrentDate(getNextDate(curDate));
         });
         SGUIUtil.setSizeALL(nextButton, new Dimension(18, 18));
         buttonPane.add(nextButton, BorderLayout.EAST);
@@ -111,13 +106,15 @@ abstract class AozoraRankingBasePane extends AozoraDefaultPane {
         current = date;
         termLabel.setText(getTermText(date, getNextDate(date)));
         List<AozoraRankingEntry> rankingList = getRankingList(getURL(date));
-        listPane.setRanking(rankingList);
-        int sum = 0;
-        for (AozoraRankingEntry entry : rankingList) {
-            sum += entry.getCount();
-        }
+        if (rankingList != null) {
+            listPane.setRanking(rankingList);
+            int sum = 0;
+            for (AozoraRankingEntry entry : rankingList) {
+                sum += entry.getCount();
+            }
 
-        sumLabel.setText("閲覧総数 (" + sum + ")");
+            sumLabel.setText("閲覧総数 (" + sum + ")");
+        }
     }
 
     String getTermText(Date start, Date end) {
@@ -132,32 +129,25 @@ abstract class AozoraRankingBasePane extends AozoraDefaultPane {
     }
 
     List<AozoraRankingEntry> getRankingList(URL url) {
-        List<AozoraRankingEntry> rankingList = new ArrayList<AozoraRankingEntry>();
+        List<AozoraRankingEntry> rankingList = new ArrayList<>();
         try {
-            InputStream in = null;
-            BufferedReader br = null;
-            try {
-                in = AozoraUtil.getInputStream(url);
-                br = new BufferedReader(new InputStreamReader(in, "utf8"));
+            try (InputStream in = AozoraUtil.getInputStream(url);
+                 BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = br.readLine()) != null && line.length() > 0) {
-                    String array[] = line.split(",");
+                    String[] array = line.split(",");
                     rankingList.add(new AozoraRankingEntry(array[0], Integer.parseInt(array[1])));
                 }
-
-            } finally {
-                br.close();
-                if (in != null)
-                    in.close();
             }
+            return rankingList;
         } catch (FileNotFoundException e) {
             logger.log(Level.SEVERE, "記録がありません。:" + e.getMessage(), e);
             return null;
         } catch (Exception e) {
+            Debug.println("url: " + url);
             e.printStackTrace();
             return null;
         }
-        return rankingList;
     }
 
     abstract Date getInitDate();
@@ -170,7 +160,7 @@ abstract class AozoraRankingBasePane extends AozoraDefaultPane {
 
     Calendar getTodayCalender() {
         Calendar cal = Calendar.getInstance();
-        cal.setFirstDayOfWeek(2);
+        cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.set(Calendar.MILLISECOND, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MINUTE, 0);

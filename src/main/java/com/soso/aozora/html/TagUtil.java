@@ -25,7 +25,7 @@ public class TagUtil {
 
     public static String getHttpEquivContentTypeCharset(String tag) {
         String lowerTag = tag.toLowerCase();
-        if (lowerTag.indexOf("http-equiv") != -1) {
+        if (lowerTag.contains("http-equiv")) {
             String httpEquiv = getAttValue(lowerTag, "http-equiv");
             if ("content-type".equals(httpEquiv)) {
                 String contentAttr = getAttValue(lowerTag, "content");

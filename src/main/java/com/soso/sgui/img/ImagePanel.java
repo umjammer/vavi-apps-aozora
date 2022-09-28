@@ -30,13 +30,13 @@ final class ImagePanel extends JPanel {
         setSize_b();
     }
 
-    public final void update_a(SImage image) {
+    public void update_a(SImage image) {
         image_e = image.getImage();
         size_f = image.getSize();
         repaint();
     }
 
-    public final void paint(Graphics g) {
+    public void paint(Graphics g) {
         Color color = g.getColor();
         paintChecker(g);
         if (image_e != null && sizeOption != null)
@@ -82,7 +82,7 @@ final class ImagePanel extends JPanel {
         g.drawImage(image_e, rect_g.x, rect_g.y, rect_g.width, rect_g.height, this);
     }
 
-    final BufferedImage getImage_a() {
+    BufferedImage getImage_a() {
         if (image_e == null || rect_g == null) {
             return null;
         } else {
@@ -92,7 +92,7 @@ final class ImagePanel extends JPanel {
         }
     }
 
-    final Image getImage_a(boolean flag) {
+    Image getImage_a(boolean flag) {
         if (flag)
             return image_e;
         else
@@ -109,7 +109,7 @@ final class ImagePanel extends JPanel {
         rect_g.height = h;
     }
 
-    final void setSizeOption(SImageResizerPane.SizeOption scale) {
+    void setSizeOption(SImageResizerPane.SizeOption scale) {
         this.sizeOption = scale;
         repaint();
     }

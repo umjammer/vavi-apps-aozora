@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ class AozoraIndex {
             return null;
         }
 
-        private static final Map<URL, AozoraIndex> CACHE = new HashMap<URL, AozoraIndex>();
+        private static final Map<URL, AozoraIndex> CACHE = new HashMap<>();
     }
 
     static AozoraIndex getIndex() throws IOException {
@@ -74,15 +75,10 @@ class AozoraIndex {
     }
 
     void load(URL url) throws IOException {
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new InputStreamReader(AozoraUtil.getInputStream(url), "UTF-8"));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(AozoraUtil.getInputStream(url), StandardCharsets.UTF_8))) {
             String row;
             while ((row = in.readLine()) != null)
                 loadRow(row);
-        } finally {
-            if (in != null)
-                in.close();
         }
     }
 
@@ -99,8 +95,8 @@ class AozoraIndex {
                     isIndex = true;
                 }
                 if (i2 + 1 < row.length()) {
-                    String transratorID = row.substring(i2 + 1);
-                    workTranslatorIndex.put(workID, transratorID);
+                    String translatorID = row.substring(i2 + 1);
+                    workTranslatorIndex.put(workID, translatorID);
                     isIndex = true;
                 }
                 if (isIndex)
@@ -109,7 +105,7 @@ class AozoraIndex {
         }
     }
 
-    private final Map<String, String> workAuthorIndex = new HashMap<String, String>();
-    private final Map<String, String> workTranslatorIndex = new HashMap<String, String>();
-    private final Set<String> workIDs = new HashSet<String>();
+    private final Map<String, String> workAuthorIndex = new HashMap<>();
+    private final Map<String, String> workTranslatorIndex = new HashMap<>();
+    private final Set<String> workIDs = new HashSet<>();
 }

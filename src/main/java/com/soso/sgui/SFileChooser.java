@@ -39,9 +39,9 @@ public class SFileChooser extends JFileChooser {
             if (p == -1)
                 return false;
             String extension = ((String) (name)).substring(p + 1).toLowerCase();
-            for (int i = 0; i < extensions.length; i++) {
+            for (String s : extensions) {
                 try {
-                    if (extensions[i].equals(extension))
+                    if (s.equals(extension))
                         return true;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -71,7 +71,7 @@ public class SFileChooser extends JFileChooser {
 
         public void propertyChange(PropertyChangeEvent event) {
             String name = event.getPropertyName();
-            if (name == "SelectedFileChangedProperty" && isShowing()) {
+            if (name.equals("SelectedFileChangedProperty") && isShowing()) {
                 loadImage((File) event.getNewValue());
                 repaint();
             }
@@ -220,7 +220,7 @@ public class SFileChooser extends JFileChooser {
             parent.add(iframe, BorderLayout.CENTER);
         }
         iframe.addInternalFrameListener(new InternalFrameAdapter() {
-            public final void internalFrameClosing(InternalFrameEvent event) {
+            public void internalFrameClosing(InternalFrameEvent event) {
                 cancelSelection();
             }
         });
@@ -280,12 +280,10 @@ public class SFileChooser extends JFileChooser {
 
     public void setupMemoryLastDirectoryChooser() {
         setCurrentDirectory(currentDirectory);
-        addPropertyChangeListener(new PropertyChangeListener() {
-            public void propertyChange(PropertyChangeEvent event) {
-                String name = event.getPropertyName();
-                if (name == "directoryChanged")
-                    currentDirectory = getCurrentDirectory();
-            }
+        addPropertyChangeListener(event -> {
+            String name = event.getPropertyName();
+            if (name == "directoryChanged")
+                currentDirectory = getCurrentDirectory();
         });
     }
 

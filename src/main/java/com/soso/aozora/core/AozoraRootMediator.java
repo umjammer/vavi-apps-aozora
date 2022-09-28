@@ -16,35 +16,35 @@ import com.soso.aozora.data.AozoraWorkParserHandler;
 
 public interface AozoraRootMediator {
 
-    public abstract void showViewer(AozoraAuthor author, AozoraWork work);
+    void showViewer(AozoraAuthor author, AozoraWork work);
 
-    public abstract void showViewer(AozoraAuthor author, AozoraWork work, int position);
+    void showViewer(AozoraAuthor author, AozoraWork work, int position);
 
-    public abstract void showViewer(AozoraAuthor author, AozoraWork work, AozoraComment comment);
+    void showViewer(AozoraAuthor author, AozoraWork work, AozoraComment comment);
 
-    public abstract void showLookAndFeelChooser();
+    void showLookAndFeelChooser();
 
-    public abstract void showFontChooser();
+    void showFontChooser();
 
-    public abstract void setViewerFont(Font font);
+    void setViewerFont(Font font);
 
-    public abstract void showColorChooser();
+    void showColorChooser();
 
-    public abstract void setViewerForeground(Color color);
+    void setViewerForeground(Color color);
 
-    public abstract void setViewerBackground(Color color);
+    void setViewerBackground(Color color);
 
-    public abstract void showBookmarkList(int x, int y);
+    void showBookmarkList(int x, int y);
 
-    public abstract AozoraAuthor getAozoraAuthor(String authorID);
+    AozoraAuthor getAozoraAuthor(String authorID);
 
-    public abstract void getAozoraAuthorAsynchronous(String authorID, AozoraAuthorParserHandler callback);
+    void getAozoraAuthorAsynchronous(String authorID, AozoraAuthorParserHandler callback);
 
-    public abstract AozoraWork getAozoraWork(String workID);
+    AozoraWork getAozoraWork(String workID);
 
-    public abstract void getAozoraWorkAsynchronous(String workID, AozoraWorkParserHandler callback);
+    void getAozoraWorkAsynchronous(String workID, AozoraWorkParserHandler callback);
 
-    public abstract void focusAuthor(AozoraAuthor author);
+    void focusAuthor(AozoraAuthor author);
 
-    public abstract void focusWork(AozoraWork work);
+    void focusWork(AozoraWork work);
 }

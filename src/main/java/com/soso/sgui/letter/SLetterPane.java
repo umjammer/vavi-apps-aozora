@@ -277,11 +277,11 @@ logger.finer("Selection|Finished|" + start + "|" + end);
                     setLetterBorderRendarer(new SLetterDefaults.DefaultLetterBorderRenderer(getOrientation()));
                     point_ = new Point();
                     selectionModel = new SelectionModel();
-                    addComponentListener(getComponentListener());
-                    addPropertyChangeListener(getPropertyChangeListener());
-                    addMouseListener(getMouseListener());
-                    addMouseMotionListener(getMouseMotionListener());
-                    addKeyListener(getKeyListener());
+                    addComponentListener(componentListener);
+                    addPropertyChangeListener(propertyChangeListener);
+                    addMouseListener(mouseListener);
+                    addMouseMotionListener(mouseMotionListener);
+                    addKeyListener(keyListener);
                     producers = new ArrayList<>();
                     addMenuItemProducer(getMenuItemProducer());
                 }
@@ -289,39 +289,24 @@ logger.finer("Selection|Finished|" + start + "|" + end);
         }
     }
 
-    private ComponentListener getComponentListener() {
-        if (componentListener == null)
-            synchronized (this) {
-                if (componentListener == null)
-                    componentListener = new ComponentAdapter() {
-                        @Override
-                        public void componentResized(ComponentEvent event) {
-                            SLetterPane.this.componentResized();
-                        }
-                    };
-            }
-        return componentListener;
-    }
+    private final ComponentListener componentListener = new ComponentAdapter() {
+        @Override public void componentResized(ComponentEvent event) {
+            SLetterPane.this.componentResized();
+        }
+    };
 
     protected void componentResized() {
         if (isRowColCountChangable()) {
 logger.finer("SIZE CHANGED EVENT");
             setSize(super.getSize());
         }
-        method_h();
+        updateLocation();
     }
 
-    private PropertyChangeListener getPropertyChangeListener() {
-        if (propertyChangeListener == null)
-            synchronized (this) {
-                if (propertyChangeListener == null)
-                    propertyChangeListener = event -> {
-                        if (isFontSizeChangable() && "font".equals(event.getPropertyName()))
-                            fontChanged();
-                    };
-            }
-        return propertyChangeListener;
-    }
+    private final PropertyChangeListener propertyChangeListener = event -> {
+        if (isFontSizeChangable() && "font".equals(event.getPropertyName()))
+            fontChanged();
+    };
 
     protected void fontChanged() {
         if (isFontSizeChangable()) {
@@ -339,57 +324,40 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         }
     }
 
-    private MouseListener getMouseListener() {
-        if (mouseListener == null)
-            synchronized (this) {
-                if (mouseListener == null)
-                    mouseListener = new MouseAdapter() {
-                        public void mouseClicked(MouseEvent event) {
-                            if (event.getButton() == MouseEvent.BUTTON1) {
-                                if (getMaximizedImageCell() != null) {
-                                    setMaximizedImageCell(null);
-                                } else {
-                                    SLetterCell[] cells = getCell(event.getPoint());
-                                    if (cells.length == 1) {
-                                        if (cells[0] instanceof SLetterImageCell) {
-                                            SLetterImageCell imageCell = (SLetterImageCell) cells[0];
-                                            if (imageCell.isMagnifyable()) {
-                                                setMaximizedImageCell(imageCell);
-                                            }
-                                        }
-                                    }
-                                }
+    private final MouseListener mouseListener = new MouseAdapter() {
+        @Override public void mouseClicked(MouseEvent event) {
+            if (event.getButton() == MouseEvent.BUTTON1) {
+                if (getMaximizedImageCell() != null) {
+                    setMaximizedImageCell(null);
+                } else {
+                    SLetterCell[] cells = getCell(event.getPoint());
+                    if (cells.length == 1) {
+                        if (cells[0] instanceof SLetterImageCell) {
+                            SLetterImageCell imageCell = (SLetterImageCell) cells[0];
+                            if (imageCell.isMagnifyable()) {
+                                setMaximizedImageCell(imageCell);
                             }
                         }
-                        @Override
-                        public void mousePressed(MouseEvent event) {
-                            if (event.getButton() == MouseEvent.BUTTON3) {
-                                showPopupMenu(event.getPoint());
-                            } else if (getMaximizedImageCell() == null)
-                                selectionStart(event.getPoint());
-                        }
-                        @Override
-                        public void mouseReleased(MouseEvent event) {
-                            selectionFinish();
-                        }
-                    };
+                    }
+                }
             }
-        return mouseListener;
-    }
+        }
+        @Override public void mousePressed(MouseEvent event) {
+            if (event.getButton() == MouseEvent.BUTTON3) {
+                showPopupMenu(event.getPoint());
+            } else if (getMaximizedImageCell() == null)
+                selectionStart(event.getPoint());
+        }
+        @Override public void mouseReleased(MouseEvent event) {
+            selectionFinish();
+        }
+    };
 
-    private MouseMotionListener getMouseMotionListener() {
-        if (mouseMotionListener == null)
-            synchronized (this) {
-                if (mouseMotionListener == null)
-                    mouseMotionListener = new MouseMotionAdapter() {
-                        @Override
-                        public void mouseDragged(MouseEvent event) {
-                            selectionEndUpdate(event.getPoint());
-                        }
-                    };
-            }
-        return mouseMotionListener;
-    }
+    private final MouseMotionListener mouseMotionListener = new MouseMotionAdapter() {
+        @Override public void mouseDragged(MouseEvent event) {
+            selectionEndUpdate(event.getPoint());
+        }
+    };
 
     protected void selectionStart(Point point) {
         getSelectionModel().selectionStart(getRowColAtPoint(point));
@@ -446,19 +414,12 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
         repaint();
     }
 
-    private KeyListener getKeyListener() {
-        if (keyListener == null)
-            synchronized (this) {
-                if (keyListener == null)
-                    keyListener = new KeyAdapter() {
-                        public void keyPressed(KeyEvent event) {
-                            if (event.isControlDown() && event.getKeyCode() == KeyEvent.VK_C)
-                                copyToClipBoard();
-                        }
-                    };
-            }
-        return keyListener;
-    }
+    private final KeyListener keyListener = new KeyAdapter() {
+        public void keyPressed(KeyEvent event) {
+            if (event.isControlDown() && event.getKeyCode() == KeyEvent.VK_C)
+                copyToClipBoard();
+        }
+    };
 
     private MenuItemProducer getMenuItemProducer() {
         return new MenuItemProducer() {
@@ -844,10 +805,10 @@ logger.fine(String.valueOf(size));
             cols = calcPanelColCount(height);
         }
         setRowColCount(rows, cols);
-        method_h();
+        updateLocation();
     }
 
-    private void method_h() {
+    private void updateLocation() {
         Dimension size = super.getSize();
         Dimension fixedSize = getFixedSize(null);
         if (size != null && fixedSize != null)
@@ -960,11 +921,6 @@ logger.fine("colRange: " + getColRange() + ", colSpace: " + getColSpace());
             if (renderer != null)
                 renderer.paintRowBorder((Graphics2D) g, rectangle);
         }
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
     }
 
     @Override
@@ -1413,10 +1369,5 @@ label0: {
     private SelectionModel selectionModel;
     private SLetterImageCell imageCell;
     private SLetterPaneObserverSupport support;
-    private volatile PropertyChangeListener propertyChangeListener;
-    private volatile ComponentListener componentListener;
-    private volatile MouseListener mouseListener;
-    private volatile MouseMotionListener mouseMotionListener;
-    private volatile KeyListener keyListener;
     private List<MenuItemProducer> producers;
 }

@@ -25,6 +25,9 @@ import com.soso.aozora.list.AozoraRankingPane;
 import com.soso.aozora.list.AozoraTopicPane;
 
 
+/**
+ * Left Tabbed Pane
+ */
 public class AozoraContentPane extends AozoraDefaultPane implements ChangeListener {
 
     static Logger logger = Logger.getLogger(AozoraContentPane.class.getName());
@@ -75,7 +78,6 @@ public class AozoraContentPane extends AozoraDefaultPane implements ChangeListen
             lastSelectedIndex = -1;
             addChangeListener(this);
         }
-
     }
 
     public AozoraContentPane(AozoraContext context) {

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
@@ -71,15 +72,15 @@ public class AozoraSettings {
         }
 
         private static String encodeColor(Color color) {
-            String colorStr = Integer.toHexString(color.getRGB());
-            colorStr = colorStr.toUpperCase();
+            StringBuilder colorStr = new StringBuilder(Integer.toHexString(color.getRGB()));
+            colorStr = new StringBuilder(colorStr.toString().toUpperCase());
             while (colorStr.length() < 6) {
-                colorStr = "0" + colorStr;
+                colorStr.insert(0, "0");
             }
             if (colorStr.length() > 6)
-                colorStr = colorStr.substring(colorStr.length() - 6);
-            colorStr = "#" + colorStr;
-            return colorStr;
+                colorStr = new StringBuilder(colorStr.substring(colorStr.length() - 6));
+            colorStr.insert(0, "#");
+            return colorStr.toString();
         }
 
         private final XMLBuilder builder;
@@ -240,7 +241,7 @@ public class AozoraSettings {
     }
 
     private void setDefaluts() {
-        font = new Font("Dialog", 0, 16);
+        font = new Font("Dialog", Font.PLAIN, 16);
         lookAndFeel = UIManager.getLookAndFeel();
         rowSpace = 10;
         fontRatio = 0.9F;
@@ -282,7 +283,7 @@ public class AozoraSettings {
             File file = getSettingsFile();
             if (!file.exists() && !file.getParentFile().exists())
                 file.getParentFile().mkdirs();
-            writer = new OutputStreamWriter(new FileOutputStream(file), enc);
+            writer = new OutputStreamWriter(Files.newOutputStream(file.toPath()), enc);
             SettingsXMLBuilder builder = new SettingsXMLBuilder(writer);
             builder.build(this, enc);
         } finally {

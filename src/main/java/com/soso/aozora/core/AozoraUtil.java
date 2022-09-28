@@ -22,6 +22,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+import static com.soso.aozora.core.AozoraEnv.URL_CONNECT_TIMEOUT_MILLI;
+import static com.soso.aozora.core.AozoraEnv.URL_READ_TIMEOUT_MILLI;
+
 
 public class AozoraUtil {
 
@@ -68,8 +71,8 @@ public class AozoraUtil {
 
     public static URLConnection getURLConnection(URL url) throws IOException {
         URLConnection con = url.openConnection();
-        con.setReadTimeout(30000);
-        con.setConnectTimeout(30000);
+        con.setReadTimeout(URL_READ_TIMEOUT_MILLI);
+        con.setConnectTimeout(URL_CONNECT_TIMEOUT_MILLI);
         return con;
     }
 
@@ -79,9 +82,9 @@ public class AozoraUtil {
             actionMapKey = keyStroke.toString();
         putKeyStrokeAction(comp, situation, keyStroke, actionMapKey, new AbstractAction() {
                 public void actionPerformed(ActionEvent e) {
-                    button.doClick();
-                }
-            });
+                button.doClick();
+            }
+        });
     }
 
     public static void putKeyStrokeAction(JComponent comp, int situation, KeyStroke keyStroke, Object actionMapKey, Action action) {
