@@ -7,10 +7,17 @@ package com.soso.sgui.letter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.logging.Level;
@@ -21,7 +28,10 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
+import com.apple.eawt.event.GestureUtilities;
+import com.apple.eawt.event.MagnificationEvent;
 import com.soso.sgui.SFontChooser;
 import org.junit.jupiter.api.Test;
 import vavi.util.Debug;
@@ -93,7 +103,40 @@ Debug.println("newFont:" + font);
                 letterPane.setFont(font);
             }
         }), BorderLayout.NORTH);
-        frame.getContentPane().add(letterPane, BorderLayout.CENTER);
+        AffineTransform at = new AffineTransform(); // TODO how to reset?
+        JPanel panel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintChildren(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+Debug.printf("%3.0f, %3.0f - %5.2f, %5.2f", at.getTranslateX(), at.getTranslateY(), at.getScaleX(), at.getScaleY());
+                g2.setTransform(at);
+                super.paintChildren(g2);
+                g2.dispose();
+            }
+        };
+        GestureUtilities.addGestureListenerTo(panel, new com.apple.eawt.event.GestureAdapter() {
+            @Override public void magnify(MagnificationEvent me) {
+                double scale = 1.0 + me.getMagnification();
+                at.scale(scale, scale);
+                Point p = panel.getMousePosition();
+                double x = p.x * (1 - scale);
+                double y = p.y * (1 - scale);
+                at.translate(x, y);
+                panel.repaint();
+            }
+        });
+        panel.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) {
+Debug.println("here");
+                at.scale(1, 1);
+                at.translate(0, 0);
+            }
+        });
+//        panel.addMouseWheelListener(e -> {
+//            e.
+//        });
+        panel.add(letterPane, BorderLayout.CENTER);
+        frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);

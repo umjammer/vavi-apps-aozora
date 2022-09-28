@@ -17,6 +17,11 @@
           <source>1.8</source>
           <target>1.8</target>
           <encoding>utf-8</encoding>
+          <compilerArgs>
+            <arg>-XDignore.symbol.file</arg> <!-- for com.apple.eawt -->
+          </compilerArgs>
+          <!-- https://stackoverflow.com/a/30472473 -->
+          <fork>true</fork>
         </configuration>
       </plugin>
       <plugin>
