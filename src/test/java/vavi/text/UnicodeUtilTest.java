@@ -21,6 +21,9 @@ class UnicodeUtilTest {
     void test2() {
         String a = "𢌞";
 Debug.printf("%d, %04x, %04x", a.length(), (int) a.charAt(0), (int) a.charAt(1));
+        assertTrue(Character.isSurrogatePair(a.charAt(0), a.charAt(1)));
+        assertTrue(Character.isHighSurrogate(a.charAt(0)));
+        assertTrue(Character.isLowSurrogate(a.charAt(1)));
     }
 
     @Test

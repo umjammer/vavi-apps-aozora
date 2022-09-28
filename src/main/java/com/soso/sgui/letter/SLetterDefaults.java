@@ -149,10 +149,10 @@ public final class SLetterDefaults {
 
     public static final int ROW_SPAN = 1;
     public static final int COL_SPAN = 1;
-    public static final int ROW_COUNT = 20;
-    public static final int COL_COUNT = 20;
-    public static final int ROW_RANGE = 20;
-    public static final int COL_RANGE = 20;
+    public static final int ROW_COUNT = 40;
+    public static final int COL_COUNT = 40;
+    public static final int ROW_RANGE = 40;
+    public static final int COL_RANGE = 40;
     public static final float FONT_RANGE_RASIO = 0.7861513f;
     public static final int ROW_SPACE = 10;
     public static final int COL_SPACE = 0;

@@ -67,8 +67,8 @@ public class SLetterConstraintTest {
         application.setDockIconImage(icon);
         application.setDockIconBadge("99");
 
-        MyTextViewerPane pane = new MyTextViewerPane(uri, 0);
-//        MyTextViewerPane pane = new MyTextViewerPane(forParse, base, 0);
+//        MyTextViewerPane pane = new MyTextViewerPane(uri, 0);
+        MyTextViewerPane pane = new MyTextViewerPane(forParse, base, 0);
         JFrame frame = new JFrame(title);
         frame.setLocation(200, 100);
         frame.getContentPane().add(pane);
