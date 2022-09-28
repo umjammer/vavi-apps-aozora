@@ -22,4 +22,9 @@ class UnicodeUtilTest {
         String a = "𢌞";
 Debug.printf("%d, %04x, %04x", a.length(), (int) a.charAt(0), (int) a.charAt(1));
     }
+
+    @Test
+    void test3() {
+        assertEquals("\u9038", UnicodeUtil.toNew("\uFA67"));
+    }
 }

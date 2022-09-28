@@ -434,7 +434,9 @@ Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codeP
                         appendCell(cell);
                         i++;
                     } else {
-                        SLetterCell cell = getCellFactory().createGlyphCell(ca[i]);
+                        // TODO old-new on/off flag
+                        char c = UnicodeUtil.toNew(String.valueOf(ca[i])).charAt(0);
+                        SLetterCell cell = cellFactory.createGlyphCell(c);
                         appendCell(cell);
                     }
                 }
