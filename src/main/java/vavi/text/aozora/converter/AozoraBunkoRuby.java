@@ -112,7 +112,7 @@ public final class AozoraBunkoRuby {
         this.replacements();
         this.getMarkerIndices();
 
-        printDebug(Level.FINE);
+//        printDebug(Level.FINE);
 
         StringBuilder sb = new StringBuilder();
 

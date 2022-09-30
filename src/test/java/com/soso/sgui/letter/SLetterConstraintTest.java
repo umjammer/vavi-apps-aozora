@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,7 @@ public class SLetterConstraintTest {
         PropsEntity.Util.bind(app);
 
         Path textPath = AozoraBunkoRubyTest.getTextPath(Paths.get(app.file));
-        Reader reader = Files.newBufferedReader(textPath, StandardCharsets.UTF_8);
+        Reader reader = Files.newBufferedReader(textPath, Charset.forName("ms932")/*StandardCharsets.UTF_8*/);
         Writer writer = new StringWriter();
 //        AozoraParser converter = new AozoraParser(reader, writer);
         AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);

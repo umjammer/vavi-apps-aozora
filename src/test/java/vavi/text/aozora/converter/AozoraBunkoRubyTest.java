@@ -14,8 +14,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import vavi.nio.file.archive.ArchiveFileSystemProvider;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
@@ -40,7 +42,7 @@ public class AozoraBunkoRubyTest {
         AozoraBunkoRubyTest app = new AozoraBunkoRubyTest();
         PropsEntity.Util.bind(app);
 
-        String encoding = "utf-8"; //args[0];
+        String encoding = "ms932";//"utf-8"; //args[0];
         String input = app.file == null ? args[1] : app.file;
         String output = "/dev/stdout"; //args[2];
 
@@ -58,7 +60,9 @@ Debug.println(input);
     /** */
     public static Path getTextPath(Path archivePath) throws IOException {
         URI uri = URI.create("archive:" + archivePath.toUri());
-        FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
+        Map<String, Object> env = new HashMap<>();
+        env.put(ArchiveFileSystemProvider.ENV_KEY_FAILSAFE_ENCODING, "ms932");
+        FileSystem fs = FileSystems.newFileSystem(uri, env);
         Path virtualRoot = fs.getRootDirectories().iterator().next();
         Debug.println(virtualRoot);
         Path textPath = Files.walk(virtualRoot)
