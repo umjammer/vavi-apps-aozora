@@ -76,8 +76,11 @@ import static javax.swing.SwingUtilities.invokeAndWait;
  * based on "com.soso.aozora.viewer.TextViewerPane"
  *
  * TODO
+ *  - long ruby after 2nd "<rb>" should be shift
  *  - half letter strings are separated into 2 letters, spacing is suck
- *  - half digit 2 letters pair must not be rotated
+ *  - half digit 2 letters pair should not be rotated
+ *  - full '<<', '>>' are not rotated
+ *  - in-page image
  */
 public class MyTextViewerPane extends JPanel {
 
