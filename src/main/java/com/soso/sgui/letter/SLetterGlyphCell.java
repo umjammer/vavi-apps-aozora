@@ -74,6 +74,7 @@ public class SLetterGlyphCell extends SLetterCell {
             }
             g.setTransform(transform1);
         }
+
         g.drawString(String.valueOf(main), x1, y1);
         if (logger.isLoggable(Level.FINE)) {
             Color color = g.getColor();

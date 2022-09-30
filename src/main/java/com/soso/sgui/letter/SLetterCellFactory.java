@@ -6,6 +6,12 @@ package com.soso.sgui.letter;
 
 import java.awt.Font;
 import java.awt.Image;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import javax.swing.ImageIcon;
 
@@ -74,6 +80,21 @@ public class SLetterCellFactory {
     /** for surrogate pair */
     public SLetterCell createGlyphCell(int cp, char[] rubys, Font font) {
         return new SLetterGlyphCell(cp, rubys, font);
+    }
+
+    /** for svg */
+    public SLetterCell createSvgCell(URL url, char[] rubys, Font font) {
+        try (InputStream is = new BufferedInputStream(url.openStream());
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] b = new byte[8192];
+            int l;
+            while ((l = is.read(b)) > 0) {
+                baos.write(b, 0, l);
+            }
+            return new SLetterSvgCell(baos.toByteArray(), rubys, font);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public SLetterCell createImageCell(Image image) {

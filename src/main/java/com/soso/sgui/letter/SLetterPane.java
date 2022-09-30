@@ -423,13 +423,13 @@ logger.fine("font: " + font + ", font.getSize2D(): " + font.getSize2D() + ", ran
 
     private MenuItemProducer getMenuItemProducer() {
         return new MenuItemProducer() {
-            public JMenuItem produceMenuItem(Point point, SLetterCell[] cells, boolean enabled) {
+            @Override public JMenuItem produceMenuItem(Point point, SLetterCell[] cells, boolean enabled) {
                 menuItem.setEnabled(enabled);
                 return menuItem;
             }
 
             JMenuItem menuItem = new JMenuItem(new AbstractAction("選択範囲のコピー") {
-                public void actionPerformed(ActionEvent event) {
+                @Override public void actionPerformed(ActionEvent event) {
                     copyToClipBoard();
                 }
             });

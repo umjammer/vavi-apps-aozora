@@ -40,8 +40,6 @@ import vavi.util.Debug;
 /**
  * many types of cells
  *
- * TODO image glyph cell quality is not good
- *
  * @see "https://glyphwiki.org/wiki/GlyphWiki"
  */
 public class SVTest {
@@ -87,9 +85,9 @@ Debug.println("OVER at " + c);
                 letterPane.addCell(factory.createImageCell((new ImageIcon(new URL("https://www.aozora.gr.jp/gaiji/1-85/1-85-25.png"))).getImage(), "PNG".toCharArray()));
                 letterPane.addCell(factory.createImageCell(new URL("https://www.aozora.gr.jp/gaiji0213/kigou/1_2_22.gif"), true, true, "GIF".toCharArray(), null, "これは画像"));
                 letterPane.addCell(factory.createImageCell(ImageIO.read(new URL("https://www.aozora.gr.jp/gaiji0213/kigou/1_2_22.gif"))));
-                letterPane.addCell(factory.createImageCell((ImageIO.read(new URL("https://glyphwiki.org/glyph/u2a6d6.svg"))), "SVG".toCharArray()));
-                letterPane.addCell(factory.createImageCell((ImageIO.read(new URL("https://glyphwiki.org/glyph/u2b81b.svg"))), "SVG".toCharArray()));
-                letterPane.addCell(factory.createImageCell((ImageIO.read(new URL("https://glyphwiki.org/glyph/u2b81c.svg"))), "SVG".toCharArray()));
+                letterPane.addCell(factory.createSvgCell(new URL("https://glyphwiki.org/glyph/u2a6d6.svg"), "SVG".toCharArray(), null));
+                letterPane.addCell(factory.createSvgCell(new URL("https://glyphwiki.org/glyph/u2b81b.svg"), "SVG".toCharArray(), null));
+                letterPane.addCell(factory.createSvgCell(new URL("https://glyphwiki.org/glyph/u2b81c.svg"), "SVG".toCharArray(), null));
             }
         }
 
@@ -104,6 +102,7 @@ Debug.println("newFont:" + font);
             }
         }), BorderLayout.NORTH);
         AffineTransform at = new AffineTransform(); // TODO how to reset?
+        at.translate(letterPane.getX(), letterPane.getY());
         JPanel panel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintChildren(Graphics g) {

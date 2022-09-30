@@ -28,3 +28,4 @@ Japanese Vertical (縦書き) Text Viewer.
  * use AozoraEpub3's database for external characters conversion
  * proofreading
    * https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473
+ * https://github.com/weisJ/jsvg
