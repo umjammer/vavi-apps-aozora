@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package com.soso.sgui.letter;
+package vavi.text.aozora.viewer;
 
 import java.awt.image.BufferedImage;
 import java.io.Reader;
@@ -14,7 +14,6 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,7 +23,6 @@ import javax.swing.JFrame;
 import com.apple.eawt.Application;
 import vavi.text.aozora.converter.AozoraBunkoRuby;
 import vavi.text.aozora.converter.AozoraBunkoRubyTest;
-import vavi.text.aozora.viewer.MyTextViewerPane;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
@@ -34,7 +32,7 @@ import vavi.util.properties.annotation.PropsEntity;
  */
 //@EnabledIf("localPropertiesExists")
 @PropsEntity(url = "file:local.properties")
-public class SLetterConstraintTest {
+public class MyTextViewerPaneTest {
 
 //    static boolean localPropertiesExists() {
 //        return Files.exists(Paths.get("local.properties"));
@@ -50,7 +48,7 @@ public class SLetterConstraintTest {
         URI uri = URI.create("https://www.aozora.gr.jp/cards/000372/files/42810_23981.html");
         String title = uri.toString();
 
-        SLetterConstraintTest app = new SLetterConstraintTest();
+        MyTextViewerPaneTest app = new MyTextViewerPaneTest();
         PropsEntity.Util.bind(app);
 
         Path textPath = AozoraBunkoRubyTest.getTextPath(Paths.get(app.file));

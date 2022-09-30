@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package com.soso.aozora.data;
+package vavi.text.aozora;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -16,6 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.soso.aozora.data.AozoraContentsParser;
+import com.soso.aozora.data.AozoraContentsParserHandler;
 import vavi.text.aozora.converter.AozoraBunkoRuby;
 import vavi.text.aozora.converter.AozoraBunkoRubyTest;
 import vavi.util.Debug;
