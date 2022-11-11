@@ -7,6 +7,8 @@
 
 Japanese Vertical (縦書き) Text Viewer.
 
+![ss](https://user-images.githubusercontent.com/493908/201278429-2dbb7ec9-a4fb-4c43-bf9a-6c68f9f44c03.png)
+
 ## References
 
  * https://github.com/weimingtom/AozoraParser
