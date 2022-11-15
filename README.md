@@ -7,14 +7,14 @@
 
 Japanese Vertical (縦書き) Text Viewer.
 
+![ss](https://user-images.githubusercontent.com/493908/201278429-2dbb7ec9-a4fb-4c43-bf9a-6c68f9f44c03.png)
+
 ## References
 
  * https://github.com/weimingtom/AozoraParser
  * https://github.com/iWumboUWumbo2/AozoraToHTML
  * http://x0213.org/codetable/
  * https://www.kabipan.com/computer/mobi/aozora_kanji.html
- * [oss](https://gist.github.com/takahashim/804099c7ab9bf23ceb07)
- * https://glyphwiki.org/wiki/GlyphWiki (svg glyph!)
  * https://github.com/aozorahack/aozora-parser.js (peg syntax)
     * peg
         * ~~https://github.com/adammurdoch/java-peg-tools~~ (buggy, wip?)
@@ -25,7 +25,5 @@ Japanese Vertical (縦書き) Text Viewer.
 ## TODO
 
  * ruby
- * use AozoraEpub3's database for external characters conversion
  * proofreading
    * https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473
- * https://github.com/weisJ/jsvg

@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package com.soso.sgui.letter;
+package vavi.text.aozora.viewer;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -27,6 +27,10 @@ import javax.swing.UIManager;
 
 import com.soso.aozora.data.AozoraContentsParser;
 import com.soso.aozora.data.AozoraContentsParserHandler;
+import com.soso.sgui.letter.SLetterCell;
+import com.soso.sgui.letter.SLetterCellFactory;
+import com.soso.sgui.letter.SLetterConstraint;
+import com.soso.sgui.letter.SLetterPane;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import vavi.text.aozora.converter.AozoraBunkoRuby;
@@ -70,7 +74,7 @@ Debug.println(entry);
      * @param args 0: input
      */
     public static void main(String[] args) throws Exception {
-        SLetterConstraintTest app = new SLetterConstraintTest();
+        SLetterPaneTest app = new SLetterPaneTest();
         PropsEntity.Util.bind(app);
 
         String file = app.file != null ? app.file : args[0];

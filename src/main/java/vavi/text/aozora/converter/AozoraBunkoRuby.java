@@ -289,7 +289,7 @@ Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
 
     /** is kanji */
     private boolean isCJKIdeograph(char c) {
-        return Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || c == '々' || c == 'ヶ';
+        return Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || c == '々' || c == 'ヶ' || c == 'ノ';
     }
 
     /** */

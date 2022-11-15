@@ -349,6 +349,7 @@ public class MyTextViewerPane extends JPanel {
 
     private class ContentsHandler implements AozoraContentsParserHandler {
 
+        boolean title;
         boolean kaeriten;
         boolean notes;
         boolean alternative;
@@ -373,6 +374,10 @@ public class MyTextViewerPane extends JPanel {
 
         @Override
         public void characters(String cdata) {
+            if (title) {
+                title = false;
+                title(cdata);
+            }
             if (kaeriten) {
 Debug.println(Level.FINER, "characters|レ点: " + cdata);
                 // TODO too large
@@ -500,6 +505,9 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
         @Override
         public void otherElement(String element) {
             String lowerElement = element.toLowerCase();
+            if (lowerElement.startsWith("h1 class=\"title\"")) {
+                title = true;
+            }
             if (lowerElement.startsWith("sub class=\"kaeriten\"")) {
                 kaeriten = true;
             } else if (lowerElement.startsWith("span class=\"notes\"")) {
@@ -542,6 +550,8 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
                 characters("・");
             } else if (lowerElement.startsWith("/td")) {
                 characters("\t");
+            } else {
+Debug.println(Level.FINER, "others: " + element);
             }
         }
 
@@ -677,6 +687,9 @@ if (textChar == '※') {
     private boolean isAllPageLoaded = false;
     private int firstStartPos;
     private SearchFieldPane searchFieldPane;
+
+    /** called from parser, override me */
+    protected void title(String title) {}
 
     URI uri;
     Reader reader;

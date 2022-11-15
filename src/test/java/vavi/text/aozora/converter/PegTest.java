@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import br.ufmg.dcc.nanocomp.peg.PEG;
 import br.ufmg.dcc.nanocomp.peg.Parser;
@@ -18,6 +19,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
@@ -62,6 +64,7 @@ class PegTest {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
     void test2() throws Exception {
         PEG peg = PEG.getInstance();
         Path pegPath = Paths.get(PegTest.class.getResource("/aozora-parser.pegjs").toURI());
@@ -75,6 +78,6 @@ class PegTest {
 
         Path outPath = Paths.get("tmp/peg_out.json");
         InputStream is = new ByteArrayInputStream(gson.toJson(parser.parse(text)).getBytes());
-        Files.copy(is, outPath);
+        Files.copy(is, outPath, StandardCopyOption.REPLACE_EXISTING);
     }
 }
