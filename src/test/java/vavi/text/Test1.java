@@ -77,11 +77,11 @@ public class Test1 {
     void test1() throws Exception {
         URL url = new URL("https://www.aozora.gr.jp/index_pages/list_person_all_utf8.zip");
         Archive archive = Archives.getArchive(new BufferedInputStream(url.openStream()));
-        Debug.println("aarchive: " + archive);
+Debug.println("aarchive: " + archive);
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
         InputStream is = archive.getInputStream(archive.entries()[0]);
-        Debug.println("entries: " + archive.entries().length);
-        Debug.println("is: " + is);
+Debug.println("entries: " + archive.entries().length);
+Debug.println("is: " + is);
         List<AozoraData> aozoraIndices = CsvEntity.Util.read(AozoraData.class, is);
         aozoraIndices.forEach(System.err::println);
 //        Scanner s = new Scanner(is);
@@ -96,8 +96,8 @@ public class Test1 {
         Archive archive = Archives.getArchive(new BufferedInputStream(Files.newInputStream(path)));
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
         InputStream is = archive.getInputStream(archive.entries()[0]);
-        Debug.println("entries: " + archive.entries().length);
-        Debug.println("is: " + is);
+Debug.println("entries: " + archive.entries().length);
+Debug.println("is: " + is);
         List<AozoraData> aozoraIndices = CsvEntity.Util.read(AozoraData.class, is);
         aozoraIndices.forEach(System.err::println);
     }
