@@ -1,2 +1,2 @@
 install:
-  mvn -B install --file pom.xml -Dmaven.javadoc.skip=true
+  mvn -B install --file pom.xml -Dmaven.test.skip=true
