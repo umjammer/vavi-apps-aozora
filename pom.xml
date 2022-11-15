@@ -5,7 +5,7 @@
 
   <groupId>vavi</groupId>
   <artifactId>vavi-apps-aozora</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.2</version>
 
   <build>
     <plugins>
