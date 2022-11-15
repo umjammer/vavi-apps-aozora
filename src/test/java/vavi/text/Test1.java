@@ -20,6 +20,8 @@ import java.util.Scanner;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.klab.commons.csv.CsvEntity;
 import vavi.text.aozora.site.AozoraData;
 import vavi.util.Debug;
@@ -91,6 +93,7 @@ Debug.println("is: " + is);
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
     void test2() throws Exception {
         Path path = Paths.get("tmp/list_person_all_utf8.zip");
         Archive archive = Archives.getArchive(new BufferedInputStream(Files.newInputStream(path)));
