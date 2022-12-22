@@ -44,6 +44,12 @@ public class Test1 {
     @Property(name = "aozora.txt")
     String file;
 
+    @Property(name = "aozora.url")
+    String aozora;
+
+    @Property(name = "aozora.local")
+    String local;
+
     /**
      * @param args
      */
@@ -77,7 +83,7 @@ public class Test1 {
 
     @Test
     void test1() throws Exception {
-        URL url = new URL("https://www.aozora.gr.jp/index_pages/list_person_all_utf8.zip");
+        URL url = new URL(aozora);
         Archive archive = Archives.getArchive(new BufferedInputStream(url.openStream()));
 Debug.println("aarchive: " + archive);
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
@@ -95,7 +101,7 @@ Debug.println("is: " + is);
     @Test
     @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
     void test2() throws Exception {
-        Path path = Paths.get("tmp/list_person_all_utf8.zip");
+        Path path = Paths.get(local);
         Archive archive = Archives.getArchive(new BufferedInputStream(Files.newInputStream(path)));
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
         InputStream is = archive.getInputStream(archive.entries()[0]);
