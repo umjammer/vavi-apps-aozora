@@ -123,7 +123,7 @@ class Style {
             // 空文字列
             ppdst[0] = null;
         else
-            ppdst[0] = null; // txt TODO
+            ppdst[0] = new DefStyle(txt);
     }
 
     /** 文字列挙を書き込み */
@@ -200,9 +200,9 @@ class Style {
         p.line_space = ini.getInt("linespace", 80);
         p.page_space = ini.getInt("pagespace", 30);
 
-//        p.flags = ini.getInt("flags", STYLE_F_HANGING.v | STYLE_F_ENABLE_PICTURE.v); // TODO impl
+        p.flags = ini.getInt("flags", DefStyle.STYLE_FLAGS.STYLE_F_HANGING.v | DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE.v);
 
-//        p.dakuten_type = ini.getInt("dakuten", STYLE_DAKUTEN_COMBINE_HORZ.ordinal()); // TODO impl
+        p.dakuten_type = DefStyle.STYLE_DAKUTEN.values()[ini.getInt("dakuten", DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_HORZ.ordinal())];
 
         p.margin.left = ini.getInt("mgleft", 30);
         p.margin.right = ini.getInt("mgright", 30);
@@ -259,7 +259,7 @@ class Style {
         fp.putInt(group + "charspace", p.char_space);
         fp.putInt(group + "linespace", p.line_space);
         fp.putInt(group + "pagespace", p.page_space);
-        fp.putInt(group + "flags", p.flags.size()); // TODO impl
+        fp.putInt(group + "flags", p.flags);
 
         fp.putInt(group + "dakuten", p.dakuten_type.ordinal());
 

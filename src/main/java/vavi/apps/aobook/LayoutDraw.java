@@ -541,6 +541,25 @@ class LayoutDraw {
     }
 
     private static void mBoxResize_keepaspect(Rectangle box, int pageW, int pageH, boolean b) {
-        // TODO
+        double sx, sy, s;
+
+        if (box.width == 0 || box.height == 0) return;
+
+        if (!b) {
+            // 拡大しない
+
+            if (box.width > pageW) box.width = pageW;
+            if (box.height > pageH) box.height = pageH;
+        } else {
+            sx = (double) pageW / box.width;
+            sy = (double) pageH / box.height;
+            s = Math.min(sx, sy);
+
+            box.width = (int) (box.width * s);
+            box.height = (int) (box.height * s);
+        }
+
+        box.x = (pageW - box.width) / 2;
+        box.y = (pageH - box.height) / 2;
     }
 }
