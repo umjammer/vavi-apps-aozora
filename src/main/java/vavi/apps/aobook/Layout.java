@@ -59,7 +59,7 @@ class Layout {
     public void layout(String text) {
         gdat = new GDAT();
         gdat.style = new StyleWork();
-        gdat.style.b = new StyleDef();
+        gdat.style.b = new StyleDef("default");
         try {
             gdat.style.StyleWork_readStyle(new String[]{"default"});
         } catch (IOException e) {

@@ -84,7 +84,7 @@ class LayoutWork {
     int curlineno;
 
     /** 見出しの各個数 */
-    int[] title_num = new int[3];
+    final int[] title_num = new int[3];
 
     /** 本文文字データ (1行分の作業用) */
     List<PvLayout.CharItem> list_char;

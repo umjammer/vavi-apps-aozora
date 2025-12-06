@@ -36,6 +36,9 @@ import static vavi.apps.aobook.LayoutSub.layout_is_nobottom;
  */
 class LayoutMain {
 
+    private LayoutMain() {
+    }
+
     private static final int VIEWFLAGS_PAGENO = 1;
 
     // 本文文字位置セット
@@ -442,11 +445,8 @@ class LayoutMain {
         // データの終端なら終了
         if (p.text.charAt(0) == DefStyle.DATATYPE.DATATYPE_END.ordinal())return false;
 
-NEXT:
-        {
-            // 空白ページの場合は、次ページの処理へ
-            if ((lf.curpage.flags & PvLayout.PAGEINFO_F_BLANK) != 0) break NEXT;
-
+        // 空白ページの場合は、次ページの処理へ
+        if ((lf.curpage.flags & PvLayout.PAGEINFO_F_BLANK) == 0) {
             // 現在のページを、各行ごとに処理
             ptcur.x = p.text_right_x;
             ptcur.y = 0;

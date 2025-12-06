@@ -42,6 +42,9 @@ import static vavi.apps.aobook.DefStyle.STYLE_CHARS_DEFAULT;
  */
 class Style {
 
+    private Style() {
+    }
+
     private static final Logger logger = System.getLogger(Style.class.getName());
 
     static final String STYLE_CONFIGNAME = "styles.conf";
@@ -96,12 +99,13 @@ logger.log(Level.TRACE, "str: " + str);
             if (c == 0) break;
 
             // 挿入位置
-            for (pins = 0; pins != 0 && c > pins; pins++);
+            for (pins = 0; pins < dlen && c > buf.charAt(pins); pins++)
+                ;
 
             // 挿入位置以降をずらす
-            if (pins != 0) {
+            if (pins < dlen) {
                 for (ptmp = dlen; ptmp > pins; ptmp--)
-                    ptmp = buf.charAt(ptmp -1);
+                    buf.setCharAt(ptmp, buf.charAt(ptmp - 1));
             }
 
             // セット

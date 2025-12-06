@@ -55,6 +55,9 @@ import static vavi.apps.aobook.PvLayout.RUBYITEM_CHARH_NO_PADDING;
  */
 class LayoutDraw {
 
+    private LayoutDraw() {
+    }
+
     /** 傍点文字 */
     private static final char[] g_bouten_char = {'﹅', '﹆', '◉', '・', '○', '▲', '△', '◎', '×'};
 
@@ -216,12 +219,9 @@ class LayoutDraw {
                 // 濁点/半濁点
 
                 if (charflags.containsAll(EnumSet.of(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN, PvLayout.CHARITEM_F.CHARITEM_F_HANDAKUTEN))) {
-                    if (dakuten_type.ordinal() < DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE.ordinal())
-                        // そのまま
-                        c = charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? '゛' : '゜';
-                    else
-                        // 結合文字
-                        c = charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? 0x3099 : 0x309a;
+                    c = dakuten_type.ordinal() < DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE.ordinal() ?
+                            (charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? '゛' : '゜') :
+                            (charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? 0x3099 : 0x309a);
 
                     // 位置
                     n1 = n2 = 0;

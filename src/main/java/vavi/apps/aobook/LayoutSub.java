@@ -31,6 +31,9 @@ import vavi.apps.aobook.PvLayout.RubyItem;
  */
 class LayoutSub {
 
+    private LayoutSub() {
+    }
+
     /**
      * UTF-32 文字列内に c が存在するか
      * <p>
@@ -40,7 +43,7 @@ class LayoutSub {
         int mc;
         int low, high, mid;
 
-        if (uc != null) return false;
+        if (uc == null) return false;
 
         low = 0;
         high = uc.length() - 1;

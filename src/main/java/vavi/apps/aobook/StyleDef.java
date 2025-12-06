@@ -34,6 +34,10 @@ import static vavi.apps.aobook.DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_HORZ
 
 class StyleDef {
 
+    public StyleDef(String name) {
+        StyleDef_setDefault(name);
+    }
+
     /** 文字数 */
     int chars;
     /** 行数 */
@@ -84,11 +88,6 @@ class StyleDef {
 
     /** 設定をコピー */
     void StyleDef_copy(StyleDef dst) {
-        int[] ptr_src = new int[5];
-        int[] ptr_dst = new int[5];
-        int ppsrc;
-        int i;
-
         // 値をコピー
 
         dst.chars = this.chars;
@@ -109,17 +108,12 @@ class StyleDef {
         dst.col_bkgnd = this.col_bkgnd;
 
         // 文字列挙
+        int[] ptr_dst = new int[5];
         dst.StyleDef_getCharsArray(ptr_dst);
+        int[] ptr_src = new int[5];
         this.StyleDef_getCharsArray(ptr_src);
 
-        for (i = 0; i < 5; i++) {
-            ppsrc = ptr_src[i];
-
-            if (ppsrc != 0 && ppsrc != DefStyle.STYLE_CHARS_DEFAULT)
-                (ptr_dst[i]) = ppsrc;
-            else
-                (ptr_dst[i]) = ppsrc;
-        }
+        System.arraycopy(ptr_src, 0, ptr_dst, 0, 5);
 
         // String
 
@@ -129,21 +123,6 @@ class StyleDef {
         dst.str_fontbold = this.str_fontbold;
         dst.str_fontinfo = this.str_fontinfo;
         dst.str_bkgndimg = this.str_bkgndimg;
-    }
-
-    /**
-     * 文字列挙の文字列をセット (UTF-8 から)
-     * <p>
-     * text: 1 でデフォルト
-     */
-    void StyleDef_setCharsText(String ppdst, final byte[] text) {
-        // セット
-        if (text[0] == 1)
-            ppdst = String.valueOf(DefStyle.STYLE_CHARS_DEFAULT);
-	    else if (text != null || text[0] == 0)
-            ppdst = null;
-        else
-            ppdst = new String(text);
     }
 
     /**

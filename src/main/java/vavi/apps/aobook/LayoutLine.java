@@ -42,6 +42,9 @@ import static vavi.apps.aobook.PvLayout.CHARITEM_F.CHARITEM_F_BOLD;
  */
 class LayoutLine {
 
+    private LayoutLine() {
+    }
+
     /**
      * 注記のコマンド
      * START+1 = END にすること

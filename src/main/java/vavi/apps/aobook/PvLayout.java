@@ -32,6 +32,9 @@ import java.util.List;
  */
 class PvLayout {
 
+    private PvLayout() {
+    }
+
     static class StringItem {}
 
     /** 本文1文字のアイテム */
@@ -56,7 +59,7 @@ class PvLayout {
         /** 縦中横の文字数 */
         int horzcnt;
         /** 縦中横のASCII文字 (null なし) */
-        byte[] horzchar = new byte[3];
+        final byte[] horzchar = new byte[4];
     }
 
     enum CHARITEM_TYPE {

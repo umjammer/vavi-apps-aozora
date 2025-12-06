@@ -33,7 +33,10 @@ class DefStyle {
 
     static final int STYLE_CHARS_DEFAULT = 1;
 
+    public String txt;
+
     public DefStyle(String txt) {
+        this.txt = txt;
     }
 
     enum DATATYPE {

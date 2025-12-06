@@ -118,12 +118,11 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>br.ufmg.dcc.nanocomp</groupId>
-      <artifactId>peg</artifactId>
-      <version>0.10.0</version>
-      <scope>test</scope>
-    </dependency>
+	<dependency>
+	    <groupId>com.github.shotishu</groupId>
+	    <artifactId>PEG</artifactId>
+	    <version>0.10.0</version>
+	</dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
