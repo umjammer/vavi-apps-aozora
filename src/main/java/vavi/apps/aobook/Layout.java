@@ -31,7 +31,10 @@ import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.List;
@@ -49,7 +52,53 @@ import static vavi.apps.aobook.LayoutMain.layout_page;
  */
 class Layout {
 
+    private LayoutDat ldat;
+
     List<TitleItem> titleItems;
+
+    public void layout(String text) {
+        gdat = new GDAT();
+        gdat.style = new StyleWork();
+        gdat.style.b = new StyleDef();
+        try {
+            gdat.style.StyleWork_readStyle(new String[]{"default"});
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        gdat.textbuf = text.getBytes(StandardCharsets.UTF_8);
+
+        ldat = LayoutAlloc();
+        LayoutRunFirst(ldat, p -> {
+        });
+    }
+
+    public BufferedImage getImage(int i) {
+        if (ldat == null || i < 0 || i >= ldat.page_num) return null;
+
+        PageInfo pi = LayoutGetPage_pageno(ldat, i);
+        if (pi == null) return null;
+
+        // get page size
+        BufferedImage dummy = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = dummy.createGraphics();
+        LayoutWork lw = _create_layoutwork(ldat, g);
+        g.dispose();
+
+        int w = lw.pageW;
+        int h = lw.pageH;
+        if (lw.stdef.pages == 2) w = w * 2 + lw.stdef.page_space;
+
+        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        g = image.createGraphics();
+        try {
+            LayoutDrawPage(ldat, g, pi);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            g.dispose();
+        }
+        return image;
+    }
 
     static class TitleItem extends PvLayout.StringItem {
 
@@ -288,7 +337,7 @@ class Layout {
         // 見出し文字列用バッファ
 //        mBufAlloc(p.buf_title, 1024, 1024);
 
-        lf.curpage.src = p.text;
+        lf.curpage.src = new String(gdat.textbuf, StandardCharsets.UTF_8);
 
         // 各ページ情報セット
         topbuf = p.textP;

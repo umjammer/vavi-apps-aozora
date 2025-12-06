@@ -23,12 +23,18 @@
 
 package vavi.apps.aobook;
 
+import java.util.EnumSet;
+
+
 /**
  * スタイルデータ定義
  */
 class DefStyle {
 
     static final int STYLE_CHARS_DEFAULT = 1;
+
+    public DefStyle(String txt) {
+    }
 
     enum DATATYPE {
         /** 終端 */
@@ -85,6 +91,22 @@ class DefStyle {
 
         STYLE_FLAGS(int v) {
             this.v = v;
+        }
+
+        static EnumSet<STYLE_FLAGS> valueOf(int v) {
+            EnumSet<STYLE_FLAGS> es = EnumSet.noneOf(STYLE_FLAGS.class);
+            for (STYLE_FLAGS e : values())
+                if ((e.v & v) != 0)
+                    es.add(e);
+            return es;
+        }
+
+        static int valueOf(EnumSet<STYLE_FLAGS> es) {
+            int v = 0;
+            for (STYLE_FLAGS e : values())
+                if (es.contains(e))
+                    v |= e.v;
+            return v;
         }
     }
 

@@ -13,10 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.Test;
 
 
 /**

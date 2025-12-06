@@ -26,9 +26,13 @@ package vavi.apps.aobook;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
+
+import vavi.apps.aobook.DefStyle.STYLE_FLAGS;
 
 import static vavi.apps.aobook.DefStyle.STYLE_CHARS_DEFAULT;
 
@@ -37,6 +41,8 @@ import static vavi.apps.aobook.DefStyle.STYLE_CHARS_DEFAULT;
  * スタイル関数
  */
 class Style {
+
+    private static final Logger logger = System.getLogger(Style.class.getName());
 
     static final String STYLE_CONFIGNAME = "styles.conf";
 
@@ -47,6 +53,7 @@ class Style {
 
     /** 画像読み込み */
     static BufferedImage _load_image(String str) throws IOException {
+logger.log(Level.TRACE, "str: " + str);
         return ImageIO.read(Paths.get(str).toFile());
     }
 
@@ -153,7 +160,7 @@ class Style {
         String group = "styles.";
 
         if (ini.getInt(group + "ver", 0) != 1)
-            ini.put(group + "ver", null);
+            ini.put(group + "ver", "");
 
         num = ini.getInt("num", 0);
 
@@ -173,7 +180,7 @@ class Style {
 
         for (i = 0; i < num; i++) {
             name[0] = ini.get("name", "");
-            if (name[0] != null) {
+            if (!name[0].isEmpty()) {
                 StyleConf_readDefine(ini, p);
                 break;
             }
@@ -200,7 +207,7 @@ class Style {
         p.line_space = ini.getInt("linespace", 80);
         p.page_space = ini.getInt("pagespace", 30);
 
-        p.flags = ini.getInt("flags", DefStyle.STYLE_FLAGS.STYLE_F_HANGING.v | DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE.v);
+        p.flags = STYLE_FLAGS.valueOf(ini.getInt("flags", DefStyle.STYLE_FLAGS.STYLE_F_HANGING.v | DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE.v));
 
         p.dakuten_type = DefStyle.STYLE_DAKUTEN.values()[ini.getInt("dakuten", DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_HORZ.ordinal())];
 
@@ -259,7 +266,7 @@ class Style {
         fp.putInt(group + "charspace", p.char_space);
         fp.putInt(group + "linespace", p.line_space);
         fp.putInt(group + "pagespace", p.page_space);
-        fp.putInt(group + "flags", p.flags);
+        fp.putInt(group + "flags", STYLE_FLAGS.valueOf(p.flags));
 
         fp.putInt(group + "dakuten", p.dakuten_type.ordinal());
 

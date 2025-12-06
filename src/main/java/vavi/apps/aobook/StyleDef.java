@@ -50,7 +50,7 @@ class StyleDef {
     /** 濁点/半濁点の処理 */
     DefStyle.STYLE_DAKUTEN dakuten_type;
     /** 画面余白 */
-    Insets margin;
+    Insets margin = new Insets(0, 0, 0, 0);
     /** 本文文字色 */
     Color col_text;
     /** ルビ文字色 */
