@@ -211,5 +211,3 @@ Debug.println(entry);
 Debug.printf("letterPane: %s", letterPane.getBounds());
     }
 }
-
-/* */

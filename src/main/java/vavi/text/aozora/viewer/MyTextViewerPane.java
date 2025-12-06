@@ -398,7 +398,7 @@ Debug.println(Level.FINER, "characters|レ点: " + cdata);
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
-Debug.printf("characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
+Debug.printf(Level.FINE, "characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
                             SLetterCell cell = cellFactory.createGlyphCell(c);
                             appendCell(cell);
                         } else {
@@ -409,17 +409,17 @@ Debug.printf(Level.WARNING, "characters|[notes:※:N/A]: %s", cdata);
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
-Debug.printf("characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
+Debug.printf(Level.FINE, "characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
                             rubyAlternative.setMain(c);
                         } else {
 Debug.printf(Level.WARNING, "characters|[notes:ruby※:N/A]: %s", cdata);
                         }
                         rubyAlternative = null;
                     } else {
-Debug.println("characters|[notes:#]: " + cdata);
+Debug.println(Level.FINE, "characters|[notes:#]: " + cdata);
                     }
                 } else {
-Debug.println("characters|[notes]: " + cdata);
+Debug.println(Level.FINE, "characters|[notes]: " + cdata);
                 }
                 notes = false;
                 return;
@@ -965,7 +965,7 @@ logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endP
         }
 
         log.append("|lastStart=").append(lastStartPos).append("|thisEnd=").append(endPos);
-        logger.info(log.toString());
+        logger.fine(log.toString());
         setupButtonEnabled();
         setupPageNumber();
 

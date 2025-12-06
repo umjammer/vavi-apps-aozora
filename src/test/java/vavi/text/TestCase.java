@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.klab.commons.csv.CsvEntity;
 import vavi.text.aozora.site.AozoraData;
 import vavi.util.Debug;
@@ -39,7 +38,7 @@ import vavi.util.properties.annotation.PropsEntity;
  * @see "https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473"
  */
 @PropsEntity(url = "file:local.properties")
-public class Test1 {
+public class TestCase {
 
     @Property(name = "aozora.txt")
     String file;
@@ -54,11 +53,11 @@ public class Test1 {
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        Test1 app = new Test1();
+        TestCase app = new TestCase();
         PropsEntity.Util.bind(app);
 
         Set<String> suspiciousSet = new HashSet<>();
-        Scanner scanner = new Scanner(Test1.class.getResourceAsStream("/susupicious-ocr.txt"));
+        Scanner scanner = new Scanner(TestCase.class.getResourceAsStream("/susupicious-ocr.txt"));
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             suspiciousSet.add(line);
@@ -85,7 +84,7 @@ public class Test1 {
     void test1() throws Exception {
         URL url = new URL(aozora);
         Archive archive = Archives.getArchive(new BufferedInputStream(url.openStream()));
-Debug.println("aarchive: " + archive);
+Debug.println("archive: " + archive);
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
         InputStream is = archive.getInputStream(archive.entries()[0]);
 Debug.println("entries: " + archive.entries().length);

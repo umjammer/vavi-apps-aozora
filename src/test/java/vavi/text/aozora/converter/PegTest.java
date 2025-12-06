@@ -60,7 +60,7 @@ class PegTest {
     /**
      * @see "https://github.com/aozorahack/aozora-parser.js"
      */
-    public interface AozoraParser extends Parser<jdk.nashorn.api.scripting.JSObject> {
+    public interface AozoraParser extends Parser<netscape.javascript.JSObject> {
     }
 
     @Test

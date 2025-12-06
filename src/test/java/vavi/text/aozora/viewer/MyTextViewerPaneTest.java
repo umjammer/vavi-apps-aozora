@@ -119,5 +119,3 @@ Debug.println("No encoding detected.");
         return encoding;
     }
 }
-
-/* */
