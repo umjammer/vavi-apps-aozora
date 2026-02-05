@@ -5,7 +5,7 @@
 
   <groupId>vavi</groupId>
   <artifactId>vavi-apps-aozora</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
 
   <build>
     <plugins>
@@ -46,10 +46,6 @@
       <url>https://jitpack.io</url>
     </repository>
     <repository>
-      <id>peg-mvn-repo</id> <!-- peg -->
-      <url>https://raw.github.com/jeronimonunes/PEG/mvn-repo/</url>
-    </repository>
-    <repository>
       <id>gitlab-maven</id> <!-- vavi-text-aozora -->
       <url>https://gitlab.com/api/v4/projects/39845225/packages/maven</url>
     </repository>
@@ -60,7 +56,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.14.0</version>
+        <version>5.14.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -77,12 +73,12 @@
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>vavi-commons</artifactId>
-      <version>1.1.13</version>
+      <version>1.1.16</version>
     </dependency>
     <dependency>
       <groupId>com.github.umjammer.vavi-apps-fuse</groupId> <!-- vavi / com.github.umjammer.vavi-apps-fuse -->
       <artifactId>vavi-nio-file-archive</artifactId>
-      <version>0.1.10</version>
+      <version>0.1.11</version>
     </dependency>
     <dependency>
       <groupId>com.github.umjammer</groupId>
@@ -118,12 +114,11 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>br.ufmg.dcc.nanocomp</groupId>
-      <artifactId>peg</artifactId>
-      <version>0.10.0</version>
-      <scope>test</scope>
-    </dependency>
+	<dependency>
+	    <groupId>com.github.shotishu</groupId>
+	    <artifactId>PEG</artifactId>
+	    <version>0.10.0</version>
+	</dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
