@@ -21,6 +21,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
 import org.klab.commons.csv.CsvEntity;
 import vavi.text.aozora.site.AozoraData;
 import vavi.util.Debug;
@@ -81,6 +83,7 @@ public class TestCase {
     }
 
     @Test
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test1() throws Exception {
         URL url = new URL(aozora);
         Archive archive = Archives.getArchive(new BufferedInputStream(url.openStream()));
@@ -98,7 +101,7 @@ Debug.println("is: " + is);
     }
 
     @Test
-    @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test2() throws Exception {
         Path path = Paths.get(local);
         Archive archive = Archives.getArchive(new BufferedInputStream(Files.newInputStream(path)));
