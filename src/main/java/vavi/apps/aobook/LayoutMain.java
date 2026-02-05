@@ -32,21 +32,24 @@ import static vavi.apps.aobook.LayoutSub.layout_is_nobottom;
 
 
 /**
- * レイアウト:メイン処理 (作業用)
+ * Layout: Main processing (for work)
  */
 class LayoutMain {
 
+    private LayoutMain() {
+    }
+
     private static final int VIEWFLAGS_PAGENO = 1;
 
-    // 本文文字位置セット
+    // Set body character position
 
     /**
-     * 現在の字下げ/地上げの Y 位置計算
+     * Calculate current Y position of indentation/bottom alignment
      * <p>
      * [LayoutWork]
-     * jisage_y      : 先頭行の字下げ
-     * jisage_wrap_y : 折り返し後の字下げ
-     * jiage_bottom  : 字上げの下端
+     * jisage_y      : Indentation of the first line
+     * jisage_wrap_y : Indentation after wrapping
+     * jiage_bottom  : Bottom of bottom alignment
      */
     private static void _set_jisage_jiage_pos(LayoutWork p) {
         StyleDef st;
@@ -54,7 +57,7 @@ class LayoutMain {
 
         st = p.stdef;
 
-        // 字下げ文字数 (行単位を優先)
+        // Number of indented characters (prioritize line unit)
         if (p.linestate.jisage != 0)
             top = wrap = p.linestate.jisage;
         else {
@@ -62,13 +65,13 @@ class LayoutMain {
             wrap = p.blockstate.jisage_wrap;
         }
 
-        // 字上げ文字数
+        // Number of bottom aligned characters
         if (p.linestate.jiage != 0 || p.blockstate.jiage != 0)
             bottom = (p.blockstate.jiage!= 0 ? p.blockstate.jiage : p.linestate.jiage) - 1;
         else
             bottom = 0;
 
-        // 文字数調整
+        // Character count adjustment
         max = st.chars - 1;
 
         if (top > max) top = max;
@@ -78,7 +81,7 @@ class LayoutMain {
         if (top + bottom > st.chars) top = 0;
         if (wrap + bottom > st.chars) wrap = 0;
 
-        // セット
+        // Set
         charh = p.fontmain_h + st.char_space;
 
         if (bottom != 0)
@@ -90,37 +93,37 @@ class LayoutMain {
     }
 
     /**
-     * 1行分の本文文字の描画位置をセット
+     * Set drawing position of one line of body characters
      * <p>
-     * [!] 地付き/地上げでは、Y 位置は上端からの位置のままになっているので、描画時に処理する。
+     * [!] For bottom alignment/raise, Y position remains as position from top, so process at drawing time.
      * <p>
-     * ptcur: 現在の行の px 位置。次の行の位置が入る。
-     * prev_wrapnum: 前ページの前行からの折り返しで、前ページの分の行数。
-     * center_diffx: ページ左右中央の場合の X 位置差分 (描画時)
-     * return: 現在の行が次ページに渡って折り返す場合、先頭から何行ずらすか
+     * ptcur: px position of the current line. Position of the next line is entered.
+     * prev_wrapnum: Wrap from the previous line on the previous page, number of lines for the previous page.
+     * center_diffx: X position difference when page is centered horizontally (at drawing)
+     * return: If the current line wraps to the next page, how many lines to shift from the beginning
      */
     private static int _set_line_char_pos(LayoutWork p, Point ptcur, int prev_wrapnum, int center_diffx) {
         StyleDef st;
         PvLayout.CharItem pinext = null, pinext2;
         int x, y, charh, nexth, charsp, wrap;
         int[] bottomY = new int[2];
-        int wrapcnt = 0;    // 折り返し行数
-        int next_wrapnum = 0;    // 次ページで折り返しをスキップする行数
-        boolean fnext_hanging = false; // 次の文字がぶら下げか
+        int wrapcnt = 0;    // Number of wrapped lines
+        int next_wrapnum = 0;    // Number of lines to skip wrapping on the next page
+        boolean fnext_hanging = false; // Is the next character hanging
         int bottom_type = 0;
 
-        // 字下げ/字上げの Y 位置
+        // Y position of indentation/bottom alignment
 
         _set_jisage_jiage_pos(p);
 
-        // 下端位置 ([0] 通常時 [1] 地付き/字上げ時)
+        // Bottom position ([0] Normal [1] Bottom aligned/Raised)
 
         bottomY[0] = p.pageH;
         bottomY[1] = p.jiage_bottom;
 
         // ------------
 
-        x = ptcur.x + p.line_width * prev_wrapnum; // 前ページの折り返し分をずらす
+        x = ptcur.x + p.line_width * prev_wrapnum; // Shift by the wrap amount of the previous page
         y = p.jisage_y;
 
         st = p.stdef;
@@ -135,43 +138,43 @@ class LayoutMain {
             charh = pi.height;
             nexth = pinext != null ? pinext.height : 0;
 
-            // 地付き/地上げ開始
+            // Start bottom alignment/raise
             if (bottom_type == 0 && pi.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_JIAGE))
                 bottom_type = 1;
 
-            // 折り返し/ぶら下げ判定
-            //  wrap: [0] 通常 [1] 現在文字を次行に折り返し [2] 次の文字をぶら下げ
-            //        [3] (ぶら下げ処理) そのまま位置のセット後、次行に折り返し
+            // Wrap/Hanging judgment
+            //  wrap: [0] Normal [1] Wrap current character to next line [2] Hang next character
+            //        [3] (Hanging processing) After setting position as is, wrap to next line
             wrap = 0;
 
             if (fnext_hanging)
-            // 前の文字で、次がぶら下げとして指定されている場合
+            // If the previous character specified the next as hanging
                 wrap = 3;
             else if (y + charh > bottomY[bottom_type])
-            // 現在の文字が下端を超える => 折り返し
+            // Current character exceeds bottom => Wrap
                 wrap = 1;
             else if (y + charh + charsp + nexth > bottomY[bottom_type]) {
-                // 次の文字が下端を超える (現在の文字が行末になる)
+                // Next character exceeds bottom (Current character becomes end of line)
 
                 if (layout_is_nobottom(p, pi))
-                // 現在の文字が行末に置いてはいけない文字の場合、現在文字を次行へ
+                // If current character must not be placed at end of line, move current character to next line
                     wrap = 1;
                 else if (pinext != null && layout_find_utf32(pinext.code, p.u32_nohead)) {
-                    // 次の文字が行頭禁則の対象
+                    // Next character is subject to line head restriction
 
                     if (st.flags.contains(DefStyle.STYLE_FLAGS.STYLE_F_HANGING)
                             && layout_find_utf32(pinext.code, p.u32_hanging))
-                    // ぶら下げ対象で、ぶら下げが有効
+                    // Subject to hanging and hanging is enabled
                         wrap = 2;
                     else
-                    // 現在文字から折り返し
+                    // Wrap from current character
                         wrap = 1;
                 }
             } else if (pinext != null && i < p.list_char.size() - 2 && p.list_char.get(i + 2) != null) {
-                // 次の次の文字が下端を超えて、かつ行頭禁則対象 (ぶら下げ対象外) で、
-                // かつ現在文字が行末に来てはならない文字の場合、現在文字を折り返し
-                // [例] "……」" で、行頭禁則によって "…」" が次行に折り返すが、"…" は分割禁止のため、
-                //      最初の "…" で折り返す時。
+                // If the character after next exceeds bottom, and is subject to line head restriction (not hanging),
+                // and current character must not be at end of line, wrap current character
+                // [Example] "……」" where "…」" wraps to next line due to line head restriction, but "…" cannot be split,
+                //      so wrap at the first "…".
                 pinext2 = (PvLayout.CharItem) p.list_char.get(i + 2);
 
                 if (y + charh + charsp + nexth + charsp + pinext2.height > bottomY[bottom_type]
@@ -182,12 +185,12 @@ class LayoutMain {
             }
 
             if (wrap == 2)
-                // 次の文字をぶら下げとして予約
+                // Reserve next character as hanging
                 fnext_hanging = true;
             else {
                 fnext_hanging = false;
 
-                // 現在文字から折り返し
+                // Wrap from current character
                 if (wrap == 1) {
                     x -= p.line_width;
                     y = p.jisage_wrap_y;
@@ -195,25 +198,25 @@ class LayoutMain {
                 }
             }
 
-            // 文字描画位置セット
+            // Set character drawing position
 
             pi.x = x - center_diffx;
             pi.y = y;
 
-            // 折り返しの先頭文字の場合、フラグを付加
-            if (y == p.jisage_wrap_y && p.list_char.get(i - 1) != null)
+            // If it is the first character of wrapping, add flag
+            if (y == p.jisage_wrap_y && i > 0 && p.list_char.get(i - 1) != null)
                 pi.flags.add(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP);
 
-            // 次の文字のY位置
+            // Y position of next character
             y += charh + charsp;
 
-            // 現在 X 位置がページ範囲外の場合
-            //  (折り返しで次ページにまたがる時)
-            //  :最初に範囲外になった時に、現在の折り返し数を記憶
+            // If current X position is out of page range
+            //  (When wrapping across to the next page)
+            //  :Remember the current wrap count when it first goes out of range
             if (x < 0 && next_wrapnum == 0)
                 next_wrapnum = wrapcnt;
 
-            // ぶら下げによる折り返し (次の文字がある場合)
+            // Wrapping by hanging (if there is a next character)
             if (wrap == 3 && pinext == null) {
                 x -= p.line_width;
                 y = p.jisage_wrap_y;
@@ -221,7 +224,7 @@ class LayoutMain {
             }
         }
 
-        // 次行の位置
+        // Position of next line
 
         ptcur.x = x - p.line_width;
         ptcur.y = 0;
@@ -229,12 +232,12 @@ class LayoutMain {
         return next_wrapnum;
     }
 
-    // 描画時用
+    // For drawing
 
     /**
-     * [描画時] 1行分の地付き/地からｎ字上げ処理
+     * [At drawing] Process bottom alignment / n-character raise from bottom for 1 line
      * <p>
-     * Y 位置を実際の位置に調整する。
+     * Adjust Y position to actual position.
      */
     private static void _proc_draw_line_jiage(LayoutWork p) {
         PvLayout.CharItem pinext, pitop, piend, pistart, pi;
@@ -243,36 +246,36 @@ class LayoutMain {
 
         charspace = p.stdef.char_space;
 
-        // 字上げ文字数 (0 で地付き)
+        // Number of raised characters (0 for bottom alignment)
         n = p.blockstate.jiage != 0 ? p.blockstate.jiage : p.linestate.jiage;
         n--;
         if (n < 0) return;
 
-        // 上げる高さ (px)
+        // Height to raise (px)
 
         if (n == 0)
             upper_h = 0;
         else
             upper_h = n * p.fontmain_h + (n - 1) * charspace;
 
-        // 各文字の Y 位置をずらす
+        // Shift Y position of each character
         jisage_h = p.jisage_y;
         flag = false;
 
         int j, k = p.list_char.size() - 1;
         for (int i = 0; i < p.list_char.size(); i = j) {
             pitop = p.list_char.get(i);
-            // --- 描画上での1行分の地上げの範囲と情報取得
-            //  pistart,piend: 地上げの範囲
-            //  toph: 地上げより前のテキストの高さ
-            //  texth: 地上げテキストの高さ
+            // --- Get range and info of bottom alignment for 1 line on drawing
+            //  pistart,piend: Range of bottom alignment
+            //  toph: Height of text before bottom alignment
+            //  texth: Height of bottom aligned text
             pistart = pitop;
             texth = toph = 0;
 
             for (j = i; j < p.list_char.size(); k = j) {
                 pinext = p.list_char.get(j);
                 piend = p.list_char.get(k);
-                // 地上げ開始
+                // Start bottom alignment
                 if (!flag && piend.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_JIAGE)) {
                     pistart = piend;
                     toph = texth;
@@ -288,14 +291,14 @@ class LayoutMain {
                 texth += charspace;
             }
 
-            // 地上げありの場合、Y 位置をずらす
-            // (上端からの位置でセットされているため、余白分を追加)
+            // If there is bottom alignment, shift Y position
+            // (Because it is set with position from top, add margin)
             if (flag) {
-                // 加算幅
+                // Add width
                 n = p.pageH - toph - texth - upper_h - jisage_h;
                 if (n < 0) n = 0;
 
-                // 適用
+                // Apply
                 for (pi = pistart; true; pi = p.list_char.get(i + 1)) {
                     pi.y += n;
 
@@ -303,13 +306,13 @@ class LayoutMain {
                 }
             }
 
-            // 1行目以降は、折り返し字下げ
+            // After 1st line, wrap indentation
 
             jisage_h = p.jisage_wrap_y;
         }
     }
 
-    /*** [描画時] 1行分のルビの描画位置セット */
+    /*** [At drawing] Set drawing position of ruby for 1 line */
     private static void _set_draw_line_ruby_pos(LayoutWork p) {
         PvLayout.RubyItem piprev = null;
         int x, y, prev_bottom, wrap;
@@ -317,35 +320,35 @@ class LayoutMain {
         int i = 0;
         for (PvLayout.RubyItem pi : p.list_ruby) {
 
-            // 親文字列の情報
-            //  wrap : [0bit] 親文字列が途中で折り返し [1bit] 親文字列の先頭が折り返しの先頭
+            // Parent string info
+            //  wrap : [0bit] Parent string wraps in middle [1bit] Head of parent string is head of wrap
             wrap = LayoutSub.layout_getrubyinfo(p, pi);
 
-            // 親文字列の先頭位置
+            // Parent string head position
             x = pi.char_top.x;
             y = pi.char_top.y;
 
-            // 前のルビの下端 Y 位置
-            // (-1 でルビがない、または行が違う)
+            // Bottom Y position of previous ruby
+            // (-1 if no ruby or different line)
             prev_bottom = (piprev != null && piprev.x == x) ? piprev.y + piprev.ruby_h : -1;
 
             //
             if (prev_bottom != -1 && y < prev_bottom) {
-                // 前のルビが同じ行にあり、かつ現在の親文字列の位置に重なる場合は、
-                // 前回ルビの終端位置から開始
+                // If previous ruby is on the same line and overlaps current parent string position,
+                // start from end position of previous ruby
                 y = prev_bottom;
 
                 pi.char_h = PvLayout.RUBYITEM_CHARH_NO_PADDING;
             } else if (pi.ruby_h >= pi.char_h) {
-                // ルビ > 親文字列の場合は、親文字列に対して中央揃え (親文字列からはみ出す)
-                //  :親文字列間に余白を付ける場合も含む。
-                //  :ただし、親文字列が折り返しあり or 折り返しの先頭 or 前後どちらかにルビが続く場合は、
-                //  :親文字列の先頭から
+                // If ruby > parent string, center align with parent string (protrude from parent string)
+                //  :Including cases where padding is added between parent strings.
+                //  :However, if parent string has wrapping or is head of wrapping or ruby continues before/after,
+                //  :from head of parent string
                 if (wrap == 0 && !LayoutSub.layout_is_ruby_connect(p, piprev, pi) && !LayoutSub.layout_is_ruby_connect(p, pi, p.list_ruby.get(i + 1))) {
-                    // 中央揃え位置
+                    // Centered position
                     y -= (pi.ruby_h - pi.char_h) / 2;
 
-                    // 前のルビと重なる場合
+                    // If overlapping with previous ruby
                     if (prev_bottom != -1 && y < prev_bottom)
                         y = prev_bottom;
                 }
@@ -353,8 +356,8 @@ class LayoutMain {
                 pi.char_h = PvLayout.RUBYITEM_CHARH_NO_PADDING;
             }
 
-            // 親文字列 > ルビの場合、char_h を維持して、ルビに余白を付ける
-            // セット
+            // If parent string > ruby, maintain char_h and add padding to ruby
+            // Set
             pi.x = x;
             pi.y = y;
 
@@ -366,36 +369,36 @@ class LayoutMain {
     // sub
 
     /**
-     * ページ関連のコマンド処理
+     * Process page-related commands
      * <p>
-     * pageno: 現在のページ位置
-     * return: [0] 改ページ [1] 次ページを空白&改ページ [2] コマンドを無視
+     * pageno: Current page position
+     * return: [0] Page break [1] Make next page blank & page break [2] Ignore command
      */
     private static int _proc_command_page(LayoutWork p, LayoutLine.COMMAND cmd, Point ptcur, int pageno) {
         int ret = -1;
         boolean is_topline;
 
-        // 先頭行か
+        // Is top line
         is_topline = (ptcur.x == p.text_right_x);
 
-        // 見開きの場合 (単一ページなら常に改ページ)
+        // In case of spread (Always page break for single page)
         if (p.stdef.pages == 2) {
             switch (cmd) {
-            // 改丁
-            //  :右側のページなら、改ページ。
-            //  :左側のページなら、次ページを空白にしてその次から開始
+            // New signature
+            //  :If right page, page break.
+            //  :If left page, make next page blank and start from next.
             case COMMAND_KAITYO:
                 ret = (pageno & 1) != 0 ? 1 : 0;
                 break;
-            // 改見開き
-            //  :右側のページなら、改ページ。
-            //  :左側のページなら、次ページを空白にしてその次から。
-            //  :(ただし、先頭ページで、かつ先頭行の場合は無視する)
+            // New spread
+            //  :If right page, page break.
+            //  :If left page, make next page blank and start from next.
+            //  :(However, ignore if first page and first line)
             case COMMAND_KAIMIHIRAKI:
                 if ((pageno & 1) != 0)
                     ret = 0;
                 else
-                // 先頭ページの先頭行の場合、無視
+                // If first line of first page, ignore
                     ret = pageno == 0 && is_topline ? 2 : 1;
                 break;
             }
@@ -404,34 +407,40 @@ class LayoutMain {
         //
 
         if (ret == -1)
-        // 通常改ページ (ページの先頭行なら無視)
+        // Normal page break (ignore if first line of page)
             return is_topline ? 2 : 0;
         else
             return ret;
     }
 
-    // ページレイアウト/描画
+    // Page layout/Drawing
 
     /**
-     * 1ページのレイアウト
+     * Layout of 1 page
      * <p>
-     * lf.curpage に現在のページ情報をセットし、
-     * lf.nextpage に次のページの情報をセット。
+     * Set current page info to lf.curpage,
+     * Set next page info to lf.nextpage.
      * <p>
-     * return: false でデータ終了
+     * return: false if data end
      */
     static boolean layout_page(LayoutWork p, PvLayout.LayoutFirst lf) {
         Point ptcur = new Point();
         PvLayout.BlockState top_blockstate = null;
         int top_text = 0;
         int wrapnum;
-        LayoutLine.COMMAND cmd = null;
+        LayoutLine.COMMAND[] cmd = new LayoutLine.COMMAND[1];
         int ret;
 
-        p.pagestate = null;
+        p.pagestate = new PvLayout.PageState();
+        p.pagestate.picture = -1;
 
         p.text = lf.curpage.src;
+        p.textP = 0;
         p.blockstate = lf.curpage.blockstate;
+        if (p.blockstate == null) {
+            p.blockstate = new PvLayout.BlockState();
+            p.blockstate.flags = java.util.EnumSet.noneOf(PvLayout.BLOCKSTATE_F.class);
+        }
         p.curlineno = lf.curpage.lineno;
 
         wrapnum = lf.curpage.wrap_num;
@@ -439,81 +448,78 @@ class LayoutMain {
         lf.curpage.diffx = 0;
         lf.nextpage.flags = 0;
 
-        // データの終端なら終了
-        if (p.text.charAt(0) == DefStyle.DATATYPE.DATATYPE_END.ordinal())return false;
+        // If end of data, finish
+        if (p.text == null || p.text.isEmpty() || p.text.charAt(0) == DefStyle.DATATYPE.DATATYPE_END.ordinal()) return false;
 
-NEXT:
-        {
-            // 空白ページの場合は、次ページの処理へ
-            if ((lf.curpage.flags & PvLayout.PAGEINFO_F_BLANK) != 0) break NEXT;
-
-            // 現在のページを、各行ごとに処理
+        // If blank page, proceed to next page processing
+        if ((lf.curpage.flags & PvLayout.PAGEINFO_F_BLANK) == 0) {
+            // Process current page line by line
             ptcur.x = p.text_right_x;
             ptcur.y = 0;
 
             while (ptcur.x >= 0) {
-                // 次ページに折り返す時用に、行開始時点の情報を保存
+                // Save info at start of line for when wrapping to next page
                 top_text = p.textP;
                 top_blockstate = p.blockstate;
 
-                // 1行分の文字データと状態を取得
-                //  cmd:ページ関連のコマンドなら、コマンド番号。なければ -1。
+                // Get 1 line of character data and state
+                //  cmd: If page-related command, command number. If none -1.
                 if (!LayoutLine.layout_getline(p, cmd)) break;
 
-                // 挿絵
+                // Picture
                 if (p.pagestate.picture != -1
                         && p.stdef.flags.contains(DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE))
                     break;
 
-                // ページ関連のコマンド処理
-                if (cmd != LayoutLine.COMMAND.COMMAND_NONE) {
-                    ret = _proc_command_page(p, cmd, ptcur, lf.pagenum);
+                // Process page-related commands
+                if (cmd[0] != LayoutLine.COMMAND.COMMAND_NONE) {
+                    ret = _proc_command_page(p, cmd[0], ptcur, lf.pagenum);
 
                     if (ret == 1)
-                        // 次ページを空白に
+                        // Make next page blank
                         lf.nextpage.flags |= PvLayout.PAGEINFO_F_BLANK;
                     else if (ret == 2)
-                        // コマンドを無視
+                        // Ignore command
                         continue;
 
                     break;
                 }
 
-                // 本文文字の描画位置セット
+                // Set drawing position of body characters
                 wrapnum = _set_line_char_pos(p, ptcur, wrapnum, 0);
             }
 
-            // ページの左右中央位置
-            // (次ページに折り返しが続く場合は除く)
+            // Horizontal center position of page
+            // (Exclude if wrapping continues to next page)
             if (p.pagestate.fcenter && wrapnum == 0)
                 lf.curpage.diffx = (ptcur.x + p.line_width) / 2;
 
         }
-        // ------ 次のページ情報
+        // ------ Next page info
 
-        // 次のページの行番号
+        // Line number of next page
 
         lf.nextpage.lineno = p.curlineno;
 
-        // 現在のページで挿絵があり、先頭行でない場合は、
-        // 次ページの先頭は挿絵データ
+        // If there is a picture on current page and not first line,
+        // start of next page is picture data
 
         if (p.stdef.flags.contains(DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE)
                 && p.pagestate.picture != -1
                 && ptcur.x != p.text_right_x)
             p.textP = p.pagestate.picture - 1;
 
-        // 次ページの情報
+        // Next page info
 
         lf.nextpage.wrap_num = wrapnum;
 
         if (wrapnum != 0) {
-            // 折り返しがある場合、その行の先頭から再処理する
+            // If there is wrapping, re-process from the beginning of that line
             lf.nextpage.src = p.text.substring(top_text);
             lf.nextpage.blockstate = top_blockstate;
         } else {
-            // 折り返しがない場合、現在の状態をセット
-            lf.nextpage.src = p.text;
+            // If no wrapping, set current state
+            lf.nextpage.src = p.text.substring(p.textP);
             lf.nextpage.blockstate = p.blockstate;
             lf.nextpage.lineno++;
         }
@@ -522,30 +528,36 @@ NEXT:
     }
 
     /**
-     * 1ページの描画
+     * Draw 1 page
      * <p>
-     * page: 描画するページ情報
-     * pagepos: 単ページの場合 -1、見開きの場合はページ位置 (0:右 1:左)
+     * page: Page info to draw
+     * pagepos: -1 for single page, page position for spread (0:Right 1:Left)
      */
     static void layout_drawpage(LayoutWork p, PvLayout.PageInfo page, int pagepos) throws IOException {
         Point ptcur = new Point();
         int wrapnum;
-        LayoutLine.COMMAND cmd = LayoutLine.COMMAND.COMMAND_NONE;
+        LayoutLine.COMMAND[] cmd = new LayoutLine.COMMAND[] {LayoutLine.COMMAND.COMMAND_NONE};
         int ret;
 
-        // ページ情報描画
+        // Draw page info
         if ((gdat.viewflags & VIEWFLAGS_PAGENO) != 0)
             LayoutDraw.layout_draw_pageinfo(p, page.pageno, pagepos);
 
-        // 空白ページの場合、何も描画しない
+        // If blank page, draw nothing
         if ((page.flags & PvLayout.PAGEINFO_F_BLANK) != 0) return;
 
         //
 
-        p.pagestate = null;
+        p.pagestate = new PvLayout.PageState();
+        p.pagestate.picture = -1;
 
         p.text = page.src;
+        p.textP = 0;
         p.blockstate = page.blockstate;
+        if (p.blockstate == null) {
+            p.blockstate = new PvLayout.BlockState();
+            p.blockstate.flags = java.util.EnumSet.noneOf(PvLayout.BLOCKSTATE_F.class);
+        }
 
         ptcur.x = p.text_right_x;
         ptcur.y = 0;
@@ -554,13 +566,13 @@ NEXT:
 
         //
         while (ptcur.x >= 0) {
-            // 1行分取得
+            // Get 1 line
             if (!LayoutLine.layout_getline(p, cmd))break;
 
-            // 挿絵
+            // Picture
             if (p.pagestate.picture != -1
                     && p.stdef.flags.contains(DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE)) {
-                // ページ先頭でない場合、次ページへ
+                // If not page start, go to next page
 
                 if (ptcur.x == p.text_right_x)
                     LayoutDraw.layout_draw_picture(p, pagepos);
@@ -568,18 +580,18 @@ NEXT:
                 break;
             }
 
-            // ページ単位のコマンド
-            if (cmd != LayoutLine.COMMAND.COMMAND_NONE) {
-                ret = LayoutMain._proc_command_page(p, cmd, ptcur, page.pageno);
+            // Page unit command
+            if (cmd[0] != LayoutLine.COMMAND.COMMAND_NONE) {
+                ret = LayoutMain._proc_command_page(p, cmd[0], ptcur, page.pageno);
 
                 if (ret == 2)
-                // コマンド無視
+                // Ignore command
                     continue;
                 else
                     break;
             }
 
-            // 描画位置セット
+            // Set drawing position
             LayoutMain._set_line_char_pos(p, ptcur, wrapnum, page.diffx);
 
             _proc_draw_line_jiage(p);
@@ -588,7 +600,7 @@ NEXT:
 
             wrapnum = 0;
 
-            // 描画
+            // Draw
             LayoutDraw.layout_draw_line(p, pagepos);
         }
     }

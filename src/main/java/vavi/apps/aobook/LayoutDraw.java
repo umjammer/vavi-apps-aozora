@@ -51,20 +51,23 @@ import static vavi.apps.aobook.PvLayout.RUBYITEM_CHARH_NO_PADDING;
 
 
 /**
- * レイアウト - 描画
+ * Layout - Drawing
  */
 class LayoutDraw {
 
-    /** 傍点文字 */
+    private LayoutDraw() {
+    }
+
+    /** Emphasis dot characters */
     private static final char[] g_bouten_char = {'﹅', '﹆', '◉', '・', '○', '▲', '△', '◎', '×'};
 
     private static final int FONT_DRAW_F_PRINT = 0;
     private static final int FONT_DRAW_F_DAKUTEN_VERT = 1;
     private static final int FONT_DRAW_F_ROTATE = 2;
 
-    // 傍線描画
+    // Emphasis line drawing
 
-    /** mPixbuf 1xN パターンを描画 */
+    /** Draw mPixbuf 1xN pattern */
     private static void _draw_pixbuf_pattern(Graphics2D img, int x, int y, int h, Color col, int pat, int patw) {
         int iy, pcnt;
         int f;
@@ -88,7 +91,7 @@ class LayoutDraw {
         img.fillPolygon(p);
     }
 
-    /* mPixbuf 波線を描画 */
+    /* Draw mPixbuf wavy line */
     private static void _draw_pixbuf_wave(Graphics2D img, int x, int y, int h, Color col) {
         int iy, py;
         byte[] pat = {1, 1, 2, 2, 2, 1, 1, 0, 0, 0};
@@ -102,45 +105,44 @@ class LayoutDraw {
         }
     }
 
-    /* 傍線描画 */
+    /* Draw emphasis line */
     private static void _draw_pixbuf_bousen(Graphics2D img, int x, int y, int h, Color col, DefStyle.BOUSEN_TYPE type) {
         img.setColor(col);
         switch (type) {
-        // 通常傍線
+        // Normal emphasis line
         case BOUSEN_TYPE_NORMAL:
             img.drawLine(x, y, x, y + h);
             break;
-        // 二重傍線
+        // Double emphasis line
         case BOUSEN_TYPE_DOUBLE:
             img.drawLine(x, y, x, y + h);
             img.drawLine(x + 2, y, x + 2, y + h);
             break;
-        // 鎖線
+        // Chain line
         case BOUSEN_TYPE_KUSARI:
             _draw_pixbuf_pattern(img, x, y, h, col, 0xc0, 4);
             break;
-        // 破線
+        // Dashed line
         case BOUSEN_TYPE_HASEN:
             _draw_pixbuf_pattern(img, x, y, h, col, 0xf8, 8);
             break;
-        // 波線
+        // Wavy line
         case BOUSEN_TYPE_NAMISEN:
             _draw_pixbuf_wave(img, x, y, h, col);
             break;
         }
     }
 
-    // 1行描画
+    // Draw 1 line
 
-    /** 本文描画 */
+    /** Draw body text */
     private static void _draw_text(LayoutWork p, int xtop, int ytop) {
         Graphics2D img;
         Font[] font = new Font[2];
-        int flags_base, flags;
+        int flags_base;
         Color col;
-        int c;
         EnumSet<PvLayout.CHARITEM_F> charflags;
-        int x, y, n1, n2;
+        int x, y, n1;
         int fontno;
         int[] fonth = new int[2];
         boolean fdash_to_line;
@@ -157,16 +159,16 @@ class LayoutDraw {
         fdash_to_line = p.stdef.flags.contains(DefStyle.STYLE_FLAGS.STYLE_F_DASH_TO_LINE);
         dakuten_type = p.stdef.dakuten_type;
 
-        // 印刷標準字体に置き換え
+        // Replace with standard print fonts
         flags_base = p.stdef.flags.contains(DefStyle.STYLE_FLAGS.STYLE_F_REPLACE_PRINT) ? FONT_DRAW_F_PRINT : 0;
 
         //
         for (int i = 0; i < p.list_char.size(); i++) {
             CharItem pi = p.list_char.get(i);
-            CharItem next = i + 1 < p.list_char.size() - 1 ? p.list_char.get(i + 1) : null;
+            CharItem next = i + 1 < p.list_char.size() ? p.list_char.get(i + 1) : null;
 
             if (pi.x < 0) break;
-            if (pi.x >= p.pageW) continue; // 前ページの折り返し前部分はスキップ
+            if (pi.x >= p.pageW) continue; // Skip the part before wrapping on the previous page
 
             x = xtop + pi.x;
             y = ytop + pi.y + pi.padding;
@@ -174,26 +176,20 @@ class LayoutDraw {
 
             fontno = charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_BOLD) ? 1 : 0;
 
-            // 文字
+            // Character
             if (pi.chartype == PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_HORZ) {
-                // [縦中横]
+                // [Horizontal within vertical]
                 img.setFont(font[fontno]);
                 img.setColor(col);
-                img.drawString(Arrays.toString(pi.horzchar), x + (fonth[0] - pi.width) / 2, y); // pi.horzcnt
+                img.drawString(new String(pi.horzchar, 0, pi.horzcnt), x + (fonth[0] - pi.width) / 2, y + fonth[fontno]);
             } else {
-                // [通常 or 横組み]
+                // [Normal or horizontal layout]
 
-                // フラグ
-                flags = flags_base;
-
-                if (pi.chartype == PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_ROTATE)
-                    flags |= FONT_DRAW_F_ROTATE;
-
-                // 文字
+                // Character
                 if (fdash_to_line
-                        && (pi.code == 0x2015 || pi.code == 0x2500) // 全角ダッシュと罫線
+                        && (pi.code == 0x2015 || pi.code == 0x2500) // em dash and box drawing character
                         && pi.chartype == PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_NORMAL) {
-                    // 横線文字を直線にして描画
+                    // Draw horizontal line character as a straight line
 
                     n1 = pi.height;
 
@@ -201,30 +197,28 @@ class LayoutDraw {
                             && (next.code == 0x2015 || next.code == 0x2500)
                             && next.chartype == CHARITEM_TYPE_NORMAL
                             && !next.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP))
-                        // 次の文字も横線なら、字間分を加算
+                        // If next character is also a horizontal line, add character space
                         n1 += p.stdef.char_space;
 
                     img.setColor(p.pixcol_text);
                     img.drawLine(x + (fonth[0] >> 1), y, x + (fonth[0] >> 1), y + n1);
                 } else {
-                    // 通常
+                    // Normal
                     img.setFont(font[fontno]);
                     img.setColor(col);
-                    drawStringV(img, String.valueOf(pi.code), x, y); // flags
+                    drawStringV(img, new String(Character.toChars(pi.code)), x, y, pi.chartype == PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_ROTATE);
                 }
 
-                // 濁点/半濁点
+                // Dakuten/Handakuten
 
-                if (charflags.containsAll(EnumSet.of(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN, PvLayout.CHARITEM_F.CHARITEM_F_HANDAKUTEN))) {
-                    if (dakuten_type.ordinal() < DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE.ordinal())
-                        // そのまま
-                        c = charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? '゛' : '゜';
-                    else
-                        // 結合文字
-                        c = charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? 0x3099 : 0x309a;
+                if (charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) || charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_HANDAKUTEN)) {
+                    int c = dakuten_type.ordinal() < DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE.ordinal() ?
+                            (charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? '゛' : '゜') :
+                            (charflags.contains(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN) ? 0x3099 : 0x309a);
 
-                    // 位置
-                    n1 = n2 = 0;
+                    // Position
+                    n1 = 0;
+                    int n2 = 0;
 
                     if (dakuten_type == DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_NORMAL_HORZ
                             || dakuten_type == DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_HORZ)
@@ -232,29 +226,38 @@ class LayoutDraw {
                     else if (dakuten_type == DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_NORMAL_VERT
                             || dakuten_type == DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_VERT) {
                         n2 = -fonth[fontno];
-                        flags |= FONT_DRAW_F_DAKUTEN_VERT;
                     }
 
                     img.setFont(font[fontno]);
                     img.setColor(col);
-                    img.drawString(String.valueOf(c), x + n1, y + n2); // flags
+                    img.drawString(String.valueOf((char) c), x + n1, y + n2 + fonth[fontno]);
                 }
             }
 
-            // 傍点
+            // Emphasis dot
 
             if (pi.bouten != 0) {
                 img.setFont(p.font_kenten);
                 img.setColor(col);
-                img.drawString(String.valueOf(g_bouten_char[pi.bouten - 1]), x + fonth[fontno], y + (pi.height - p.fontkenten_h) / 2);
+                img.drawString(String.valueOf(g_bouten_char[pi.bouten - 1]), x + fonth[fontno], y + (pi.height - p.fontkenten_h) / 2 + p.fontkenten_h);
             }
         }
     }
 
-    private static void drawStringV(Graphics2D img, String code, int x, int y) {
+    private static void drawStringV(Graphics2D img, String s, int x, int y, boolean rotate) {
+        int ascent = img.getFontMetrics().getAscent();
+        if (rotate) {
+            img.translate(x + ascent, y);
+            img.rotate(Math.PI / 2);
+            img.drawString(s, 0, 0);
+            img.rotate(-Math.PI / 2);
+            img.translate(-(x + ascent), -y);
+        } else {
+            img.drawString(s, x, y + ascent);
+        }
     }
 
-    /* ルビ描画 */
+    /* Draw ruby */
     private static void _draw_ruby(LayoutWork p, int xtop, int ytop, int pagepos) {
         RubyItem pi;
         CharItem pichar;
@@ -262,7 +265,7 @@ class LayoutDraw {
         int x, y, addx, rlen, pad, padtop, pad2 = 0, n, overh, last_x, last_y;
         Color col;
 
-        // 文字幅分を加算
+        // Add character width
         xtop += p.fontmain_h;
 
         font = p.font_ruby;
@@ -270,97 +273,97 @@ class LayoutDraw {
         overh = p.fontruby_h / 2;
         last_x = last_y = -1;
 
-        for (int i = 0; i < p.list_ruby.size(); i++) {
-            pi = p.list_ruby.get(i);
-            // 次ページへの折り返し
+        for (int ri = 0; ri < p.list_ruby.size(); ri++) {
+            pi = p.list_ruby.get(ri);
+            // Wrap to next page
             if (pi.x < 0) break;
 
             x = pi.x;
             y = pi.y;
             rlen = pi.rubylen;
 
-            // 前のルビが折り返し後、現在のルビ先頭を超えている場合は、続きから
+            // If the previous ruby exceeds the start of the current ruby after wrapping, continue from there
 
             if (x == last_x && y < last_y)
                 y = last_y;
 
-            // 親文字列の先頭
+            // Head of parent string
             pichar = pi.char_top;
 
-            // 傍線がある場合は x+2
+            // x+2 if there is an emphasis line
             addx = pichar.bousen != DefStyle.BOUSEN_TYPE.BOUSEN_TYPE_NONE ? 2 : 0;
 
-            // ルビ余白
+            // Ruby padding
             pad = pi.char_h - pi.ruby_h;
 
             if (pi.char_h == RUBYITEM_CHARH_NO_PADDING) {
-                // 親文字列先頭から、余白なし
+                // From the head of parent string, no padding
                 padtop = 0;
                 pad2 = 0;
             } else if (rlen == 1)
-                // ルビが1文字の場合
+                // If ruby is 1 character
                 padtop = pad / 2;
             else {
-                // ルビが2文字以上の場合
+                // If ruby is 2 or more characters
                 padtop = pad / (rlen * 2);
                 pad2 = pad - padtop * 2;
                 pad = 0;
             }
 
-            // 各ルビ文字
-            //  :基本的に親文字列に合わせて描画するが、ルビの上端が親文字列の範囲内にあれば、
-            //  :下ははみ出す場合もある。
-            //  :また、ルビのない文字にかかった場合も、以降の本文文字は位置合わせの対象となる。
-            for (i = 0; i < rlen; i++) {
-                // 余白追加
+            // Each ruby character
+            for (int i = 0; i < rlen; i++) {
+                // Add padding
                 if (i == 0)
                     y += padtop;
                 else if (pad2 != 0) {
-                    // ルビ2文字以上の場合、一定間隔の値では、ルビ数が多いと等間隔にならないため、
-                    // 位置に応じて余白幅を計算。
-                    // pad = 前回の余白位置, n = 現在のルビの余白位置
+                    // If ruby is 2 or more characters, fixed interval values won't result in equal spacing if there are many characters,
+                    // so calculate padding width based on position.
+                    // pad = previous padding position, n = current ruby padding position
                     n = (int) ((double) i / (rlen - 1) * pad2 + 0.5);
                     y += n - pad;
                     pad = n;
                 }
 
-                // 現在の親文字を超える場合、次の親文字へ
-                //  : 最後のルビの場合は、親の下端 -1 px の位置でも描画
-                //  : それ以外は、ルビの半分の高さまではみ出し可能
+                // If it exceeds the current parent character, go to the next parent character
+                //  : For the last ruby, draw even at parent's bottom -1 px
+                //  : Otherwise, it can protrude up to half the height of the ruby
                 n = (i == rlen - 1) ? 0 : overh;
 
                 if (pichar != null && y >= pichar.y + pichar.height - n) {
-
-                    for (int j = i + 1; j < p.list_ruby.size(); j++) {
-                        pichar = p.list_char.get(j);
-                        if (pichar.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP)
-                                || y <= pichar.y + pichar.height - pichar.height / 4)
-                            break;
+                    int charIdx = p.list_char.indexOf(pichar);
+                    if (charIdx != -1) {
+                        for (int j = charIdx + 1; j < p.list_char.size(); j++) {
+                            pichar = p.list_char.get(j);
+                            if (pichar.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP)
+                                    || y <= pichar.y + pichar.height - pichar.height / 4)
+                                break;
+                        }
                     }
 
-                    // 次が折り返しの場合、親文字に合わせてルビも折り返し
+                    // If next is wrapping, ruby also wraps according to parent character
                     if (pichar != null && pichar.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP)) {
                         x -= p.line_width;
                         y = p.jisage_wrap_y;
 
-                        // 見開き右ページの終端行の場合、左ページ位置へ
+                        // If it's the last line of the right page of a spread, move to left page position
 
                         if (pagepos == 0 && x < 0)
                             x -= p.stdef.page_space;
                     }
                 }
 
-                // ルビ描画
-                //  前ページからの折り返しの文字が存在する場合があるため、
-                //  x の範囲は1文字ずつ判定する (x は本文文字の位置)
+                // Draw ruby
+                //  Because characters wrapped from the previous page may exist,
+                //  judge x range character by character (x is position of body character)
                 if (x >= 0 && x < p.pageW) {
                     p.img.setFont(font);
                     p.img.setColor(col);
-                    drawStringV(p.img, pi.rubytxt + i, x + xtop + addx, y + ytop); // FONT_DRAW_F_RUBY
-                    y += 1;
+                    String s = String.valueOf(pi.rubytxt.charAt(i));
+                    drawStringV(p.img, s, x + xtop + addx, y + ytop, false);
+                    y += mFontGetVertHeight(p.img, font, s).height;
                 } else {
-                    // 前ページからの折り返しの位置の場合、高さのみ加算
-                    y += mFontGetVertHeight(p.img, font, pi.rubytxt + i).height; // FONT_DRAW_F_RUBY
+                    // In case of position wrapped from the previous page, only add height
+                    y += mFontGetVertHeight(p.img, font, String.valueOf(pi.rubytxt.charAt(i))).height;
                 }
             }
 
@@ -369,9 +372,9 @@ class LayoutDraw {
         }
     }
 
-    /** 傍線を描画 */
+    /** Draw emphasis line */
     private static void _draw_bousen(LayoutWork p, int xtop, int ytop) {
-        CharItem pi = null, top, next;
+        CharItem pi, next;
         int h, x, y, charspace;
         DefStyle.BOUSEN_TYPE type;
         Color col;
@@ -381,95 +384,84 @@ class LayoutDraw {
         charspace = p.stdef.char_space;
 
         for (int i = 0; i < p.list_char.size(); i++) {
-            top = p.list_char.get(i);
-            // 傍線開始位置
+            pi = p.list_char.get(i);
+            if (pi.bousen == DefStyle.BOUSEN_TYPE.BOUSEN_TYPE_NONE) continue;
 
-            int j;
-            for (j = i; j < p.list_char.size(); j++) {
-                pi = p.list_char.get(j);
-                if (pi.bousen != DefStyle.BOUSEN_TYPE.BOUSEN_TYPE_NONE) {
-                    break;
-                }
-            }
-
-            if (j == p.list_char.size()) break;
-
-            // 傍線終了まで描画
+            // Draw until emphasis line ends
 
             x = pi.x;
             y = pi.y;
             h = 0;
             type = pi.bousen;
 
-            for (; pi != null && pi.bousen == type; pi = next) {
-                next = p.list_char.listIterator().next();
+            int j;
+            for (j = i; j < p.list_char.size(); j++) {
+                pi = p.list_char.get(j);
+                if (pi.bousen != type || (j > i && pi.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP))) break;
 
                 h += pi.height;
-
-                if (next == null || (next.bousen != type || next.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP))) {
-                    // 傍線の終端、または描画上の1行の終端時にまとめて描画
-
-                    if (x >= 0 && x < p.pageW) {
-                        _draw_pixbuf_bousen(p.img, x + p.fontmain_h + xtop, y + ytop, h, col, type);
+                if (j < p.list_char.size() - 1) {
+                    next = p.list_char.get(j + 1);
+                    if (next.bousen == type && !next.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP)) {
+                        h += charspace;
                     }
-
-                    if (next != null) {
-                        x = next.x;
-                        y = next.y;
-                    }
-
-                    h = 0;
-                } else
-                    h += charspace;
+                }
             }
+
+            if (x >= 0 && x < p.pageW) {
+                // Draw collectively at the end of emphasis line or end of one line on drawing
+                _draw_pixbuf_bousen(p.img, x + p.fontmain_h + xtop, y + ytop, h, col, type);
+            }
+
+            i = j - 1; // Skip processed characters
         }
     }
 
-    /** 1行分を描画 */
+    /** Draw 1 line */
     static void layout_draw_line(LayoutWork p, int pagepos) {
         int xtop, ytop;
 
         xtop = p.stdef.margin.left;
         ytop = p.stdef.margin.top;
 
-        // 見開きで右ページの場合
+        // If right page in spread view
         if (pagepos == 0)
             xtop += p.stdef.page_space + p.pageW;
 
-        // 本文
+        // Body text
         _draw_text(p, xtop, ytop);
 
-        // 傍線
+        // Emphasis line
         _draw_bousen(p, xtop, ytop);
 
-        // ルビ
+        // Ruby
         _draw_ruby(p, xtop, ytop, pagepos);
     }
 
 
     /**
-     * ページ情報を描画
+     * Draw page information
      * <p>
-     * pos: [-1] 単ページ [0] 右側 [1] 左側
+     * pos: [-1] Single page [0] Right side [1] Left side
      */
     static void layout_draw_pageinfo(LayoutWork p, int pageno, int pos) {
         String m;
         int x;
 
         if (pos == -1 || pos == 0)
-            // 右側
+            // Right side
             m = String.format("%d/%d", pageno + 1, p.pagenum);
         else
-            // 左
+            // Left
             m = String.format("%d", pageno + 1);
 
         //
 
         if (pos == -1 || pos == 1)
-            // 単ページまたは左側
+            // Single page or left side
             x = 4;
         else {
-            // 見開きの右側
+            // Right side of spread
 
             x = p.stdef.margin.left + p.stdef.margin.right
                     + p.pageW * 2 + p.stdef.page_space
@@ -481,7 +473,7 @@ class LayoutDraw {
         p.img.drawString(m, x, 4);
     }
 
-    /** 画像読み込み */
+    /** Load image */
     private static BufferedImage _load_image(String fname, boolean fzip) throws IOException {
         InputStream open;
         BufferedImage img;
@@ -495,6 +487,7 @@ class LayoutDraw {
 
             open = zf.getInputStream(oe.get());
         } else {
+            // Normal file: base path is text file path
             open = Files.newInputStream(Paths.get(fname));
         }
 
@@ -503,27 +496,27 @@ class LayoutDraw {
         return img;
     }
 
-    /** 挿絵描画 */
+    /** Draw picture */
     static void layout_draw_picture(LayoutWork p, int pagepos) throws IOException {
         String str;
         BufferedImage img;
         Rectangle box = new Rectangle();
         int x, y;
 
-        // ファイル名
+        // Filename
         if (gdat.is_file_zip) {
             // ZIP
             str = String.valueOf(p.pagestate.picture + 2);
         } else {
-            // 通常ファイル:テキストファイルのパスを基点とする
+            // Normal file: Base path is the text file's path
             str = gdat.strFileName;
             str += String.valueOf(p.pagestate.picture + 2);
         }
 
-        // 読み込み
+        // Load
         img = _load_image(str, gdat.is_file_zip);
 
-        // 位置・サイズ
+        // Position/Size
         box.x = box.y = 0;
         box.width = img.getWidth();
         box.height = img.getHeight();
@@ -536,11 +529,30 @@ class LayoutDraw {
         if (pagepos == 0)
             x += p.stdef.page_space + p.pageW;
 
-        // 描画
+        // Draw
         p.img.drawImage(img, x, y, box.width, box.height, null);
     }
 
     private static void mBoxResize_keepaspect(Rectangle box, int pageW, int pageH, boolean b) {
-        // TODO
+        double sx, sy, s;
+
+        if (box.width == 0 || box.height == 0) return;
+
+        if (!b) {
+            // Do not enlarge
+
+            if (box.width > pageW) box.width = pageW;
+            if (box.height > pageH) box.height = pageH;
+        } else {
+            sx = (double) pageW / box.width;
+            sy = (double) pageH / box.height;
+            s = Math.min(sx, sy);
+
+            box.width = (int) (box.width * s);
+            box.height = (int) (box.height * s);
+        }
+
+        box.x = (pageW - box.width) / 2;
+        box.y = (pageH - box.height) / 2;
     }
 }

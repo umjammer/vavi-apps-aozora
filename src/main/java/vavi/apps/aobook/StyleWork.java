@@ -35,7 +35,7 @@ import static vavi.apps.aobook.Layout.gdat;
 import static vavi.apps.aobook.Layout.mFontGetVertHeight;
 
 
-/** 現在使用中のスタイル情報 */
+/** Style information currently in use */
 class StyleWork {
 
     StyleDef b;
@@ -46,23 +46,25 @@ class StyleWork {
     Font font_info;
     BufferedImage img_bkgnd;
 
-    // StyleWork (現在のスタイルデータ)
-    int FONT_CREATE_F_RUBY = 10;
+    // StyleWork (Current style data)
+    private final int fontCreateFRuby = 10;
 
-    /** フォントを作成 */
+    /** Create fonts */
     void StyleWork_createFont() {
         this.font_main = new Font(this.b.str_fontmain, Font.PLAIN, 16);
-        this.font_ruby = new Font(this.b.str_fontruby, Font.PLAIN, FONT_CREATE_F_RUBY);
+        this.font_ruby = new Font(this.b.str_fontruby, Font.PLAIN, fontCreateFRuby);
         this.font_bold = new Font(this.b.str_fontbold, Font.PLAIN, 16);
 
-        // ページ情報用は、スレッド中に使わないため、GUI 用を使う
-        this.font_info = new Font(Font.DIALOG, Font.PLAIN, FONT_CREATE_F_RUBY);
+        // For page info, use GUI font because it's not used in thread
+        this.font_info = new Font(Font.DIALOG, Font.PLAIN, fontCreateFRuby);
 
-        // 圏点用フォントのサイズセット (ルビと同じ)
-        gdat.font_kenten = new Font(this.b.str_fontruby, Font.PLAIN, FONT_CREATE_F_RUBY);
+        // Set kenten font size (same as ruby)
+        if (gdat != null) {
+            gdat.font_kenten = new Font(this.b.str_fontruby, Font.PLAIN, fontCreateFRuby);
+        }
     }
 
-    /** 画面サイズ取得 */
+    /** Get screen size */
     void StyleWork_getScreenSize(Dimension dst) {
         int fonth, linesp;
 
@@ -78,59 +80,59 @@ class StyleWork {
                 + this.b.margin.top + this.b.margin.bottom;
     }
 
-    /** 指定スタイルを読み込み */
+    /** Read specified style */
     void StyleWork_readStyle(final String[] name) throws IOException {
+        // Initialize b if null
+        if (this.b == null) {
+            this.b = new StyleDef(name != null && name.length > 0 && name[0] != null ? name[0] : "default");
+        }
 
-        // スタイル読み込み
+        // Read style
         Style.StyleConf_readStyle(this.b, name);
 
-        // 各作成
+        // Create each component
         this.StyleWork_createFont();
 
         this.img_bkgnd = Style._load_image(this.b.str_bkgndimg);
     }
 
     /**
-     * 現在のスタイルに値を適用
+     * Apply values to current style
      * <p>
      *
-     * @return 0: 更新なし, 1: 画面のみ更新, 2: 再レイアウト
+     * @return 0: No update, 1: Screen update only, 2: Relayout
      */
     int StyleWork_apply(StyleDef ps) {
-        boolean change_font, change_chars, change_bkgndimg;
-        EnumSet<DefStyle.STYLE_FLAGS> f1, f2;
-        int ret;
-
-        // フォントが変わったか
-        change_font = (!ps.str_fontmain.equals(this.b.str_fontmain) ||
+        // Did font change?
+        boolean change_font = (!ps.str_fontmain.equals(this.b.str_fontmain) ||
                 !ps.str_fontruby.equals(this.b.str_fontruby) ||
                 !ps.str_fontbold.equals(this.b.str_fontbold) ||
                 !ps.str_fontinfo.equals(this.b.str_fontinfo));
 
-        // 文字列挙が変わったか
-        change_chars = (Style._ischange_chars(ps.u32_nohead, this.b.u32_nohead) ||
+        // Did character enumeration change?
+        boolean change_chars = (Style._ischange_chars(ps.u32_nohead, this.b.u32_nohead) ||
                 Style._ischange_chars(ps.u32_nobottom, this.b.u32_nobottom) ||
                 Style._ischange_chars(ps.u32_hanging, this.b.u32_hanging) ||
                 Style._ischange_chars(ps.u32_nosep, this.b.u32_nosep) ||
                 Style._ischange_chars(ps.u32_replace, this.b.u32_replace));
 
-        // 背景画像が変わったか
-        change_bkgndimg = !ps.str_bkgndimg.equals(this.b.str_bkgndimg);
+        // Did background image change?
+        boolean change_bkgndimg = !ps.str_bkgndimg.equals(this.b.str_bkgndimg);
 
-        // 更新判定
-        f1 = EnumSet.of(DefStyle.STYLE_FLAGS.STYLE_F_HANGING, DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE);
-        f2 = EnumSet.of(DefStyle.STYLE_FLAGS.STYLE_F_BKGND_TILE, DefStyle.STYLE_FLAGS.STYLE_F_DASH_TO_LINE, DefStyle.STYLE_FLAGS.STYLE_F_REPLACE_PRINT);
+        // Update judgment
+        EnumSet<DefStyle.STYLE_FLAGS> f1 = EnumSet.of(DefStyle.STYLE_FLAGS.STYLE_F_HANGING, DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE);
+        EnumSet<DefStyle.STYLE_FLAGS> f2 = EnumSet.of(DefStyle.STYLE_FLAGS.STYLE_F_BKGND_TILE, DefStyle.STYLE_FLAGS.STYLE_F_DASH_TO_LINE, DefStyle.STYLE_FLAGS.STYLE_F_REPLACE_PRINT);
 
+        int ret;
         if (ps.pages != this.b.pages ||
                 ps.chars != this.b.chars ||
                 ps.lines != this.b.lines ||
                 ps.flags.containsAll(f1) != this.b.flags.containsAll(f1) ||
                 change_font ||
-                change_chars)
-            // 再レイアウト
+                change_chars) {
+            // Relayout
             ret = 2;
-
-        else if (ps.char_space != this.b.char_space ||
+        } else if (ps.char_space != this.b.char_space ||
                 ps.line_space != this.b.line_space ||
                 ps.page_space != this.b.page_space ||
                 ps.flags.containsAll(f2) != this.b.flags.containsAll(f2) ||
@@ -139,24 +141,25 @@ class StyleWork {
                 ps.margin.top != this.b.margin.top ||
                 ps.margin.right != this.b.margin.right ||
                 ps.margin.bottom != this.b.margin.bottom ||
-                ps.col_text != this.b.col_text ||
-                ps.col_ruby != this.b.col_ruby ||
-                ps.col_info != this.b.col_info ||
-                ps.col_bkgnd != this.b.col_bkgnd ||
-                change_bkgndimg)
-            // 画面更新のみ
+                !ps.col_text.equals(this.b.col_text) ||
+                !ps.col_ruby.equals(this.b.col_ruby) ||
+                !ps.col_info.equals(this.b.col_info) ||
+                !ps.col_bkgnd.equals(this.b.col_bkgnd) ||
+                change_bkgndimg) {
+            // Screen update only
             ret = 1;
-        else
+        } else {
             ret = 0;
+        }
 
-        // データコピー
+        // Copy data
         this.b.StyleDef_copy(ps);
 
-        // フォント再作成
+        // Recreate font
         if (change_font)
             this.StyleWork_createFont();
 
-        // 背景画像読み込み
+        // Load background image
         if (change_bkgndimg) {
             try {
                 this.img_bkgnd = Style._load_image(ps.str_bkgndimg);

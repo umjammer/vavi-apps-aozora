@@ -30,66 +30,65 @@ import java.util.EnumSet;
 import static vavi.apps.aobook.DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_HORZ;
 
 
-/** スタイル定義 */
+/** Style Definition */
 
 class StyleDef {
 
-    /** 文字数 */
+    public StyleDef(String name) {
+        StyleDef_setDefault(name);
+    }
+
+    /** Number of characters */
     int chars;
-    /** 行数 */
+    /** Number of lines */
     int lines;
-    /** 字間 (px) */
+    /** Character spacing (px) */
     int char_space;
-    /** 行間 (フォント高さに対する%) */
+    /** Line spacing (% of font height) */
     int line_space;
-    /** ページ間の空白 */
+    /** Spacing between pages */
     int page_space;
     EnumSet<DefStyle.STYLE_FLAGS> flags;
-    /** ページ数 (1or2) */
+    /** Number of pages (1or2) */
     int pages;
-    /** 濁点/半濁点の処理 */
+    /** Dakuten/Handakuten processing */
     DefStyle.STYLE_DAKUTEN dakuten_type;
-    /** 画面余白 */
-    Insets margin;
-    /** 本文文字色 */
+    /** Screen margin */
+    Insets margin = new Insets(0, 0, 0, 0);
+    /** Body text color */
     Color col_text;
-    /** ルビ文字色 */
+    /** Ruby text color */
     Color col_ruby;
-    /** ページ情報色 */
+    /** Page info color */
     Color col_info;
-    /** 背景色 */
+    /** Background color */
     Color col_bkgnd;
-    /** 行頭禁則 (0 でなし。1 でデフォルト) */
+    /** Line head restriction (0: None, 1: Default) */
     int u32_nohead;
-    /** 行末禁則 */
+    /** Line end restriction */
     int u32_nobottom;
-    /** ぶら下げ対象文字 */
+    /** Characters subject to hanging */
     int u32_hanging;
-    /** 分割禁止 */
+    /** Separation prohibited */
     int u32_nosep;
-    /** 置換 */
+    /** Replacement */
     int u32_replace;
-    /** スタイル名 */
+    /** Style name */
     String str_stylename;
-    /** 本文フォント */
+    /** Body font */
     String str_fontmain;
-    /** ルビフォント */
+    /** Ruby font */
     String str_fontruby;
-    /** 太字フォント */
+    /** Bold font */
     String str_fontbold;
-    /** ページ情報フォント */
+    /** Page info font */
     String str_fontinfo;
-    /** 背景画像ファイル名 */
-    String str_bkgndimg;
+    /** Background image file name */
+    String str_bkgndimg = "tmp/Tate.iconset/icon_128x128.png";
 
-    /** 設定をコピー */
+    /** Copy settings */
     void StyleDef_copy(StyleDef dst) {
-        int[] ptr_src = new int[5];
-        int[] ptr_dst = new int[5];
-        int ppsrc;
-        int i;
-
-        // 値をコピー
+        // Copy values
 
         dst.chars = this.chars;
         dst.lines = this.lines;
@@ -108,18 +107,13 @@ class StyleDef {
         dst.col_info = this.col_info;
         dst.col_bkgnd = this.col_bkgnd;
 
-        // 文字列挙
+        // Character enumeration
+        int[] ptr_dst = new int[5];
         dst.StyleDef_getCharsArray(ptr_dst);
+        int[] ptr_src = new int[5];
         this.StyleDef_getCharsArray(ptr_src);
 
-        for (i = 0; i < 5; i++) {
-            ppsrc = ptr_src[i];
-
-            if (ppsrc != 0 && ppsrc != DefStyle.STYLE_CHARS_DEFAULT)
-                (ptr_dst[i]) = ppsrc;
-            else
-                (ptr_dst[i]) = ppsrc;
-        }
+        System.arraycopy(ptr_src, 0, ptr_dst, 0, 5);
 
         // String
 
@@ -132,24 +126,9 @@ class StyleDef {
     }
 
     /**
-     * 文字列挙の文字列をセット (UTF-8 から)
+     * Get default string for character enumeration
      * <p>
-     * text: 1 でデフォルト
-     */
-    void StyleDef_setCharsText(String ppdst, final byte[] text) {
-        // セット
-        if (text[0] == 1)
-            ppdst = String.valueOf(DefStyle.STYLE_CHARS_DEFAULT);
-	    else if (text != null || text[0] == 0)
-            ppdst = null;
-        else
-            ppdst = new String(text);
-    }
-
-    /**
-     * 文字列挙のデフォルト文字列を取得
-     * <p>
-     * no: 0〜3
+     * no: 0~3
      */
     String StyleDef_getCharsDefault(int no) {
         return switch (no) {
@@ -160,7 +139,7 @@ class StyleDef {
         };
     }
 
-    // レイアウト時用の文字列挙作成
+    // Create character enumeration for layout
 
     String StyleDef_createLayoutChars_nohead() {
         return Style._create_layout_chars(this.u32_nohead, Style.g_u32_nohead);
@@ -179,12 +158,12 @@ class StyleDef {
     }
 
     /**
-     * レイアウト時用の置き換え文字列作成
+     * Create replacement string for layout
      * <p>
-     * 半角空白は除外。対になっていないものは除去。
-     * 置き換え元の小さい順に並べる。
+     * Exclude half-width spaces. Remove unpaired ones.
+     * Sort by source character in ascending order.
      * <p>
-     * len: 2文字1組での数
+     * len: Count of pairs (2 characters per set)
      */
     String StyleDef_createLayoutChars_replace() {
         StringBuilder buf;
@@ -206,7 +185,7 @@ class StyleDef {
         len = 0;
 
         while (true) {
-            // 置き換え元と置き換え先の文字
+            // Source and destination characters
 
             csrc = cdst = 0;
 
@@ -225,11 +204,11 @@ class StyleDef {
 
             if (csrc == 0 || cdst == 0) break;
 
-            // 挿入位置
+            // Insertion position
 
             for (pins = 0; pins != 0 && csrc > pins; pins += 2) ;
 
-            // 挿入位置以降をずらす
+            // Shift after insertion position
 
             if (buf.charAt(pins) != 0)
             {
@@ -239,7 +218,7 @@ class StyleDef {
                 }
             }
 
-            // セット
+            // Set
 
             buf.insert(pins + 0, csrc);
             buf.insert(pins + 1, cdst);
@@ -251,7 +230,7 @@ class StyleDef {
         return buf.toString();
     }
 
-    /** 文字列挙のポインタの配列をセット */
+    /** Set array of pointers to character enumeration */
     void StyleDef_getCharsArray(int[] dst) {
         dst[0] = this.u32_nohead;
         dst[1] = this.u32_nobottom;
@@ -261,15 +240,15 @@ class StyleDef {
     }
 
     /**
-     * デフォルト設定をセット
+     * Set default settings
      * <p>
-     * name: スタイル名
+     * name: Style name
      */
     void StyleDef_setDefault(final String name) {
         this.chars = 32;
         this.lines = 15;
-        this.char_space = 0;
-        this.line_space = 80;
+        this.char_space = 2;
+        this.line_space = 100;
         this.page_space = 30;
         this.flags = EnumSet.of(DefStyle.STYLE_FLAGS.STYLE_F_HANGING, DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE);
 

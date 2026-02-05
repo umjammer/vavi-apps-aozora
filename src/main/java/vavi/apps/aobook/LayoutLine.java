@@ -36,127 +36,130 @@ import static vavi.apps.aobook.PvLayout.CHARITEM_F.CHARITEM_F_BOLD;
 
 
 /**
- * レイアウト
+ * Layout
  * <p>
- * 内部データから1行分のレイアウト用データ取得
+ * Get layout data for one line from internal data
  */
 class LayoutLine {
 
+    private LayoutLine() {
+    }
+
     /**
-     * 注記のコマンド
-     * START+1 = END にすること
+     * Annotation commands
+     * START+1 = END must be satisfied
      */
     enum COMMAND {
         COMMAND_NONE,
-        /** 挿絵 (変換中のみ) */
+        /** Picture (during conversion only) */
         COMMAND_PICTURE,
-        /** 改丁 */
+        /** New signature */
         COMMAND_KAITYO,
-        /** 改ページ */
+        /** New page */
         COMMAND_KAIPAGE,
-        /** 改見開き */
+        /** New spread */
         COMMAND_KAIMIHIRAKI,
-        /** 左右中央 */
+        /** Center horizontally */
         COMMAND_PAGE_CENTER,
-        /** 見出し [val1=type] */
+        /** Title [val1=type] */
         COMMAND_TITLE_START,
         COMMAND_TITLE_END,
-        /** n字下げ (1行) [val1=字下げ数, val2=折り返し下げ数] */
+        /** n-character indent (1 line) [val1=indent count, val2=wrap indent count] */
         COMMAND_JISAGE_LINE,
-        /** n字下げ */
+        /** n-character indent */
         COMMAND_JISAGE_START,
-        /** 字下げ終了(共通) */
+        /** Indent end (common) */
         COMMAND_JISAGE_END,
-        /** n字下げ、折り返してn字下げ */
+        /** n-character indent, wrap and n-character indent */
         COMMAND_JISAGE_WRAP_START,
-        /** 改行天付き、折り返してn字下げ */
+        /** Newline at top, wrap and n-character indent */
         COMMAND_JISAGE_TEN_WRAP_START,
-        /** 地付き/地からn字上げ (1行) [val1=地上げ数 (1=地付き、2〜=n字上げ)] */
+        /** Bottom aligned / n-character raise from bottom (1 line) [val1=raise count (1=bottom aligned, 2~=n-character raise)] */
         COMMAND_JIAGE_LINE,
-        /** 開始 */
+        /** Start */
         COMMAND_JIAGE_START,
-        /** 終了 */
+        /** End */
         COMMAND_JIAGE_END,
-        /** 太字 */
+        /** Bold */
         COMMAND_BOLD_START,
         COMMAND_BOLD_END,
-        /** 縦中横 */
+        /** Horizontal within vertical */
         COMMAND_TATETYUYOKO_START,
         COMMAND_TATETYUYOKO_END,
-        /** 横組み */
+        /** Horizontal layout */
         COMMAND_YOKOGUMI_START,
         COMMAND_YOKOGUMI_END,
-        /** 傍点 [val1=type] */
+        /** Emphasis dot [val1=type] */
         COMMAND_BOUTEN_START,
         COMMAND_BOUTEN_END,
-        /** 傍線 [val1=type] */
+        /** Emphasis line [val1=type] */
         COMMAND_BOUSEN_START,
         COMMAND_BOUSEN_END
     }
 
-    // コマンド処理
+    // Command processing
 
     /**
-     * 値なしのコマンド処理
+     * Processing commands without values
      * <p>
-     * cmd: コマンド番号
-     * return: ページ関連のコマンドなら、コマンド番号。ほかは -1。
+     * cmd: Command number
+     * return: Command number if page-related command. Otherwise -1.
      */
     private static COMMAND _proc_command_noval(LayoutWork p, COMMAND cmd) {
         PvLayout.LineState lst = p.linestate;
         PvLayout.BlockState bst = p.blockstate;
 
         switch (cmd) {
-        // 改ページ/改丁/改見開き
+        // New page/New signature/New spread
         case COMMAND_KAIPAGE:
         case COMMAND_KAITYO:
         case COMMAND_KAIMIHIRAKI:
             return cmd;
-        // 字下げ終わり [block]
+        // Indent end [block]
         case COMMAND_JISAGE_END:
             bst.jisage = bst.jisage_wrap = 0;
             break;
-        // 縦中横 [line]
+        // Horizontal within vertical [line]
         case COMMAND_TATETYUYOKO_START:
             lst.tatetyuyoko_num = 1;
             break;
         case COMMAND_TATETYUYOKO_END:
             lst.tatetyuyoko_num = 0;
             break;
-        // 横組み
+        // Horizontal layout
         case COMMAND_YOKOGUMI_START:
             bst.flags.add(PvLayout.BLOCKSTATE_F.BLOCKSTATE_F_YOKOGUMI);
             break;
         case COMMAND_YOKOGUMI_END:
             bst.flags.remove(PvLayout.BLOCKSTATE_F.BLOCKSTATE_F_YOKOGUMI);
             break;
-        // 太字
+        // Bold
         case COMMAND_BOLD_START:
             bst.flags.add(PvLayout.BLOCKSTATE_F.BLOCKSTATE_F_BOLD);
             break;
         case COMMAND_BOLD_END:
             bst.flags.remove(PvLayout.BLOCKSTATE_F.BLOCKSTATE_F_BOLD);
             break;
-        // 傍点終わり
+        // Emphasis dot end
         case COMMAND_BOUTEN_END:
             lst.bouten = 0;
             break;
-        // 傍線終わり
+        // Emphasis line end
         case COMMAND_BOUSEN_END:
             lst.bousen = DefStyle.BOUSEN_TYPE.BOUSEN_TYPE_NONE;
             break;
-        // 地付き/地上げ終わり
+        // Bottom aligned / raise end
         case COMMAND_JIAGE_END:
             bst.jiage = 0;
             break;
-        // 見出し終わり
+        // Title end
         case COMMAND_TITLE_END:
             bst.title = 0;
 
             if (p.plist_title != null)
                 LayoutSub.layout_append_titlelist(p);
             break;
-        // ページの左右中央
+        // Center horizontally
         case COMMAND_PAGE_CENTER:
             p.pagestate.fcenter = true;
             break;
@@ -165,7 +168,7 @@ class LayoutLine {
         return COMMAND.COMMAND_NONE;
     }
 
-    /** 値付きのコマンド処理 */
+    /** Processing commands with values */
     private static void _proc_command_val(LayoutWork p, String text, int[] pp) {
         int ps;
         COMMAND cmd;
@@ -182,42 +185,42 @@ class LayoutLine {
         pp[0] = ps + 3;
 
         switch (cmd) {
-        // 字下げ [line]
+        // Indent [line]
         case COMMAND_JISAGE_LINE:
             lst.jisage = val1;
             break;
-        // 字下げ [block]
+        // Indent [block]
         case COMMAND_JISAGE_START:
             bst.jisage = val1;
             bst.jisage_wrap = val1;
             break;
-        // 字下げ、折り返し
+        // Indent, wrap
         case COMMAND_JISAGE_WRAP_START:
             bst.jisage = val1;
             bst.jisage_wrap = val2;
             break;
-        // 字下げ、天付き・折り返し
+        // Indent, top aligned/wrap
         case COMMAND_JISAGE_TEN_WRAP_START:
             bst.jisage = 0;
             bst.jisage_wrap = val1;
             break;
-        // 傍点開始
+        // Emphasis dot start
         case COMMAND_BOUTEN_START:
             lst.bouten = val1;
             break;
-        // 傍線開始
+        // Emphasis line start
         case COMMAND_BOUSEN_START:
             lst.bousen = DefStyle.BOUSEN_TYPE.values()[val1];
             break;
-        // 地付き/地からn字上げ [line]
+        // Bottom aligned / n-character raise from bottom [line]
         case COMMAND_JIAGE_LINE:
             lst.jiage = val1;
             break;
-        // 地付き/地からn字上げ [block]
+        // Bottom aligned / n-character raise from bottom [block]
         case COMMAND_JIAGE_START:
             bst.jiage = val1;
             break;
-        // 見出し
+        // Title
         case COMMAND_TITLE_START:
             bst.title = val1;
             break;
@@ -225,9 +228,9 @@ class LayoutLine {
     }
 
     /**
-     * 挿絵処理
+     * Picture processing
      * <p>
-     * [uint16] 文字列長さ, UTF-8 ファイル名 (null 文字含む)
+     * [uint16] String length, UTF-8 filename (including null)
      */
     private static void _proc_picture(LayoutWork p, String text, int[] pp) {
         int ps;
@@ -242,12 +245,12 @@ class LayoutLine {
         pp[0] = ps + 2 + len;
     }
 
-    // ルビなし本文文字列追加
+    // Add normal text string without ruby
 
     /**
-     * [本文文字追加時] CharItem に、現在の注記状態を適用する
+     * [When adding body text] Apply current annotation state to CharItem
      * <p>
-     * [!] 縦中横の場合、2文字目以降は pi が削除される。
+     * [!] For horizontal within vertical, pi is deleted from the 2nd character onwards.
      */
     private static void _set_char_state(LayoutWork p, PvLayout.CharItem pi) {
         PvLayout.CharItem pitop;
@@ -255,54 +258,54 @@ class LayoutLine {
         PvLayout.LineState lst = p.linestate;
         int n;
 
-        // [block/line] 地付き/地上げ
+        // [block/line] Bottom aligned / Raise
 
         if (lst.jiage != 0 || bst.jiage != 0)
             pi.flags.add(PvLayout.CHARITEM_F.CHARITEM_F_JIAGE);
 
-        // [block] 太字
+        // [block] Bold
 
         if (bst.flags.contains(PvLayout.BLOCKSTATE_F.BLOCKSTATE_F_BOLD))
             pi.flags.add(CHARITEM_F_BOLD);
 
-        // [line] 傍点/傍線
+        // [line] Emphasis dot / Emphasis line
 
         pi.bouten = lst.bouten;
         pi.bousen = lst.bousen;
 
-        // 見出し文字列
-        //  :見出しが終わるまで、buf_title に文字を追加していく
-        //  :※最初のレイアウト時のみ
+        // Title string
+        //  :Add characters to buf_title until title ends
+        //  :※Only during initial layout
 
         if (bst.title != 0 && p.plist_title != null) {
-            // 最初の文字の場合、1byte目に見出しタイプをセット
+            // For the first character, set the title type in the 1st byte
             if (p.buf_title.length() == 0)
                 p.buf_title += bst.title;
 
-            // 1文字追加
+            // Add 1 character
             if (p.buf_title.length() <= 256 * 4)
                 p.buf_title += pi.code;
         }
 
-        // 文字の並べ方
+        // How to arrange characters
 
         if (bst.flags.contains(PvLayout.BLOCKSTATE_F.BLOCKSTATE_F_YOKOGUMI))
-            // [block] 横組み
+            // [block] Horizontal layout
             pi.chartype = PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_ROTATE;
         else if (lst.tatetyuyoko_num != 0) {
-            // [line] 縦中横
-            n = lst.tatetyuyoko_num; // +1 されている
+            // [line] Horizontal within vertical
+            n = lst.tatetyuyoko_num; // +1 added
 
             if (n < 4 && pi.code < 127) {
                 if (n == 1) {
-                    // 最初の文字
+                    // First character
                     pi.chartype = PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_HORZ;
                     pi.horzcnt = 1;
                     pi.horzchar[0] = (byte) pi.code;
 
                     lst.tatetyuyoko_top = pi;
                 } else {
-                    // 2〜3文字目は、先頭文字に結合して、CharItem 削除
+                    // 2nd to 3rd characters are combined into the first character, CharItem deleted
                     pitop = lst.tatetyuyoko_top;
 
                     pitop.horzcnt++;
@@ -317,10 +320,10 @@ class LayoutLine {
     }
 
     /**
-     * [本文文字追加時] 文字列追加後の調整
+     * [When adding body text] Adjustment after adding string
      * <p>
-     * top: 追加された先頭位置
-     * return: 実際に追加された文字数 (表示上での1文字)
+     * top: Added start position
+     * return: Actually added character count (1 character on display)
      */
     private static int _text_adjust(LayoutWork p, CharItem top) {
         CharItem pi, next, prev, third;
@@ -329,13 +332,13 @@ class LayoutLine {
 
         for (int i = 0; i < p.list_char.size(); i++) {
             pi = p.list_char.get(i);
-            prev = i >= 0 ?  p.list_char.get(i - 1) : null;
-            next = i < p.list_char.size() - 2 ? p.list_char.get(i + 1) : null;
+            prev = i > 0 ?  p.list_char.get(i - 1) : null;
+            next = i < p.list_char.size() - 1 ? p.list_char.get(i + 1) : null;
 
             c = pi.code;
             len++;
 
-            // 文字置き換え
+            // Replace character
 
             if (LayoutSub.layout_replace_char(p, c))
                 pi.code = c;
@@ -343,7 +346,7 @@ class LayoutLine {
             //
 
             if (c == '゛' || c == '゜') {
-                // 濁点/半濁点の場合、1文字にまとめる
+                // For dakuten/handakuten, combine into 1 character
 
                 if (prev != null && !prev.flags.containsAll(EnumSet.of(PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN, PvLayout.CHARITEM_F.CHARITEM_F_HANDAKUTEN))) {
                     prev.flags.add(c == '゛' ? PvLayout.CHARITEM_F.CHARITEM_F_DAKUTEN : PvLayout.CHARITEM_F.CHARITEM_F_HANDAKUTEN);
@@ -352,16 +355,16 @@ class LayoutLine {
                     len--;
                 }
             } else if (c == '／') {
-                // くの字点を置換え
+                // Replace kunojiten
 
                 if (next != null && next.code == '＼') {
-                    // 通常
+                    // Normal
 
                     pi.code = 0x3033;
                     next.code = 0x3035;
                 } else if (next != null && next.code == '″'
                         && p.list_char.get(i + 2) != null && p.list_char.get(i + 2).code == '＼') {
-                    // 濁点付き
+                    // With dakuten
 
                     third = (CharItem) p.list_char.get(i + 2);
 
@@ -379,16 +382,16 @@ class LayoutLine {
         return len;
     }
 
-    // 1行分取得
+    // Get 1 line
 
     /**
-     * ルビなしの本文文字列を追加
+     * Add normal text string without ruby
      * <p>
-     * [uint16] 文字数 [uint16 or uint32 x 文字数] 文字列
+     * [uint16] Length [uint16 or uint32 x Length] String
      * <p>
-     * is32bit: true で 32bit、false で 16bit 文字列
-     * ppchar: null 以外の場合、追加された先頭の文字データを返す
-     * return: 実際に追加された文字数
+     * is32bit: true for 32bit, false for 16bit string
+     * ppchar: If not null, returns the first character data added
+     * return: Actually added character count
      */
     private static int _append_text(LayoutWork p, String text, int[] pp, boolean is32bit, PvLayout.CharItem[] ppchar) {
         int ps;
@@ -401,54 +404,51 @@ class LayoutLine {
 
         charsize = (is32bit) ? 4 : 2;
 
-        // 文字数
+        // Length - read from text at position ps
+        len = text.charAt(ps);
+        ps += 1; // Simplified: assume length fits in one char
 
-        len = ps;
-        ps += 2;
+        // Next source position
+        pp[0] = ps + len;
 
-        // 次のソース位置
-
-        pp[0] = ps + charsize * len;
-
-        // 現在の終端位置
-
+        // Current end position
         pibottom = list.size() - 1;
 
-        // リストに1文字ずつ追加
-        // (縦中横の場合は一つのデータにまとめられる)
-
-        for (i = len; i > 0; i--, ps += charsize) {
+        // Add to list 1 character at a time
+        // (Combined into one data in case of horizontal within vertical)
+        for (i = 0; i < len && ps < text.length(); i++, ps++) {
             pi = new CharItem();
+            pi.flags = java.util.EnumSet.noneOf(PvLayout.CHARITEM_F.class);
+            pi.chartype = PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_NORMAL;
             list.add(pi);
-            if (is32bit)
-                pi.code = ps;
-            else
-                pi.code = ps;
+            // Read actual character from text
+            pi.code = text.charAt(ps);
 
-            // 現在の注記状態を適用
-
+            // Apply current annotation state
             _set_char_state(p, pi);
         }
 
-        // 追加された先頭位置
+        // Update position
+        pp[0] = ps;
 
-        pitop = (pibottom != -1) ? list.get(pibottom + 1) : list.get(0);
+        // Added start position
+        pitop = (pibottom >= 0 && pibottom + 1 < list.size()) ? list.get(pibottom + 1) : (list.isEmpty() ? null : list.get(0));
 
-        // 調整
+        // Adjustment
+        if (pitop != null) {
+            len = _text_adjust(p, pitop);
+        }
 
-        len = _text_adjust(p, pitop);
-
-        // 先頭位置
-
-        if (ppchar != null) ppchar[0] = pitop;
+        // Start position
+        if (ppchar != null && pitop != null) ppchar[0] = pitop;
 
         return len;
     }
 
     /**
-     * ルビ付き文字列を追加
+     * Add string with ruby
      * <p>
-     * [uint16] 本文文字数, UTF-32文字列, [uint16] ルビ文字数, UTF-32文字列
+     * [uint16] Body length, UTF-32 string, [uint16] Ruby length, UTF-32 string
      */
     private static void _append_ruby(LayoutWork p, String text, int[] pp) {
         int ps;
@@ -456,11 +456,11 @@ class LayoutLine {
         PvLayout.RubyItem pi;
         int clen, rlen;
 
-        // 本文文字列を追加
+        // Add body string
 
         clen = _append_text(p, text, pp, true, pitop);
 
-        // ルビアイテムを追加
+        // Add ruby item
 
         ps = pp[0];
 
@@ -477,78 +477,78 @@ class LayoutLine {
             pi.ruby_h = mFontGetVertHeight(p.img, p.font_ruby, String.valueOf(ps)).height; // FONT_DRAW_F_RUBY
         }
 
-        // 次のデータ位置
+        // Next data position
 
         pp[0] = ps + (rlen << 2);
     }
 
     /**
-     * 内部データから、1行分のデータを取得
+     * Get 1 line of data from internal data
      * <p>
-     * list_char/list_ruby のリストに文字データ、
-     * 注記の情報は、行/ブロック状態にセット。
+     * Set character data to list_char/list_ruby list,
+     * Annotation info to line/block state.
      */
-    private static void _get_line(LayoutWork p, COMMAND cmdret) {
-        int[] ps = new int[]{0}; // p.text;
+    private static void _get_line(LayoutWork p, COMMAND[] cmdret) {
+        int[] ps = new int[]{p.textP};
         boolean floop = true;
         COMMAND cmd;
 
-        cmdret = null;
+        cmdret[0] = COMMAND.COMMAND_NONE;
 
-        while (floop) {
-            // データタイプ (1byte)
+        while (floop && ps[0] < p.text.length()) {
+            // Data type (1byte)
             DefStyle.DATATYPE type = DefStyle.DATATYPE.values()[p.text.charAt(ps[0]++)];
 
             switch (type) {
-            // 行番号の情報
+            // Line number info
             case DATATYPE_LINEINFO:
-                p.curlineno = ((int) ps[0]);
-                ps[0] += 4;
+                p.curlineno = (int) p.text.charAt(ps[0]);
+                ps[0] += 1;
                 break;
-            // 通常文字列
+            // Normal string
             case DATATYPE_NORMAL_TEXT_16:
             case DATATYPE_NORMAL_TEXT_32:
                 _append_text(p, p.text, ps, (type == DefStyle.DATATYPE.DATATYPE_NORMAL_TEXT_32), null);
                 break;
-            // ルビ付き文字列
+            // String with ruby
             case DATATYPE_RUBY_TEXT:
                 _append_ruby(p, p.text, ps);
                 break;
-            // 改行
+            // Newline
             case DATATYPE_ENTER:
                 floop = false;
                 break;
-            // 値なしコマンド
+            // Command without value
             case DATATYPE_COMMAND:
-                cmd = _proc_command_noval(p, COMMAND.values()[ps[0]++]);
+                cmd = _proc_command_noval(p, COMMAND.values()[p.text.charAt(ps[0]++)]);
 
-                // ページが変わるコマンドの場合
-                if (cmd != null) {
+                // If command changes page
+                if (cmd != COMMAND.COMMAND_NONE) {
                     floop = false;
 
-                    if (p.list_char.get(0) != null) {
-                        // 本文文字が残っている場合は先に処理させるため、
-                        // 位置を戻す
+                    if (!p.list_char.isEmpty()) {
+                        // If body characters remain, process them first,
+                        // so return position
                         ps[0] -= 2;
                     } else
-                        cmdret = cmd;
+                        cmdret[0] = cmd;
                 }
                 break;
-            // 値付きコマンド
+            // Command with value
             case DATATYPE_COMMAND_VAL:
                 _proc_command_val(p, p.text, ps);
                 break;
-            // 挿絵
+            // Picture
             case DATATYPE_PICTURE:
                 floop = false;
 
-                if (p.list_char.get(0) == null)
-                    // 本文文字が残っている場合、先に処理
+                if (!p.list_char.isEmpty())
+                    // If body characters remain, process first
                     ps[0]--;
                 else
                     _proc_picture(p, p.text, ps);
                 break;
-            // 終了
+            // End
             case DATATYPE_END:
                 ps[0]--;
                 floop = false;
@@ -559,9 +559,9 @@ class LayoutLine {
         p.textP = ps[0];
     }
 
-    // 1行分取得後の調整
+    // Adjustment after getting 1 line
 
-    /** 半角文字の並び方を自動判定 */
+    /** Automatically determine arrangement of half-width characters */
     private static void _set_chartype_auto(LayoutWork p) {
         CharItem pi, next, pitop, pi2;
         int cnt;
@@ -570,14 +570,14 @@ class LayoutLine {
             pi = p.list_char.get(i);
             next = i < p.list_char.size() - 2 ? p.list_char.get(i + 1) : null;
 
-            // すでに文字種が指定されているか、半角文字以外なら、そのまま
+            // If character type is already specified or not half-width, leave as is
 
             if (pi.chartype != PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_NORMAL || pi.code >= 128)
                 continue;
 
-            // ------- 半角文字の自動判定
+            // ------- Automatic determination of half-width characters
 
-            // 縦中横の対象文字が連続している数
+            // Number of consecutive target characters for horizontal within vertical
 
             for (cnt = 0, pi2 = pi;
                  cnt < 4 && pi2 != null && layout_ischar_tatetyuyoko(pi2.code);
@@ -587,9 +587,9 @@ class LayoutLine {
             //
 
             if (cnt >= 1 && cnt <= 3) {
-                // [縦中横]
-                //  3文字以内の場合は自動で縦中横にする。
-                //  最初の文字だけ残して1文字にまとめる。
+                // [Horizontal within vertical]
+                //  If within 3 characters, automatically make horizontal within vertical.
+                //  Leave only the first character and combine into 1 character.
 
                 pitop = pi;
 
@@ -597,29 +597,31 @@ class LayoutLine {
                 pitop.horzcnt = cnt;
                 pitop.horzchar[0] = (byte) pitop.code;
 
-                for (pi = next, i = 1; pi != null && i < cnt; pi = pi2, i++) {
-                    pi2 = p.list_char.listIterator().next();
-
-                    pitop.horzchar[i] = (byte) pi.code;
-
-                    p.list_char.remove(pi);
+                for (int j = 1; j < cnt; j++) {
+                    pi = p.list_char.get(i + 1);
+                    pitop.horzchar[j] = (byte) pi.code;
+                    p.list_char.remove(i + 1);
                 }
             } else {
-                // [横組み]
-                //  4文字以上連続しているなら横組み。
-                //  半角文字以外が出るまで続ける。
+                // [Horizontal layout]
+                //  If 4 or more characters consecutive, horizontal layout.
+                //  Continue until non-half-width character appears.
 
-                for (; pi != null && pi.code < 127; pi = p.list_char.listIterator().next())
+                while (i < p.list_char.size()) {
+                    pi = p.list_char.get(i);
+                    if (pi.code >= 128) break;
                     pi.chartype = PvLayout.CHARITEM_TYPE.CHARITEM_TYPE_ROTATE;
+                    i++;
+                }
+                i--;
             }
 
             next = pi;
         }
     }
 
-    /** 本文文字の文字幅/高さをセット */
+    /** Set character width/height of body text */
     private static void _set_char_size(LayoutWork p) {
-        CharItem pi;
         Font[] font = new Font[2];
         int hbuf;
         int[] fonth = new int[ 2];
@@ -633,76 +635,79 @@ class LayoutLine {
         fonth[0] = p.fontmain_h;
         fonth[1] = p.fontbold_h;
 
-        for (pi = p.list_char.get(0); pi != null; pi = p.list_char.listIterator().next()) {
+        for (int i = 0; i < p.list_char.size(); i++) {
+            CharItem pi = p.list_char.get(i);
             code = pi.code;
 
-            // [0] 通常 [1] 太字
+            // [0] Normal [1] Bold
             n = pi.flags.contains(CHARITEM_F_BOLD) ? 1 : 0;
 
             switch (pi.chartype) {
-            // 通常縦書き
+            // Normal vertical writing
             case CHARITEM_TYPE_NORMAL:
                 if (n != 0 || code > 0xffff)
-                    // 太字 or コードが16bitを超える場合は常に計算
-                    pi.height = mFontGetVertHeight(p.img, font[n], String.valueOf(code)).height;
+                    // Always calculate if bold or code exceeds 16bit
+                    pi.height = mFontGetVertHeight(p.img, font[n], new String(Character.toChars(code))).height;
                 else {
-                    // 通常で16bit以内の場合、高速化のため、
-                    // 全角高さと同じ場合はフラグを ON にする。
-                    // (ほとんどの文字は 16bit 範囲内にあるため)
+                    // If normal and within 16bit, for speed up,
+                    // turn on flag if same as full-width height.
+                    // (Most characters are within 16bit range)
 
                     hbuf = p.buf_hflags[code >> 3];
                     f = 1 << (code & 7);
 
                     if ((hbuf & f) != 0)
-                        // 前回取得し、全角高さと同じ
+                        // Fetched last time and same as full-width height
                         pi.height = fonth[0];
                     else {
-                        h = mFontGetVertHeight(p.img, font[0], String.valueOf(code)).height;
+                        h = mFontGetVertHeight(p.img, font[0], new String(Character.toChars(code))).height;
 
                         if (h == fonth[0])
-                            hbuf |= f;
+                            p.buf_hflags[code >> 3] |= f;
 
                         pi.height = h;
                     }
                 }
                 break;
-            // 横組み (90度回転)
+            // Horizontal layout (rotated 90 degrees)
             case CHARITEM_TYPE_ROTATE:
-                pi.height = mFontGetVertHeight(p.img, font[n], String.valueOf(code)).height; // FONT_DRAW_F_ROTATE
+                pi.height = mFontGetVertHeight(p.img, font[n], new String(Character.toChars(code))).height; // FONT_DRAW_F_ROTATE
                 break;
-            // 縦中横
+            // Horizontal within vertical
             case CHARITEM_TYPE_HORZ:
-                pi.width = mFontGetVertHeight(p.img, font[n], Arrays.toString(pi.horzchar)).width; // pi.horzcnt
+                pi.width = mFontGetVertHeight(p.img, font[n], new String(pi.horzchar, 0, pi.horzcnt)).width;
                 pi.height = fonth[n];
                 break;
             }
         }
     }
 
-    /** 親文字列高さ取得 (折り返しなしでの状態) */
+    /** Get parent string height (without wrapping) */
     private static int _get_char_height(LayoutWork p, CharItem pi, int len) {
-        int h = 0, i;
+        int h = 0;
+        int idx = p.list_char.indexOf(pi);
 
-        for (i = len; i != 0; i--, pi = p.list_char.get(i + 1))
-            h += pi.height;
+        for (int i = 0; i < len && idx + i < p.list_char.size(); i++)
+            h += p.list_char.get(idx + i).height;
 
         return h + (len - 1) * p.stdef.char_space;
     }
 
     /**
-     * ルビと親文字列の調整
+     * Adjustment of ruby and parent string
      * <p>
-     * 親文字列よりルビの方が大きい場合、ルビの親文字列に余白を追加
+     * If ruby is larger than parent string, add padding to parent string of ruby
      */
     private static void _set_ruby_parent(LayoutWork p) {
         PvLayout.RubyItem pi;
         CharItem pic;
-        int charh, diff, diffmax, clen, sp1, sp2, i;
+        int charh, diff, diffmax, clen, sp1, sp2;
 
         diffmax = p.fontmain_h;
 
-        for (pi = p.list_ruby.get(0); pi != null; pi = p.list_ruby.listIterator().next()) {
-            // 親文字列の高さ
+        for (int ri = 0; ri < p.list_ruby.size(); ri++) {
+            pi = p.list_ruby.get(ri);
+            // Height of parent string
 
             charh = _get_char_height(p, pi.char_top, pi.charlen);
 
@@ -718,32 +723,34 @@ class LayoutLine {
             // -------
             pi.char_h = pi.ruby_h;
 
-            // 親文字列の高さに余白を追加
+            // Add padding to parent string height
             clen = pi.charlen;
 
+            int idx = p.list_char.indexOf(pi.char_top);
             if (clen == 1) {
-                // 親文字列が1文字の場合
+                // If parent string is 1 character
                 pic = pi.char_top;
 
                 pic.height = pi.ruby_h;
                 pic.padding = diff / 2;
             } else {
-                // 親文字列が2文字以上の場合
+                // If parent string is 2 or more characters
                 sp1 = diff / (clen * 2);
                 sp2 = diff / clen;
 
-                for (pic = pi.char_top, i = 0; i < clen; i++, pic = p.list_char.listIterator().next()) {
+                for (int i = 0; i < clen && idx + i < p.list_char.size(); i++) {
+                    pic = p.list_char.get(idx + i);
                     if (i == 0) {
-                        // 先頭文字
+                        // First character
                         pic.height += sp1;
                         pic.padding = sp1;
                         diff -= sp1;
                     } else if (i == clen - 1) {
-                        // 終端文字
+                        // Last character
                         pic.height += diff;
                         pic.padding = sp2;
                     } else {
-                        // 間
+                        // Middle
                         pic.height += sp2;
                         pic.padding = sp2;
                         diff -= sp2;
@@ -756,27 +763,29 @@ class LayoutLine {
     // main
 
     /**
-     * 1行分の文字データ取得
+     * Get 1 line of character data
      * <p>
-     * cmd: 改ページなどページ関連のコマンドが含まれる場合、そのコマンド番号。なければ -1。
-     * return: false でデータの終端
+     * cmd: If page-related command such as new page is included, that command number. Otherwise -1.
+     * return: false for end of data
      */
-    static boolean layout_getline(LayoutWork p, COMMAND cmd) {
-        if (p.text.charAt(0) == DefStyle.DATATYPE.DATATYPE_END.ordinal()) return false;
+    static boolean layout_getline(LayoutWork p, COMMAND[] cmd) {
+        if (p.textP >= p.text.length() || p.text.charAt(p.textP) == DefStyle.DATATYPE.DATATYPE_END.ordinal()) return false;
 
-        // 行状態クリア
+        // Clear line state
         p.linestate = new PvLayout.LineState();
+        p.list_char.clear();
+        p.list_ruby.clear();
 
-        // 1行データ取得
+        // Get 1 line data
         _get_line(p, cmd);
 
-        // 文字タイプ自動判定
+        // Automatic determination of character type
         _set_chartype_auto(p);
 
-        // 本文pxサイズセット
+        // Set body px size
         _set_char_size(p);
 
-        // ルビと親文字列の調整
+        // Adjustment of ruby and parent string
         _set_ruby_parent(p);
 
         return true;

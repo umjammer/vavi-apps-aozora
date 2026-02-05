@@ -26,17 +26,29 @@ package vavi.apps.aobook;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.imageio.ImageIO;
+
+import vavi.apps.aobook.DefStyle.STYLE_FLAGS;
 
 import static vavi.apps.aobook.DefStyle.STYLE_CHARS_DEFAULT;
 
 
 /**
- * スタイル関数
+ * Style functions
  */
 class Style {
+
+    private Style() {
+    }
+
+    private static final Logger logger = System.getLogger(Style.class.getName());
 
     static final String STYLE_CONFIGNAME = "styles.conf";
 
@@ -45,15 +57,16 @@ class Style {
     static final String g_u32_hanging = "、。，．";
     static final String g_u32_nosep = "…‥";
 
-    /** 画像読み込み */
+    /** Load image */
     static BufferedImage _load_image(String str) throws IOException {
+logger.log(Level.TRACE, "str: " + str);
         return ImageIO.read(Paths.get(str).toFile());
     }
 
     /**
-     * 文字列挙: 変更されたか
+     * Character enumeration: Changed?
      *
-     * @return 0 で同じ
+     * @return true if changed
      */
     static boolean _ischange_chars(int p1, int p2) {
         if (p1 == STYLE_CHARS_DEFAULT || p2 == STYLE_CHARS_DEFAULT)
@@ -63,70 +76,46 @@ class Style {
     }
 
     /**
-     * レイアウト時用の文字列挙を作成
-     * (Unicode の小さい順に並べる)
+     * Create character enumeration for layout
+     * (Sort by Unicode in ascending order)
      */
     static String _create_layout_chars(int src, String def) {
-        StringBuilder buf;
-        int pins, ptmp, c;
-        int len, dlen;
-
         if (src == -1) return null;
+        if (def == null || def.isEmpty()) return null;
 
-//        if (src == 1)
-//            src = def;
-
-        //
-
-        buf = new StringBuilder();
-
-        dlen = 0;
-
-        //
-        int srcP = 0;
-        while (true) {
-            c = def.charAt(srcP++);
-            if (c == 0) break;
-
-            // 挿入位置
-            for (pins = 0; pins != 0 && c > pins; pins++);
-
-            // 挿入位置以降をずらす
-            if (pins != 0) {
-                for (ptmp = dlen; ptmp > pins; ptmp--)
-                    ptmp = buf.charAt(ptmp -1);
-            }
-
-            // セット
-
-            pins = c;
-
-            dlen++;
-            buf.insert(dlen, 0);
+        // Collect characters and sort by Unicode value
+        List<Character> chars = new ArrayList<>();
+        for (int i = 0; i < def.length(); i++) {
+            chars.add(def.charAt(i));
         }
+        Collections.sort(chars);
 
+        StringBuilder buf = new StringBuilder();
+        for (Character c : chars) {
+            buf.append(c);
+        }
         return buf.toString();
     }
 
-    // 設定ファイル
+    // Configuration file
 
-    /** 設定ファイルから文字列挙読み込み */
+    /** Read character enumeration from configuration file */
     private void _readconfig_chars(Preferences ini, final String key, DefStyle[] ppdst) {
         final String txt;
 
         txt = ini.get(key, null);
 
         if (txt == null)
-            // キーがなければデフォルト
+            // Default if key is missing
 		    ppdst[0] = null;
 	    else if (txt.isEmpty())
-            // 空文字列
+            // Empty string
             ppdst[0] = null;
         else
-            ppdst[0] = null; // txt TODO
+            ppdst[0] = new DefStyle(txt);
     }
 
-    /** 文字列挙を書き込み */
+    /** Write character enumeration */
     static private void _writeconfig_chars(Preferences fp, final String key, int str) {
         if (str != STYLE_CHARS_DEFAULT) {
             if (str != 0)
@@ -138,9 +127,9 @@ class Style {
     }
 
     /**
-     * スタイルの設定ファイルを開く
+     * Open style configuration file
      * <p>
-     * return: スタイルの数
+     * return: Number of styles
      */
     static int StyleConf_openRead() {
         Preferences ini = Preferences.userNodeForPackage(Style.class);
@@ -153,7 +142,7 @@ class Style {
         String group = "styles.";
 
         if (ini.getInt(group + "ver", 0) != 1)
-            ini.put(group + "ver", null);
+            ini.put(group + "ver", "");
 
         num = ini.getInt("num", 0);
 
@@ -162,33 +151,33 @@ class Style {
         return num;
     }
 
-    /** 設定ファイルから指定スタイルを読み込み */
+    /** Read specified style from configuration file */
     static void StyleConf_readStyle(StyleDef p, final String[] name) {
         Preferences ini = Preferences.userNodeForPackage(Style.class);
         int i, num;
 
         num = StyleConf_openRead();
 
-        // スタイル名から検索して読み込み
+        // Search by style name and read
 
         for (i = 0; i < num; i++) {
             name[0] = ini.get("name", "");
-            if (name[0] != null) {
+            if (!name[0].isEmpty()) {
                 StyleConf_readDefine(ini, p);
                 break;
             }
         }
 
-        // 見つからなければ、デフォルト
+        // Default if not found
 
         if (i == num)
             p.StyleDef_setDefault("default");
     }
 
     /**
-     * 設定ファイルから値読み込み
+     * Read values from configuration file
      * <p>
-     * (グループはセット済み、StyleDef は空状態)
+     * (Group is already set, StyleDef is empty)
      */
     static void StyleConf_readDefine(Preferences ini, StyleDef p) {
         p.str_stylename = ini.get("name", null);
@@ -200,9 +189,9 @@ class Style {
         p.line_space = ini.getInt("linespace", 80);
         p.page_space = ini.getInt("pagespace", 30);
 
-//        p.flags = ini.getInt("flags", STYLE_F_HANGING.v | STYLE_F_ENABLE_PICTURE.v); // TODO impl
+        p.flags = STYLE_FLAGS.valueOf(ini.getInt("flags", DefStyle.STYLE_FLAGS.STYLE_F_HANGING.v | DefStyle.STYLE_FLAGS.STYLE_F_ENABLE_PICTURE.v));
 
-//        p.dakuten_type = ini.getInt("dakuten", STYLE_DAKUTEN_COMBINE_HORZ.ordinal()); // TODO impl
+        p.dakuten_type = DefStyle.STYLE_DAKUTEN.values()[ini.getInt("dakuten", DefStyle.STYLE_DAKUTEN.STYLE_DAKUTEN_COMBINE_HORZ.ordinal())];
 
         p.margin.left = ini.getInt("mgleft", 30);
         p.margin.right = ini.getInt("mgright", 30);
@@ -226,16 +215,16 @@ class Style {
         p.u32_nosep = ini.getInt("nosep", 0);
         p.u32_replace = ini.getInt("replace", 0);
 
-        // 文字置換はデフォルトなし
+        // Character replacement defaults to none
 
         if (p.u32_replace == STYLE_CHARS_DEFAULT)
             p.u32_replace = 0;
     }
 
     /**
-     * 設定ファイルを書き込み用で開く
+     * Open configuration file for writing
      * <p>
-     * num: スタイルの数
+     * num: Number of styles
      */
     static Preferences StyleConf_openWrite(int num) {
         Preferences prefs = Preferences.userNodeForPackage(Style.class);
@@ -247,7 +236,7 @@ class Style {
         return prefs;
     }
 
-    /** スタイルを書き込み */
+    /** Write style */
     static void StyleConf_writeDefine(Preferences fp, int no, StyleDef p) {
         String group = no + ".";
 
@@ -259,7 +248,7 @@ class Style {
         fp.putInt(group + "charspace", p.char_space);
         fp.putInt(group + "linespace", p.line_space);
         fp.putInt(group + "pagespace", p.page_space);
-        fp.putInt(group + "flags", p.flags.size()); // TODO impl
+        fp.putInt(group + "flags", STYLE_FLAGS.valueOf(p.flags));
 
         fp.putInt(group + "dakuten", p.dakuten_type.ordinal());
 

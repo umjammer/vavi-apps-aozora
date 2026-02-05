@@ -28,56 +28,59 @@ import java.util.List;
 
 
 /**
- * レイアウト内部用
+ * Layout internal usage
  */
 class PvLayout {
 
+    private PvLayout() {
+    }
+
     static class StringItem {}
 
-    /** 本文1文字のアイテム */
+    /** 1 character item of body text */
     static class CharItem extends StringItem {
         /** Unicode */
         int code;
-        /** 描画位置(余白含む) */
+        /** Drawing position (including padding) */
         int x, y;
-        /** 縦中横の文字幅 (px) */
+        /** Character width of horizontal within vertical (px) */
         int width;
-        /** 文字高さ (px)。余白含む */
+        /** Character height (px). Including padding */
         int height;
-        /** テキスト描画時のy余白 */
+        /** Y padding when drawing text */
         int padding;
-        /** 文字の配置タイプ */
+        /** Character arrangement type */
         PvLayout.CHARITEM_TYPE chartype;
         EnumSet<CHARITEM_F> flags;
-        /** 傍点タイプ */
+        /** Emphasis dot type */
         int bouten;
-        /** 傍線タイプ */
-        DefStyle.BOUSEN_TYPE bousen;
-        /** 縦中横の文字数 */
+        /** Emphasis line type */
+        DefStyle.BOUSEN_TYPE bousen = DefStyle.BOUSEN_TYPE.BOUSEN_TYPE_NONE;
+        /** Number of characters for horizontal within vertical */
         int horzcnt;
-        /** 縦中横のASCII文字 (null なし) */
-        byte[] horzchar = new byte[3];
+        /** ASCII characters for horizontal within vertical (no null) */
+        final byte[] horzchar = new byte[4];
     }
 
     enum CHARITEM_TYPE {
-        /** 通常縦書き */
+        /** Normal vertical writing */
         CHARITEM_TYPE_NORMAL,
-        /** 欧文横組み */
+        /** Horizontal layout of European text */
         CHARITEM_TYPE_ROTATE,
-        /** 縦中横 */
+        /** Horizontal within vertical */
         CHARITEM_TYPE_HORZ
     }
 
     enum CHARITEM_F {
-        /** 折り返しの先頭文字である */
+        /** Is the first character of wrapping */
         CHARITEM_F_WRAP_TOP(1 << 0),
-        /** 濁点結合 (次の文字が濁点の場合、濁点文字を削除して、フラグをON) */
+        /** Dakuten combination (If next character is dakuten, delete dakuten character and turn ON flag) */
         CHARITEM_F_DAKUTEN(1 << 1),
-        /** 半濁点結合 */
+        /** Handakuten combination */
         CHARITEM_F_HANDAKUTEN(1 << 2),
-        /** 地付き/地上げ */
+        /** Bottom aligned / Raise */
         CHARITEM_F_JIAGE(1 << 3),
-        /** 太字 */
+        /** Bold */
         CHARITEM_F_BOLD(1 << 4);
         final int v;
 
@@ -86,61 +89,61 @@ class PvLayout {
         }
     }
 
-    /** ルビアイテム (親文字列とは別のリストに) */
+    /** Ruby item (Separate list from parent string) */
     static class RubyItem {
-        /** 親文字列の先頭位置 */
+        /** Head position of parent string */
         CharItem char_top;
-        /** ルビ文字列先頭位置 (内部データの位置) */
+        /** Head position of ruby string (position in internal data) */
         String rubytxt;
-        /** ルビ文字数 */
+        /** Ruby length */
         int rubylen;
-        /** 親文字列数 */
+        /** Parent string length */
         int charlen;
         int x;
-        /** 描画位置 (基本的に親文字列と同じ位置) */
+        /** Drawing position (Basically same position as parent string) */
         int y;
-        /** ルビ文字列全体の高さ (px) */
+        /** Total height of ruby string (px) */
         int ruby_h;
-        /** 親文字列の高さ */
+        /** Height of parent string */
         int char_h;
     }
 
-    /** ルビの間に余白なし */
+    /** No padding between ruby */
     static final int RUBYITEM_CHARH_NO_PADDING = -1;
 
-    /** 行の状態 (現在行のみに影響する) */
+    /** Line state (Affects current line only) */
     static class LineState {
-        /** 縦中横の先頭文字 */
+        /** Head character of horizontal within vertical */
         CharItem tatetyuyoko_top;
-        /** 縦中横の現在の文字数 (0:なし、1で開始、2〜で文字数+1) */
+        /** Current number of characters for horizontal within vertical (0:None, 1:Start, 2~:Count+1) */
         int tatetyuyoko_num;
-        /** 字下げ数 */
+        /** Indent count */
         int jisage;
-        /** 地付き/字上げ数 (+1) */
+        /** Bottom aligned / Raise count (+1) */
         int jiage;
-        /** 傍点 (0 でなし) */
+        /** Emphasis dot (0 for none) */
         int bouten;
-        /** 傍線 */
-        DefStyle.BOUSEN_TYPE bousen;
+        /** Emphasis line */
+        DefStyle.BOUSEN_TYPE bousen = DefStyle.BOUSEN_TYPE.BOUSEN_TYPE_NONE;
     }
 
-    /** ブロック型注記の状態 (値はそれぞれ 0 でなし) */
+    /** Block annotation state (Value 0 for none) */
     static class BlockState {
         EnumSet<BLOCKSTATE_F> flags;
-        /** 字下げ */
+        /** Indent */
         int jisage;
-        /** 折り返し以降の字下げ */
+        /** Indent after wrapping */
         int jisage_wrap;
-        /** 地付き/字上げ (1=地付き, 2〜=地からn字上げ) */
+        /** Bottom aligned / Raise (1=Bottom aligned, 2~=n-character raise from bottom) */
         int jiage;
-        /** 見出し (0:なし 1:大 2:中 3:小) */
+        /** Title (0:None 1:Large 2:Medium 3:Small) */
         int title;
     }
 
     enum BLOCKSTATE_F {
-        /** 横組み */
+        /** Horizontal layout */
         BLOCKSTATE_F_YOKOGUMI(1 << 0),
-        /** 太字 */
+        /** Bold */
         BLOCKSTATE_F_BOLD(1 << 1);
         final int v;
 
@@ -149,43 +152,43 @@ class PvLayout {
         }
     }
 
-    /** ページの状態 */
+    /** Page state */
     static class PageState {
-        /** ページの左右中央 */
+        /** Center horizontally */
         boolean fcenter;
-        /** 挿絵コマンドのデータ位置 (コマンドタイプの次の位置) */
+        /** Data position of picture command (position next to command type) */
         int picture;
     }
 
     List<PageInfo> pageInfos;
 
-    /** ページ情報 */
+    /** Page information */
     static class PageInfo {
-        /** 内部データの先頭位置 */
+        /** Head position of internal data */
         String src;
-        /** 現在のブロック型注記の状態 */
+        /** Current block annotation state */
         BlockState blockstate;
-        /** ページ位置 */
+        /** Page position */
         int pageno;
-        /** 先頭のソーステキストの行番号 */
+        /** Line number of the source text at the beginning */
         int lineno;
-        /** 前ページの前行の折り返し行数 (次ページでずらす分) */
+        /** Wrap line count of previous line on previous page (Shift amount on next page) */
         int wrap_num;
-        /** ページの左右中央時の先頭 X 位置 */
+        /** Head X position when centered horizontally */
         int diffx;
         int flags;
     }
 
-    /** 空白ページ */
+    /** Blank page */
     static final int PAGEINFO_F_BLANK = 1;
 
-    /** 最初のレイアウト時用の作業データ */
+    /** Work data for initial layout */
     static class LayoutFirst {
-        /** 現在のページ情報 */
+        /** Current page info */
         PageInfo curpage;
-        /** 次のページの情報 */
+        /** Next page info */
         PageInfo nextpage;
-        /** 全ページ数 */
+        /** Total page count */
         int pagenum;
     }
 }

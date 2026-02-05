@@ -27,20 +27,23 @@ import vavi.apps.aobook.PvLayout.CharItem;
 import vavi.apps.aobook.PvLayout.RubyItem;
 
 /**
- * レイアウト:サブ関数
+ * Layout: Sub functions
  */
 class LayoutSub {
 
+    private LayoutSub() {
+    }
+
     /**
-     * UTF-32 文字列内に c が存在するか
+     * Check if c exists in UTF-32 string
      * <p>
-     * 値は小さい順に並んでいる。
+     * Values are sorted in ascending order.
      */
     static boolean layout_find_utf32(int c, String uc) {
         int mc;
         int low, high, mid;
 
-        if (uc != null) return false;
+        if (uc == null) return false;
 
         low = 0;
         high = uc.length() - 1;
@@ -60,28 +63,29 @@ class LayoutSub {
         return false;
     }
 
-    // 縦中横の対象文字か
+    // Is it a target character for horizontal within vertical
     static boolean layout_ischar_tatetyuyoko(int c) {
         return ((c >= '0' && c <= '9') || c == '!' || c == '?');
     }
 
-    /** pi が行末に来てはならない文字か */
+    /** Should pi not be at the end of a line? */
     static boolean layout_is_nobottom(LayoutWork p, CharItem pi) {
         int c = pi.code;
 
-        // 行末禁則
+        // Line end restriction
 
         if (layout_find_utf32(c, p.u32_nobottom))
             return true;
 
-        // 分割禁止
+        // Separation prohibited
 
-        if (layout_find_utf32(c, p.u32_nosep)
-                && p.list_char.listIterator().hasNext()
-                && p.list_char.listIterator().next().code == c)
-            return true;
+        if (layout_find_utf32(c, p.u32_nosep)) {
+            int idx = p.list_char.indexOf(pi);
+            if (idx != -1 && idx < p.list_char.size() - 1 && p.list_char.get(idx + 1).code == c)
+                return true;
+        }
 
-        // くの字点上
+        // On kunojiten
 
         if (c == 0x3033 || c == 0x3034) return true;
 
@@ -89,10 +93,10 @@ class LayoutSub {
     }
 
     /**
-     * 文字を置き換え
+     * Replace character
      * <p>
-     * pdst: 対象となる文字のポインタ
-     * return: 置き換えが行われたか
+     * pdst: Pointer to target character
+     * return: Whether replacement was performed
      */
     static boolean layout_replace_char(LayoutWork p, int pdst) {
         int pmid, c;
@@ -103,14 +107,14 @@ class LayoutSub {
         c = pdst;
 
         low = 0;
-        high = p.u32_replace.length() - 1;
+        high = p.u32_replace.length() / 2 - 1;
 
         while (low <= high) {
             mid = (low + high) / 2;
             pmid = p.u32_replace.charAt(mid * 2);
 
             if (pmid == c) {
-                pdst = p.u32_replace.charAt(pmid + 1);
+                pdst = p.u32_replace.charAt(mid * 2 + 1);
                 return true;
             } else if (pmid < c)
                 low = mid + 1;
@@ -122,20 +126,23 @@ class LayoutSub {
     }
 
     /**
-     * ルビ位置設定時の情報取得
+     * Get information when setting ruby position
      * <p>
-     * return: 親文字列が折り返しているか
+     * return: Whether parent string wraps
      */
     static int layout_getrubyinfo(LayoutWork p, RubyItem pi) {
         CharItem pic;
         int i, wrap;
 
         wrap = 0;
+        int idx = p.list_char.indexOf(pi.char_top);
+        if (idx == -1) return 0;
 
-        for (pic = pi.char_top, i = pi.charlen; i > 0; i--, pic = p.list_char.listIterator().next()) {
+        for (i = 0; i < pi.charlen && idx + i < p.list_char.size(); i++) {
+            pic = p.list_char.get(idx + i);
             if (pic.flags.contains(PvLayout.CHARITEM_F.CHARITEM_F_WRAP_TOP)) {
-                if (pic == pi.char_top)
-                    // 親文字列の先頭が、折り返しの先頭
+                if (i == 0)
+                    // Head of parent string is head of wrap
                     wrap |= 2;
                 else
                     wrap |= 1;
@@ -145,21 +152,22 @@ class LayoutSub {
         return wrap;
     }
 
-    /** pi と next のルビの親文字列が連続しているか */
+    /** Do the ruby parent strings of pi and next continue? */
     static boolean layout_is_ruby_connect(LayoutWork p, RubyItem pi, RubyItem next) {
-        CharItem pic;
-        int i;
-
         if (pi == null || next == null) return false;
 
-        // pi の親文字列の次の位置
-        for (pic = pi.char_top, i = pi.charlen; i > 0; i--, pic = p.list_char.listIterator().next()) ;
+        int idx = p.list_char.indexOf(pi.char_top);
+        if (idx == -1) return false;
 
-        // next の先頭と等しいか
-        return (pic == next.char_top);
+        // Next position of pi's parent string
+        int next_idx = idx + pi.charlen;
+        if (next_idx >= p.list_char.size()) return false;
+
+        // Equal to head of next
+        return (p.list_char.get(next_idx) == next.char_top);
     }
 
-    /** 見出しの終わりコマンド時、現在の文字列を見出しリストに追加 */
+    /** Add current string to title list at end of title command */
     static void layout_append_titlelist(LayoutWork p) {
         Layout.TitleItem pi;
         int ps;
@@ -170,13 +178,13 @@ class LayoutSub {
 
         ps = 0;
 
-        // 1byte 目は見出しタイプ
+        // 1st byte is title type
 
         type = p.buf_title.charAt(ps++);
 
         // UTF32.UTF8
 
-        // アイテム追加
+        // Add item
 
         pi = new Layout.TitleItem();
         pi.type = type;
@@ -184,12 +192,12 @@ class LayoutSub {
 
         pi.text = p.buf_title.substring(1);
 
-        // 各タイプの個数を加算
+        // Add to count of each type
 
         (p.title_num[type])++;
         p.plist_title.add(pi);
 
-        // 文字列バッファリセット
+        // Reset string buffer
 
         p.buf_title = null;
     }

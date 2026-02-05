@@ -29,23 +29,23 @@ import java.awt.Graphics2D;
 import java.util.List;
 
 
-/** レイアウト作業用データ */
+/** Data for layout work */
 class LayoutWork {
 
-    /** 内部データの現在位置 */
+    /** Current position of internal data */
     String text;
     int textP;
-    /** 本文高さ用フラグ */
+    /** Flags for body text height */
     int[] buf_hflags;
-    /** スタイルデータ */
+    /** Style data */
     StyleWork style;
     StyleDef stdef;
-    /** 描画時の描画先 */
+    /** Drawing destination */
     Graphics2D img;
-    /** 最初のレイアウト用データ */
+    /** Data for initial layout */
     PvLayout.LayoutFirst pfirst;
 
-    /** 文字列挙 (Unicode 小さい順に並んでいる) */
+    /** Character enumeration (Sorted in ascending Unicode order) */
     String u32_nohead;
     String u32_nobottom;
     String u32_hanging;
@@ -57,42 +57,42 @@ class LayoutWork {
     Font font_bold;
     Font font_kenten;
 
-    /** 本文の色 */
+    /** Color of body text */
     Color pixcol_text;
 
-    /** フォントの高さ */
+    /** Height of font */
     int fontmain_h;
     int fontbold_h;
     int fontruby_h;
     int fontkenten_h;
-    /** 全ページ数 (描画時) */
+    /** Total number of pages (at drawing) */
     int pagenum;
-    /** 1ページ分のテキスト描画部分のサイズ (余白部分は除く) */
+    /** Size of text drawing area for 1 page (excluding margins) */
     int pageW, pageH;
-    /** 1ページの先頭行の X 位置 */
+    /** X position of the first line of 1 page */
     int text_right_x;
-    /** 行幅 (次の行までの px 数) */
+    /** Line width (px count to the next line) */
     int line_width;
 
-    /** 先頭行の字下げY位置 (px) */
+    /** Indentation Y position of the first line (px) */
     int jisage_y;
-    /** 折り返し時の字下げ Y位置 */
+    /** Indentation Y position when wrapping */
     int jisage_wrap_y;
-    /** 地からn字上げの下端 Y位置 */
+    /** Bottom Y position of n-character raise from bottom */
     int jiage_bottom;
-    /** 現在のテキスト行位置 (内部データで行情報が見つかるたびに更新) */
+    /** Current text line position (updated every time line info is found in internal data) */
     int curlineno;
 
-    /** 見出しの各個数 */
-    int[] title_num = new int[3];
+    /** Count of each title */
+    final int[] title_num = new int[3];
 
-    /** 本文文字データ (1行分の作業用) */
+    /** Body character data (for 1 line work) */
     List<PvLayout.CharItem> list_char;
-    /** ルビデータ */
+    /** Ruby data */
     List<PvLayout.RubyItem> list_ruby;
-    /** 見出しアイテムの出力リスト (最初のレイアウト時) */
+    /** Output list of title items (at initial layout) */
     List<PvLayout.StringItem> plist_title;
-    /** 見出しの文字列用 (最初のレイアウト時) */
+    /** For title string (at initial layout) */
     String buf_title;
 
     PvLayout.PageState pagestate;

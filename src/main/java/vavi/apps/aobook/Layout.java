@@ -31,9 +31,13 @@ import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -45,36 +49,116 @@ import static vavi.apps.aobook.LayoutMain.layout_page;
 
 
 /**
- * レイアウト操作関数
+ * Layout operation functions
  */
 class Layout {
 
+    private LayoutDat ldat;
+
     List<TitleItem> titleItems;
+
+    public void layout(String text) {
+        gdat = new GDAT();
+        gdat.style = new StyleWork();
+        gdat.style.b = new StyleDef("default");
+        try {
+            gdat.style.StyleWork_readStyle(new String[]{"default"});
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        
+        // Convert plain text to internal format
+        String internalData = convertToInternalFormat(text);
+        gdat.textbuf = internalData.getBytes(StandardCharsets.UTF_8);
+
+        ldat = LayoutAlloc();
+        LayoutRunFirst(ldat, p -> {
+        });
+    }
+
+    /**
+     * Convert plain text to internal layout format.
+     * The internal format expects type markers (DATATYPE_*) for parsing.
+     */
+    private String convertToInternalFormat(String text) {
+        StringBuilder sb = new StringBuilder();
+        String[] lines = text.split("\n", -1);
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (!line.isEmpty()) {
+                // Add each character as a normal character
+                // DATATYPE_NORMAL_TEXT_16 = 3, followed by length (2 bytes), then characters (2 bytes each)
+                sb.append((char) DefStyle.DATATYPE.DATATYPE_NORMAL_TEXT_16.ordinal());
+                sb.append((char) line.length()); // Length as single char (simplified)
+                for (int j = 0; j < line.length(); j++) {
+                    sb.append(line.charAt(j));
+                }
+            }
+            // Add newline marker except for last line
+            if (i < lines.length - 1) {
+                sb.append((char) DefStyle.DATATYPE.DATATYPE_ENTER.ordinal());
+            }
+        }
+        
+        // Add end marker
+        sb.append((char) DefStyle.DATATYPE.DATATYPE_END.ordinal());
+        
+        return sb.toString();
+    }
+
+    public BufferedImage getImage(int i) {
+        if (ldat == null || i < 0 || i >= ldat.page_num) return null;
+
+        PageInfo pi = LayoutGetPage_pageno(ldat, i);
+        if (pi == null) return null;
+
+        // get page size
+        BufferedImage dummy = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = dummy.createGraphics();
+        LayoutWork lw = _create_layoutwork(ldat, g);
+        g.dispose();
+
+        int w = lw.pageW + lw.stdef.margin.left + lw.stdef.margin.right;
+        int h = lw.pageH + lw.stdef.margin.top + lw.stdef.margin.bottom;
+        if (lw.stdef.pages == 2) w = (lw.pageW * 2) + lw.stdef.page_space + lw.stdef.margin.left + lw.stdef.margin.right;
+
+        BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        g = image.createGraphics();
+        try {
+            LayoutDrawPage(ldat, g, pi);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            g.dispose();
+        }
+        return image;
+    }
 
     static class TitleItem extends PvLayout.StringItem {
 
-        /** 0:大 1:中 2:小 */
+        /** 0:Large 1:Medium 2:Small */
         int type;
-        /** ページ番号 */
+        /** Page number */
         int pageno;
-        /** タイトル文字列 */
+        /** Title text */
         String text;
     }
 
-    /** レイアウト情報 */
+    /** Layout information */
     static class LayoutDat {
 
-        /** ページ数 */
+        /** Page number */
         int page_num;
-        /** 各見出しの個数 */
+        /** Count of each title */
         int[] title_num = new int[3];
-        /** ページのリスト */
+        /** List of pages */
         List<PageInfo> list_page;
-        /** 見出しのリスト */
+        /** List of titles */
         List<PvLayout.StringItem> list_title;
         /**
-         * 本文フォントの各文字(Unicode下位16bit分)の高さフラグ
-         * ON=一度取得し、全角高さと同じ。OFF=高さが異なる、または横組みなど。
+         * Height flags for each character of the body font (for lower 16 bits of Unicode)
+         * ON=Fetched once and same as full-width height. OFF=Different height, or horizontal layout, etc.
          */
         int[] buf_hflags;
     }
@@ -95,9 +179,9 @@ class Layout {
     static GDAT gdat;
 
     /**
-     * LayoutWork を作成
+     * Create LayoutWork
      * <p>
-     * img: 描画時の描画先。null で最初のレイアウトのみ。
+     * img: Destination for drawing. null for initial layout only.
      */
     private LayoutWork _create_layoutwork(LayoutDat info, Graphics2D img) {
         LayoutWork p;
@@ -149,10 +233,14 @@ class Layout {
 
         p.text_right_x = p.pageW - p.line_width;
 
-        // 最初のレイアウト時
+        // At first layout
 
         if (img == null)
             p.plist_title = info.list_title;
+
+        // Initialize working lists
+        p.list_char = new ArrayList<>();
+        p.list_ruby = new ArrayList<>();
 
         return p;
     }
@@ -161,15 +249,29 @@ class Layout {
         return mFontGetVertHeight(g, font, null);
     }
 
-    static Dimension mFontGetVertHeight(Graphics g, Font font, String sample) {
+    private static Graphics2D measurementGraphics;
+    private static BufferedImage measurementImage;
 
-        Graphics2D graphics = (Graphics2D) g;
+    static Dimension mFontGetVertHeight(Graphics g, Font font, String sample) {
+        // If no Graphics provided, create a temporary one for font measurement
+        Graphics2D graphics;
+        if (g == null) {
+            if (measurementGraphics == null) {
+                measurementImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+                measurementGraphics = measurementImage.createGraphics();
+            }
+            graphics = measurementGraphics;
+        } else {
+            graphics = (Graphics2D) g;
+        }
+        
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         FontRenderContext frc = graphics.getFontRenderContext();
 
-        AttributedString as = new AttributedString(sample != null ? sample : "sample");
-        as.addAttribute(TextAttribute.FONT, font, 0, "sample".length());
+        String sampleText = sample != null && !sample.isEmpty() ? sample : "sample";
+        AttributedString as = new AttributedString(sampleText);
+        as.addAttribute(TextAttribute.FONT, font, 0, sampleText.length());
         AttributedCharacterIterator aci = as.getIterator();
 
         TextLayout tl = new TextLayout(aci, frc);
@@ -178,145 +280,150 @@ class Layout {
         return new Dimension(sw, sh);
     }
 
-    /** ページ位置の補正 */
+    /** Adjust page position */
     private PageInfo page_adjust(LayoutDat p, PageInfo pi) {
         if (pi == null)
-            // null なら終端
+            // If null, it is end
             return LayoutGetPage_homeEnd(p, true);
         else if (gdat.style.b.pages == 2 && pi != null && (pi.pageno & 1) != 0)
-            // 見開きの場合、奇数位置なら一つ戻る
+            // If spread view, if it is odd position, go back one
             return p.list_page.listIterator().previous();
         else
             return pi;
     }
 
-    // ページ操作
+    // Page operation
 
-    /** 先頭/終端のページ取得 */
+    /** Get first/last page */
     PageInfo LayoutGetPage_homeEnd(LayoutDat p, boolean end) {
         PageInfo pi = end ? p.list_page.get(p.list_page.size() - 1) : p.list_page.get(0);
 
         return pi != null ? page_adjust(p, pi) : null;
     }
 
-    /** ページ番号からページ取得 */
+    /** Get page from page number */
     PageInfo LayoutGetPage_pageno(LayoutDat p, int page) {
         return page_adjust(p, p.list_page.get(page));
     }
 
-    /** 行番号からページを取得 */
+    /** Get page from line number */
     PageInfo LayoutGetPage_lineno(LayoutDat p, int line, boolean wrap_top) {
 
-        // wrap_top: 行番号指定の場合 true、ページ位置の代わりとして使う場合は false。
-        //  行番号指定の場合、その行の先頭からページが見えるように。
-        //  ページ位置の代わりとして使う場合、その行が折り返している場合は、
-        //  折り返しの先頭を含まない方がページ位置として正しい。
-        //  (複数ページにまたがって折り返している場合は、折り返し後の最初のページとなる)
+        // wrap_top: true for line number specification, false for use as page position substitute.
+        //  For line number specification, page should be visible from the beginning of that line.
+        //  For use as page position substitute, if that line wraps,
+        //  it is correct as page position not to include the beginning of wrapping.
+        //  (If it wraps across multiple pages, it becomes the first page after wrapping)
         PageInfo pi = null;
         for (int i = 0; i < p.list_page.size(); i++) {
             pi = p.list_page.get(i);
             PageInfo next = p.list_page.get(i + i);
 
-            // 次がない = 最後のページ。
-            // 各ページの先頭の行番号から範囲を検索
+            // No next = Last page.
+            // Search range from start line number of each page
 
             if (next == null
                     || (pi.lineno <= line && line < next.lineno)
                     || (wrap_top && line == next.lineno && next.wrap_num != 0))
-                // その行が次のページに折り返している場合、前のページを指定
+                // If that line wraps to the next page, specify the previous page
                 break;
         }
 
         return page_adjust(p, pi);
     }
 
-    /** 指定方向に指定数移動したページを取得 */
+    /** Get page moved by specified number in specified direction */
     PageInfo LayoutGetPage_move(LayoutDat p, PageInfo pi, int dir) {
         int i;
 
         dir *= gdat.style.b.pages;
 
         if (dir < 0) {
-            // 前方向
+            // Backward
             for (i = -dir; p.list_page.get(i - 1) != null && i > 0; i--, pi = p.list_page.get(i - 1)) ;
         } else {
-            // 次方向
+            // Forward
             for (i = dir; p.list_page.get(i + 1) != null && i > 0; i--, pi = p.list_page.get(i + 1)) ;
         }
 
         return page_adjust(p, pi);
     }
 
-    /** ページ番号取得 */
+    /** Get page number */
     int LayoutGetPageNo(PageInfo pi) {
         return pi != null ? pi.pageno : 0;
     }
 
-    /** ページの先頭のテキスト行番号取得 */
+    /** Get text line number at the beginning of the page */
     int LayoutGetPageLineNo(PageInfo pi) {
         return pi != null ? pi.lineno : 0;
     }
 
-    /** レイアウトデータ確保 */
+    /** Allocate layout data */
     LayoutDat LayoutAlloc() {
         LayoutDat p;
 
         p = new LayoutDat();
 
         p.buf_hflags = new int[HEIGHTBUF_SIZE];
+        p.list_page = new ArrayList<>();
+        p.list_title = new ArrayList<>();
 
         return p;
     }
 
     /**
-     * 最初のレイアウト処理
+     * Initial layout processing
      * <p>
-     * ページの情報を作成 + 見出しの抽出
+     * Create page information + Extract titles
      */
     void LayoutRunFirst(LayoutDat info, Consumer<Integer> prog) {
         LayoutWork p;
         LayoutFirst lf = new LayoutFirst();
+        lf.curpage = new PageInfo();
+        lf.nextpage = new PageInfo();
         PageInfo pi;
         int topbuf;
         int textsize;
 
-        // LayoutWork 作成
+        // Create LayoutWork
         p = _create_layoutwork(info, null);
 
         p.pfirst = lf;
 
-        // 見出し文字列用バッファ
+        // Buffer for title string
 //        mBufAlloc(p.buf_title, 1024, 1024);
 
-        lf.curpage.src = p.text;
+        lf.curpage.src = new String(gdat.textbuf, StandardCharsets.UTF_8);
 
-        // 各ページ情報セット
+        // Set each page info
         topbuf = p.textP;
         textsize = gdat.textbuf.length;
 
         while (layout_page(p, lf)) {
-            // ページ追加
+            // Add page
+            lf.curpage.pageno = lf.pagenum;
+            info.list_page.add(lf.curpage);
 
-            pi = new PageInfo();
-            info.list_page.add(pi);
-
+            lf.pagenum++;
             lf.curpage = lf.nextpage;
+            lf.nextpage = new PageInfo();
 
-            // 進捗
+            // Progress
             prog.accept((int) ((double) (p.textP - topbuf) / textsize * 100 + 0.5));
         }
 
-        // ページ数
+        // Page number
         info.page_num = lf.pagenum;
 
-        // 見出し個数
-        System.arraycopy(p.title_num, 0, info.title_num, 0, Integer.BYTES * 3);
+        // Title count
+        System.arraycopy(p.title_num, 0, info.title_num, 0, 3);
     }
 
     /**
-     * ページを描画
+     * Draw page
      * <p>
-     * page: null で先頭ページ
+     * page: null for first page
      */
     void LayoutDrawPage(LayoutDat info, Graphics2D img, PageInfo page) throws IOException {
         LayoutWork p;
@@ -328,13 +435,13 @@ class Layout {
 
         p.pagenum = info.page_num;
 
-        // 描画
+        // Drawing
 
         if (p.stdef.pages == 1)
-            // 単一ページ
+            // Single page
             layout_drawpage(p, page, -1);
         else {
-            // 見開き
+            // Spread
 
             layout_drawpage(p, page, 0);
 

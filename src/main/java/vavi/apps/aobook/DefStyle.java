@@ -23,104 +23,129 @@
 
 package vavi.apps.aobook;
 
+import java.util.EnumSet;
+
+
 /**
- * スタイルデータ定義
+ * Style Data Definition
  */
 class DefStyle {
 
     static final int STYLE_CHARS_DEFAULT = 1;
 
+    public String txt;
+
+    public DefStyle(String txt) {
+        this.txt = txt;
+    }
+
     enum DATATYPE {
-        /** 終端 */
+        /** End */
         DATATYPE_END,
-        /** 文章としての改行 */
+        /** Newline as sentence */
         DATATYPE_ENTER,
-        /** ソースの行番号値 [(uint32)行番号] */
+        /** Source line number value [(uint32)line number] */
         DATATYPE_LINEINFO,
-        /** 通常文字列(16bit) [(uint16)文字数, 16bit文字列:ヌル含まない] */
+        /** Normal text (16bit) [(uint16)length, 16bit string: null excluded] */
         DATATYPE_NORMAL_TEXT_16,
-        /** 通常文字列(32bit) [(uint16)文字数, 32bit文字列] */
+        /** Normal text (32bit) [(uint16)length, 32bit string] */
         DATATYPE_NORMAL_TEXT_32,
-        /** ルビ付き文字列 [(uint16)親文字列の文字数, UTF-32親文字列, (uint16)ルビ文字数, UTF-32ルビ文字列] */
+        /** Ruby text [(uint16)parent length, UTF-32 parent, (uint16)ruby length, UTF-32 ruby] */
         DATATYPE_RUBY_TEXT,
-        /** 注記コマンド [(uint8)コマンドタイプ] */
+        /** Annotation command [(uint8)command type] */
         DATATYPE_COMMAND,
-        /** 注記コマンド [(uint8)コマンドタイプ, (uint8x2)値] */
+        /** Annotation command [(uint8)command type, (uint8x2)value] */
         DATATYPE_COMMAND_VAL,
-        /** 挿絵 [(uint16)文字列バイト数:ヌル含む, UTF-8ファイル名文字列:ヌル含む] */
+        /** Picture [(uint16)string bytes: null included, UTF-8 filename: null included] */
         DATATYPE_PICTURE,
-        /** 変換作業時用 */
+        /** For conversion work */
         DATATYPE_CHAR
     }
 
-    /** 濁点タイプ */
+    /** Dakuten Type */
     enum STYLE_DAKUTEN {
-        /** そのまま */
+        /** As is */
         STYLE_DAKUTEN_NORMAL,
-        /** そのまま:横に全角幅ずらす */
+        /** As is: Shift horizontally by full-width */
         STYLE_DAKUTEN_NORMAL_HORZ,
-        /** そのまま:縦に全角幅ずらす */
+        /** As is: Shift vertically by full-width */
         STYLE_DAKUTEN_NORMAL_VERT,
-        /** 結合文字 */
+        /** Combined character */
         STYLE_DAKUTEN_COMBINE,
-        /** 結合文字:横に全角幅 */
+        /** Combined character: Full-width horizontally */
         STYLE_DAKUTEN_COMBINE_HORZ,
-        /** 結合文字:縦に全角幅 */
+        /** Combined character: Full-width vertically */
         STYLE_DAKUTEN_COMBINE_VERT
     }
 
-    /** フラグ */
+    /** Flags */
     enum STYLE_FLAGS {
-        /** 背景画像はタイル状に並べる */
+        /** Tile background image */
         STYLE_F_BKGND_TILE(1 << 0),
-        /** ぶら下げ有効 */
+        /** Hanging punctuation enabled */
         STYLE_F_HANGING(1 << 1),
-        /** 挿絵表示 */
+        /** Show picture */
         STYLE_F_ENABLE_PICTURE(1 << 2),
-        /** 横線文字を直線で描画 */
+        /** Draw horizontal line characters as straight lines */
         STYLE_F_DASH_TO_LINE(1 << 3),
-        /** 印刷標準字体に置換 */
+        /** Replace with standard print fonts */
         STYLE_F_REPLACE_PRINT(1 << 4);
         final int v;
 
         STYLE_FLAGS(int v) {
             this.v = v;
         }
+
+        static EnumSet<STYLE_FLAGS> valueOf(int v) {
+            EnumSet<STYLE_FLAGS> es = EnumSet.noneOf(STYLE_FLAGS.class);
+            for (STYLE_FLAGS e : values())
+                if ((e.v & v) != 0)
+                    es.add(e);
+            return es;
+        }
+
+        static int valueOf(EnumSet<STYLE_FLAGS> es) {
+            int v = 0;
+            for (STYLE_FLAGS e : values())
+                if (es.contains(e))
+                    v |= e.v;
+            return v;
+        }
     }
 
     enum BOUSEN_TYPE {
         BOUSEN_TYPE_NONE,
-        /** 直線 */
+        /** Straight line */
         BOUSEN_TYPE_NORMAL,
-        /** 二重線 */
+        /** Double line */
         BOUSEN_TYPE_DOUBLE,
-        /** 鎖線 */
+        /** Chain line */
         BOUSEN_TYPE_KUSARI,
-        /** 破線 */
+        /** Dashed line */
         BOUSEN_TYPE_HASEN,
-        /** 波線 */
+        /** Wavy line */
         BOUSEN_TYPE_NAMISEN,
     }
 
     enum BOUTEN_TYPE {
         BOUTEN_TYPE_NONE,
-        /** ごま */
+        /** Sesame */
         BOUTEN_TYPE_GOMA,
-        /** 白ごま */
+        /** White sesame */
         BOUTEN_TYPE_SIROGOMA,
-        /** 蛇の目 */
+        /** Bullseye */
         BOUTEN_TYPE_JYANOME,
-        /** 丸 */
+        /** Circle */
         BOUTEN_TYPE_MARU,
-        /** 白丸 */
+        /** White circle */
         BOUTEN_TYPE_SIROMARU,
-        /** 黒三角 */
+        /** Black triangle */
         BOUTEN_TYPE_KUROSANKAKU,
-        /** 白三角 */
+        /** White triangle */
         BOUTEN_TYPE_SIROSANKAKU,
-        /** 二重丸 */
+        /** Double circle */
         BOUTEN_TYPE_NIJUUMARU,
-        /** バツ */
+        /** Cross */
         BOUTEN_TYPE_BATU,
     }
 }
