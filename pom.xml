@@ -42,6 +42,10 @@
 
   <repositories>
     <repository>
+      <id>appodeal.com</id> <!-- for xml-apis:xml-apis-ext -->
+      <url>https://artifactory.appodeal.com/appodeal-public/</url>
+    </repository>
+    <repository>
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
     </repository>
