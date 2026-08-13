@@ -66,6 +66,7 @@ import com.soso.sgui.letter.SLetterImageCell;
 import com.soso.sgui.letter.SLetterPane;
 import com.soso.sgui.letter.SLetterPaneObserver;
 import com.soso.sgui.letter.SLetterPaneObserverHelper;
+import com.soso.sgui.letter.SLetterRuby;
 import vavi.text.UnicodeUtil;
 import vavi.util.Debug;
 
@@ -75,10 +76,11 @@ import static javax.swing.SwingUtilities.invokeAndWait;
 /**
  * based on "com.soso.aozora.viewer.TextViewerPane"
  *
+ * A ruby is one {@link com.soso.sgui.letter.SLetterRuby} over the whole base letters, and
+ * western text is one {@link com.soso.sgui.letter.SLetterWestern} run of proportional letters.
+ *
  * TODO
- *  - long ruby after 2nd "<rb>" should be shift
- *  - half letter strings are separated into 2 letters, spacing is suck
- *  - half digit 2 letters pair should not be rotated
+ *  - half digit 2 letters pair should not be rotated (縦中横)
  *  - full '<<', '>>' are not rotated
  *  - in-page image
  */
@@ -323,12 +325,9 @@ public class MyTextViewerPane extends JPanel {
 
         SLetterCell[] getResult() {
             SLetterCell[] cells = rb.toArray(new SLetterCell[0]);
-            if (cells.length != 0) {
-                char[][] rtArray = splitRT(rt.toString().toCharArray(), cells.length);
-                for (int i = 0; i < cells.length; i++)
-                    ((SLetterGlyphCell) cells[i]).setRubys(rtArray[i]);
-
-            }
+            // the ruby is set on the whole base letters as a group ruby, JLReq 3.3 lays it out
+            if (cells.length != 0 && rt.length() != 0 && cells[0].getRuby() == null)
+                SLetterRuby.group(rt.toString(), rb);
             return cells;
         }
 
@@ -386,7 +385,7 @@ Debug.println(Level.FINER, "characters|レ点: " + cdata);
 //                    appendCell(cell);
 //                }
                 // bad usage, but beautiful
-                SLetterCell cell = cellFactory.createGlyphCell('　', cdata.toCharArray());
+                SLetterCell cell = cellFactory.createGlyphCell('　', cdata);
                 appendCell(cell);
 
                 kaeriten = false;
@@ -430,24 +429,36 @@ Debug.println(Level.FINE, "characters|[notes]: " + cdata);
                 return;
             }
             // https://linuxtut.com/en/bdc62f95f6d342705001/
+            // the letters are collected and made at once, so that western text among them is
+            // kept as a run, which is set with the proportional advances (JLReq 3.2.6)
+            StringBuilder sb = new StringBuilder();
             char[] ca = cdata.trim().toCharArray();
             for (int i = 0; i < ca.length; i++) {
                 if (ca[i] == '※') {
 Debug.println(Level.FINER, "characters|" + "※※※ NOTED ※※※");
+                    appendCells(sb);
                     alternative = true;
                 } else {
-                    if (Character.isHighSurrogate(ca[i]) && Character.isSurrogatePair(ca[i], ca[i + 1])) {
+                    if (Character.isHighSurrogate(ca[i]) && i + 1 < ca.length && Character.isSurrogatePair(ca[i], ca[i + 1])) {
 Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
-                        SLetterCell cell = cellFactory.createGlyphCell(cdata.codePointAt(i), new char[0], null);
-                        appendCell(cell);
+                        sb.append(ca[i]).append(ca[i + 1]);
                         i++;
                     } else {
                         // TODO old-new on/off flag
-                        char c = UnicodeUtil.toNew(String.valueOf(ca[i])).charAt(0);
-                        SLetterCell cell = cellFactory.createGlyphCell(c);
-                        appendCell(cell);
+                        sb.append(UnicodeUtil.toNew(String.valueOf(ca[i])).charAt(0));
                     }
                 }
+            }
+            appendCells(sb);
+        }
+
+        /** makes the letters of the text collected so far and empties it */
+        private void appendCells(StringBuilder sb) {
+            if (sb.length() > 0) {
+                for (SLetterCell cell : cellFactory.createCells(sb.toString(), null)) {
+                    appendCell(cell);
+                }
+                sb.setLength(0);
             }
         }
 
@@ -565,31 +576,17 @@ Debug.println(Level.FINER, "others: " + element);
                 throw new IllegalStateException("ruby[" + rb + "," + rt + "] appears while building " + gaijirb);
 Debug.println(Level.FINER, rb + ", " + rt);
             if (rb != null) {
-                char[] textChars = rb.toCharArray();
-                char[] rubyChars = rt == null ? null : rt.toCharArray();
-                if (textChars.length == 1) {
-                    SLetterCell cell = cellFactory.createGlyphCell(textChars[0], rubyChars);
-                    if (cell != null) {
-                        appendCell(cell);
-                        if (textChars[0] == '※') {
-                            rubyAlternative = (SLetterGlyphCell) cell;
+                // the ruby is kept as one run over its base letters, it is never divided per letter
+                SLetterCell[] cells = cellFactory.createRubyCells(rb, rt, null);
+                for (int i = 0; i < cells.length; i++) {
+                    appendCell(cells[i]);
+                    if (i < rb.length() && rb.charAt(i) == '※') {
+                        if (cells.length == 1) {
+                            rubyAlternative = (SLetterGlyphCell) cells[i];
 Debug.println("ruby: alternative: " + rubyAlternative);
+                        } else {
+Debug.println("ruby: unhandled: ※");
                         }
-                    }
-                } else if (textChars.length == 0) {
-                    SLetterCell cell = cellFactory.createGlyphCell('　', rubyChars);
-                    if (cell != null)
-                        appendCell(cell);
-                } else {
-                    char[][] rubyAssigns = splitRT(rubyChars, textChars.length);
-                    for (int i = 0; i < textChars.length; i++) {
-                        char textChar = textChars[i];
-                        char[] rubyAssign = rubyAssigns[i];
-if (textChar == '※') {
- Debug.println("ruby: unhandled: ※");
-}
-                        SLetterCell cell = cellFactory.createGlyphCell(textChar, rubyAssign);
-                        appendCell(cell);
                     }
                 }
             }
@@ -1229,28 +1226,5 @@ logger.fine("search|prev|match surrogate: " + m);
         synchronized (textPane) {
             textPane.removeCellAll();
         }
-    }
-
-    /**
-     * dividing ruby
-     *
-     * TODO not a good separation (but better than the original)
-     */
-    private static char[][] splitRT(char[] rubyChars, int textCharsLength) {
-        char[][] rubyCharsPerTextChars = new char[textCharsLength][];
-        int offset = 0;
-        int position = 0;
-        int quotient = rubyChars.length / textCharsLength;
-        int remainder = rubyChars.length % textCharsLength;
-        for (int i = 0; i < textCharsLength; i++) {
-            offset = position;
-            position = offset + quotient + (remainder-- > 0 ? 1 : 0);
-            int rubyLength = position - offset;
-            char[] rubyCharsForAText = new char[rubyLength];
-            System.arraycopy(rubyChars, offset, rubyCharsForAText, 0, rubyLength);
-            rubyCharsPerTextChars[i] = rubyCharsForAText;
-        }
-
-        return rubyCharsPerTextChars;
     }
 }

@@ -31,6 +31,7 @@ import com.soso.sgui.letter.SLetterCell;
 import com.soso.sgui.letter.SLetterCellFactory;
 import com.soso.sgui.letter.SLetterConstraint;
 import com.soso.sgui.letter.SLetterPane;
+import com.soso.sgui.text.CharacterUtil;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import vavi.text.aozora.converter.AozoraBunkoRuby;
@@ -113,6 +114,10 @@ Debug.println(entry);
 
             @Override public void ruby(String rb, String rt) {
                 Debug.println("ruby|" + rb + "|" + rt);
+                // the ruby is one run over the whole base letters, JLReq 3.3 lays it out
+                for (SLetterCell cell : SLetterCellFactory.getInstance().createRubyCells(rb, rt, null)) {
+                    letterPane.addCell(cell);
+                }
             }
 
             @Override public void otherElement(String element) {
