@@ -30,6 +30,6 @@ Japanese Vertical (縦書き) Text Viewer.
 
 ## TODO
 
- * ruby
+ * ~~ruby~~
  * proofreading
    * https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473
