@@ -31,7 +31,6 @@ import com.soso.sgui.letter.SLetterCell;
 import com.soso.sgui.letter.SLetterCellFactory;
 import com.soso.sgui.letter.SLetterConstraint;
 import com.soso.sgui.letter.SLetterPane;
-import com.soso.sgui.text.CharacterUtil;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import vavi.text.aozora.converter.AozoraBunkoRuby;

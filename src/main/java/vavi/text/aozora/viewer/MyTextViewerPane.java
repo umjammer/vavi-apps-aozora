@@ -30,8 +30,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.lang.System.Logger.Level;
+import java.lang.System.Logger;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractAction;
 import javax.swing.Box;
@@ -86,11 +86,11 @@ import static javax.swing.SwingUtilities.invokeAndWait;
  */
 public class MyTextViewerPane extends JPanel {
 
-    static Logger logger = Logger.getLogger(MyTextViewerPane.class.getName());
+    static final Logger logger = System.getLogger(MyTextViewerPane.class.getName());
 
     private class SearchFieldPane extends JPanel {
 
-        private class NoFocusButton extends JButton {
+        private static class NoFocusButton extends JButton {
 
             @Override
             public boolean isFocusTraversable() {
@@ -250,7 +250,7 @@ public class MyTextViewerPane extends JPanel {
 
         private String getSearchKeyword() {
             String word = getTextField().getText();
-            if (word != null && word.length() != 0)
+            if (word != null && !word.isEmpty())
                 return word;
             else
                 return null;
@@ -326,7 +326,7 @@ public class MyTextViewerPane extends JPanel {
         SLetterCell[] getResult() {
             SLetterCell[] cells = rb.toArray(new SLetterCell[0]);
             // the ruby is set on the whole base letters as a group ruby, JLReq 3.3 lays it out
-            if (cells.length != 0 && rt.length() != 0 && cells[0].getRuby() == null)
+            if (cells.length != 0 && !rt.isEmpty() && cells[0].getRuby() == null)
                 SLetterRuby.group(rt.toString(), rb);
             return cells;
         }
@@ -360,7 +360,7 @@ public class MyTextViewerPane extends JPanel {
             MyTextViewerPane.this.appendCell(cell);
         }
 
-        private SLetterCellFactory cellFactory = SLetterCellFactory.getInstance();
+        private final SLetterCellFactory cellFactory = SLetterCellFactory.getInstance();
 
         static final String pattern = ".*[Uu]\\+([0-9a-fA-F]{4,5}).*";
         String parseUnicode(String source) {
@@ -378,7 +378,7 @@ public class MyTextViewerPane extends JPanel {
                 title(cdata);
             }
             if (kaeriten) {
-Debug.println(Level.FINER, "characters|レ点: " + cdata);
+logger.log(Level.TRACE, "characters|レ点: " + cdata);
                 // TODO too large
 //                for (char c : cdata.toCharArray()) {
 //                    SLetterCell cell = getCellFactory().createKaeritenGlyphCell(c);
@@ -397,28 +397,28 @@ Debug.println(Level.FINER, "characters|レ点: " + cdata);
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
-Debug.printf(Level.FINE, "characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
+logger.log(Level.DEBUG, "characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
                             SLetterCell cell = cellFactory.createGlyphCell(c);
                             appendCell(cell);
                         } else {
-Debug.printf(Level.WARNING, "characters|[notes:※:N/A]: %s", cdata);
+logger.log(Level.WARNING, "characters|[notes:※:N/A]: %s", cdata);
                         }
                         alternative = false;
                     } else if (rubyAlternative != null) {
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
-Debug.printf(Level.FINE, "characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
+logger.log(Level.DEBUG, "characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
                             rubyAlternative.setMain(c);
                         } else {
-Debug.printf(Level.WARNING, "characters|[notes:ruby※:N/A]: %s", cdata);
+logger.log(Level.WARNING, "characters|[notes:ruby※:N/A]: %s", cdata);
                         }
                         rubyAlternative = null;
                     } else {
-Debug.println(Level.FINE, "characters|[notes:#]: " + cdata);
+logger.log(Level.DEBUG, "characters|[notes:#]: " + cdata);
                     }
                 } else {
-Debug.println(Level.FINE, "characters|[notes]: " + cdata);
+logger.log(Level.DEBUG, "characters|[notes]: " + cdata);
                 }
                 notes = false;
                 return;
@@ -435,12 +435,12 @@ Debug.println(Level.FINE, "characters|[notes]: " + cdata);
             char[] ca = cdata.trim().toCharArray();
             for (int i = 0; i < ca.length; i++) {
                 if (ca[i] == '※') {
-Debug.println(Level.FINER, "characters|" + "※※※ NOTED ※※※");
+logger.log(Level.TRACE, "characters|" + "※※※ NOTED ※※※");
                     appendCells(sb);
                     alternative = true;
                 } else {
                     if (Character.isHighSurrogate(ca[i]) && i + 1 < ca.length && Character.isSurrogatePair(ca[i], ca[i + 1])) {
-Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
+logger.log(Level.DEBUG, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
                         sb.append(ca[i]).append(ca[i + 1]);
                         i++;
                     } else {
@@ -454,7 +454,7 @@ Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codeP
 
         /** makes the letters of the text collected so far and empties it */
         private void appendCells(StringBuilder sb) {
-            if (sb.length() > 0) {
+            if (!sb.isEmpty()) {
                 for (SLetterCell cell : cellFactory.createCells(sb.toString(), null)) {
                     appendCell(cell);
                 }
@@ -464,7 +464,7 @@ Debug.printf(Level.FINE, "surrogate pair: %s", new String(new int[] {cdata.codeP
 
         @Override
         public void img(URL src, String alt, boolean isGaiji) {
-Debug.println(Level.FINER, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
+logger.log(Level.TRACE, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
             if (src.toString().matches(".*(\\d)-(\\d{2})-(\\d{2}).*")) {
                 String[] prc = src.toString().replaceFirst(".*(\\d)-(\\d{2})-(\\d{2}).*", "$1,$2,$3").split(",");
 
@@ -472,11 +472,11 @@ Debug.println(Level.FINER, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
                 // TODO why replaceFirst("[※\\(\\)]", "") doesn't work???
                 String a = alt.replaceFirst("※", "").replace("(", "").replace(")", "").trim();
                 if (unicode != null) {
-Debug.printf(Level.FINE, "image: %s -> %s, %s%s", Arrays.toString(prc), unicode, a, unicode.length() > 1 ? ", surrogate pare" : "");
+logger.log(Level.DEBUG, "image: %s -> %s, %s%s", Arrays.toString(prc), unicode, a, unicode.length() > 1 ? ", surrogate pare" : "");
                     characters(unicode);
                     return;
                 } else {
-Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
+logger.log(Level.INFO, "image: %s -> not found: %s", Arrays.toString(prc), a);
                 }
             }
 
@@ -496,13 +496,13 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
             ((SLetterImageCell) cell).setMagnifyable(!isGaiji);
             if (isGaiji) {
                 if (AozoraCharacterUtil.isGaijiToRotate(src.getFile())) {
-                    logger.fine("Gaiji | rotate | " + src);
+                    logger.log(Level.INFO, "Gaiji | rotate | " + src);
                     cell.addConstraint(SLetterConstraint.ROTATE.GENERALLY);
                 } else {
-                    logger.fine("Gaiji | " + src);
+                    logger.log(Level.INFO, "Gaiji | " + src);
                 }
             } else {
-                logger.info("Image | " + src);
+                logger.log(Level.INFO, "Image | " + src);
             }
             appendCell(cell);
         }
@@ -562,7 +562,7 @@ Debug.printf("image: %s -> not found: %s", Arrays.toString(prc), a);
             } else if (lowerElement.startsWith("/td")) {
                 characters("\t");
             } else {
-Debug.println(Level.FINER, "others: " + element);
+logger.log(Level.TRACE, "others: " + element);
             }
         }
 
@@ -574,7 +574,7 @@ Debug.println(Level.FINER, "others: " + element);
         public void ruby(String rb, String rt) {
             if (gaijirb != null)
                 throw new IllegalStateException("ruby[" + rb + "," + rt + "] appears while building " + gaijirb);
-Debug.println(Level.FINER, rb + ", " + rt);
+logger.log(Level.TRACE, rb + ", " + rt);
             if (rb != null) {
                 // the ruby is kept as one run over its base letters, it is never divided per letter
                 SLetterCell[] cells = cellFactory.createRubyCells(rb, rt, null);
@@ -583,9 +583,9 @@ Debug.println(Level.FINER, rb + ", " + rt);
                     if (i < rb.length() && rb.charAt(i) == '※') {
                         if (cells.length == 1) {
                             rubyAlternative = (SLetterGlyphCell) cells[i];
-Debug.println("ruby: alternative: " + rubyAlternative);
+logger.log(Level.INFO, "ruby: alternative: " + rubyAlternative);
                         } else {
-Debug.println("ruby: unhandled: ※");
+logger.log(Level.INFO, "ruby: unhandled: ※");
                         }
                     }
                 }
@@ -610,7 +610,7 @@ Debug.println("ruby: unhandled: ※");
 
         @Override
         public void rowCountChanged(int oldRowCount, int newRowCount) {
-            logger.info("cached prev clear " + Arrays.toString(cachedPrevPosStack.toArray()));
+            logger.log(Level.INFO, "cached prev clear " + Arrays.toString(cachedPrevPosStack.toArray()));
             cachedPrevPosStack.clear();
             if (oldRowCount < newRowCount)
                 tryAppend();
@@ -633,20 +633,20 @@ Debug.println("ruby: unhandled: ※");
         public void setFontRatio(float fontRatio) {
             this.fontRatio = fontRatio;
         }
-        Color defaultBGColor = new Color(0xFFFFFF);
+        final Color defaultBGColor = new Color(0xFFFFFF);
         public Color getDefaultBGColor() {
             return defaultBGColor;
         }
-        Color background = new Color(0xFFFFFF);
+        final Color background = new Color(0xFFFFFF);
         public Color getBackground() {
             return background;
         }
-        Color foreground = new Color(0x000000);
+        final Color foreground = new Color(0x000000);
         public Color getForeground() {
             return foreground;
         }
-        int fontSize = 32;
-        Font font = new Font("Hiragino Mincho ProN", Font.PLAIN, fontSize);
+        final int fontSize = 32;
+        final Font font = new Font("Hiragino Mincho ProN", Font.PLAIN, fontSize);
         public Font getFont() {
             return font;
         }
@@ -663,16 +663,16 @@ Debug.println("ruby: unhandled: ※");
         }
     }
 
-    Settings settings = new Settings();
+    final Settings settings = new Settings();
 
     private SLetterPane textPane;
     private final List<SLetterCell> textCells = new ArrayList<>();
     private int startPos = 0;
     private int endPos = 0;
-    private Stack<Integer> cachedPrevPosStack = new Stack<>();
+    private final Stack<Integer> cachedPrevPosStack = new Stack<>();
     private JPanel buttonPanel;
-    String nextAction = "TextViewerPane.nextButton";
-    String prevAction = "TextViewerPane.prevButton";
+    final String nextAction = "TextViewerPane.nextButton";
+    final String prevAction = "TextViewerPane.prevButton";
     boolean nextEnabled;
     boolean prevEnabled;
     private Icon goLeftIcon;
@@ -682,7 +682,7 @@ Debug.println("ruby: unhandled: ※");
     private JProgressBar progress;
     private boolean isFirstPageLoaded = false;
     private boolean isAllPageLoaded = false;
-    private int firstStartPos;
+    private final int firstStartPos;
     private SearchFieldPane searchFieldPane;
 
     /** called from parser, override me */
@@ -770,10 +770,10 @@ Debug.println("ruby: unhandled: ※");
                 Rectangle l = new Rectangle(0, 0, hw, getHeight());
                 Rectangle r = new Rectangle(hw, 0, getWidth(), getHeight());
                 if (l.contains(e.getPoint())) {
-//Debug.println("mouseClicked: next");
+//logger.log("mouseClicked: next");
                     next();
                 } else if (r.contains(e.getPoint())){
-//Debug.println("mouseClicked: prev");
+//logger.log("mouseClicked: prev");
                     prev();
                 }
             }
@@ -810,12 +810,12 @@ Debug.println("ruby: unhandled: ※");
 
     void disposeWithError(final Throwable t) {
         try {
-            t.printStackTrace();
+            logger.log(Level.ERROR, t.getMessage(), t);
             invokeAndWait(() -> JOptionPane.showInternalMessageDialog(MyTextViewerPane.this,
                     String.join("\n", Arrays.toString(t.getStackTrace()).split(",")),
                     "作品を表示できません。", JOptionPane.ERROR_MESSAGE));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
@@ -884,7 +884,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
                 setupButtonEnabled();
                 setupPageNumber();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
     }
@@ -908,7 +908,7 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         int lastStartPos = startPos;
-logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endPos);
+logger.log(Level.INFO, "next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endPos);
         setStartPos(endPos);
         cachedPrevPosStack.push(lastStartPos);
         setupButtonEnabled();
@@ -930,7 +930,7 @@ logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endP
         int lastStartPos = startPos;
         List<Integer> triedStartPosList = new ArrayList<>();
         StringBuilder log = new StringBuilder().append("prev");
-        if (cachedPrevPosStack.size() != 0) {
+        if (!cachedPrevPosStack.isEmpty()) {
             log.append(",cached,").append(Arrays.toString(cachedPrevPosStack.toArray()));
             int cachedPrevPos = cachedPrevPosStack.pop();
             setStartPos(cachedPrevPos);
@@ -962,7 +962,7 @@ logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endP
         }
 
         log.append("|lastStart=").append(lastStartPos).append("|thisEnd=").append(endPos);
-        logger.fine(log.toString());
+        logger.log(Level.INFO, log.toString());
         setupButtonEnabled();
         setupPageNumber();
 
@@ -996,14 +996,14 @@ logger.info("next," + Arrays.toString(cachedPrevPosStack.toArray()) + "," + endP
         int selectionStart = textPane.getSelectionStart();
         int startPos = this.startPos + selectionStart + 1;
         int matchIndex = 0;
-logger.info("search|next|" + startPos + " ~ " + textCells.size() + ", " + keyword);
-        int keywordCodePointLength = keyword.codePointCount(0, keyword.toCharArray().length);
+logger.log(Level.INFO, "search|next|" + startPos + " ~ " + textCells.size() + ", " + keyword);
+        int keywordCodePointLength = keyword.codePointCount(0, keyword.length());
         for (int i = startPos; i < textCells.size(); i++) {
             SLetterCell cell = textCells.get(i);
             if (cell instanceof SLetterGlyphCell) {
                 String m = ((SLetterGlyphCell) cell).getMain();
                 if (m.length() > 1 && keyword.charAt(matchIndex) == m.charAt(0) && keyword.charAt(matchIndex + 1) == m.charAt(1)) {
-logger.fine("search|next|match surrogate: " + m);
+logger.log(Level.INFO, "search|next|match surrogate: " + m);
                     matchIndex += 2;
                 } else if (keyword.charAt(matchIndex) == m.charAt(0))
                     matchIndex++;
@@ -1011,7 +1011,7 @@ logger.fine("search|next|match surrogate: " + m);
                     matchIndex = 0;
                 if (matchIndex == keyword.length()) {
                     int nextStart = (i - keywordCodePointLength) + 1;
-                    logger.info("search|next| find at " + nextStart);
+                    logger.log(Level.INFO, "search|next| find at " + nextStart);
                     setSelection(nextStart, keywordCodePointLength);
                     return;
                 }
@@ -1029,14 +1029,14 @@ logger.fine("search|next|match surrogate: " + m);
         int selectionStart = textPane.getSelectionStart();
         int startPos = (this.startPos + selectionStart) - 1;
         int matchIndex = 0;
-logger.info("search|prev|" + startPos + " ~ 0, " + keyword);
-        int keywordCodePointLength = keyword.codePointCount(0, keyword.toCharArray().length);
+logger.log(Level.INFO, "search|prev|" + startPos + " ~ 0, " + keyword);
+        int keywordCodePointLength = keyword.codePointCount(0, keyword.length());
         for (int i = startPos; i >= 0; i--) {
             SLetterCell cell = textCells.get(i);
             if (cell instanceof SLetterGlyphCell) {
                 String m = ((SLetterGlyphCell) cell).getMain();
                 if (m.length() > 1 && keyword.charAt(keyword.length() - 2 - matchIndex) == m.charAt(0) && keyword.charAt(keyword.length() - 2 - matchIndex + 1) == m.charAt(1)) {
-logger.fine("search|prev|match surrogate: " + m);
+logger.log(Level.INFO, "search|prev|match surrogate: " + m);
                     matchIndex += 2;
                 } else if (keyword.charAt(keyword.length() - 1 - matchIndex) == m.charAt(0))
                     matchIndex++;
@@ -1044,7 +1044,7 @@ logger.fine("search|prev|match surrogate: " + m);
                     matchIndex = 0;
                 if (matchIndex == keyword.length()) {
                     int prevStart = i;
-                    logger.info("search|prev| find at " + prevStart);
+                    logger.log(Level.INFO, "search|prev| find at " + prevStart);
                     setSelection(prevStart, keywordCodePointLength);
                     return;
                 }
@@ -1080,7 +1080,7 @@ logger.fine("search|prev|match surrogate: " + m);
         }
 
         String selected = sb.toString();
-        if (selected.length() > 0)
+        if (!selected.isEmpty())
             searchFieldPane.getTextField().setText(selected);
     }
 
@@ -1158,17 +1158,12 @@ logger.fine("search|prev|match surrogate: " + m);
 
     boolean isProgressBarRevertOrientation() {
         SLetterConstraint.ORIENTATION orientation = getOrientation();
-        switch (orientation) {
-        case TBRL:
-            return true;
-        case LRTB:
-            return true;
-        case RLTB:
-            return true;
-        case TBLR:
-            return false;
-        }
-        throw new UnsupportedOperationException("orientation " + orientation);
+        return switch (orientation) {
+            case TBRL -> true;
+            case LRTB -> true;
+            case RLTB -> true;
+            case TBLR -> false;
+        };
     }
 
     void setOrientation(SLetterConstraint.ORIENTATION orientation) {

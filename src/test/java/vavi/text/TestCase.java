@@ -20,7 +20,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import org.klab.commons.csv.CsvEntity;

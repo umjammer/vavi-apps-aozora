@@ -151,7 +151,7 @@ class Layout {
         /** Page number */
         int page_num;
         /** Count of each title */
-        int[] title_num = new int[3];
+        final int[] title_num = new int[3];
         /** List of pages */
         List<PageInfo> list_page;
         /** List of titles */

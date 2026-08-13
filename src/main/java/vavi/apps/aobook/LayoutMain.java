@@ -175,7 +175,7 @@ class LayoutMain {
                 // and current character must not be at end of line, wrap current character
                 // [Example] "……」" where "…」" wraps to next line due to line head restriction, but "…" cannot be split,
                 //      so wrap at the first "…".
-                pinext2 = (PvLayout.CharItem) p.list_char.get(i + 2);
+                pinext2 = p.list_char.get(i + 2);
 
                 if (y + charh + charsp + nexth + charsp + pinext2.height > bottomY[bottom_type]
                         && layout_find_utf32(pinext2.code, p.u32_nohead)

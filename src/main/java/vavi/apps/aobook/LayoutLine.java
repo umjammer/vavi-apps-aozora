@@ -24,7 +24,6 @@
 package vavi.apps.aobook;
 
 import java.awt.Font;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -279,7 +278,7 @@ class LayoutLine {
 
         if (bst.title != 0 && p.plist_title != null) {
             // For the first character, set the title type in the 1st byte
-            if (p.buf_title.length() == 0)
+            if (p.buf_title.isEmpty())
                 p.buf_title += bst.title;
 
             // Add 1 character
@@ -366,7 +365,7 @@ class LayoutLine {
                         && p.list_char.get(i + 2) != null && p.list_char.get(i + 2).code == '＼') {
                     // With dakuten
 
-                    third = (CharItem) p.list_char.get(i + 2);
+                    third = p.list_char.get(i + 2);
 
                     p.list_char.remove(next);
                     len--;
@@ -464,7 +463,7 @@ class LayoutLine {
 
         ps = pp[0];
 
-        rlen = ((int) ps);
+        rlen = ps;
         ps += 2;
 
         pi = new PvLayout.RubyItem();
@@ -502,7 +501,7 @@ class LayoutLine {
             switch (type) {
             // Line number info
             case DATATYPE_LINEINFO:
-                p.curlineno = (int) p.text.charAt(ps[0]);
+                p.curlineno = p.text.charAt(ps[0]);
                 ps[0] += 1;
                 break;
             // Normal string
