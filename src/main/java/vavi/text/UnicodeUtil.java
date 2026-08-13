@@ -34,14 +34,14 @@ public class UnicodeUtil {
         return prcUnicodeMap.get(plane + "-" + row + "-" + cell);
     }
 
-    private static Map<String, String> prcUnicodeMap;
+    private static final Map<String, String> prcUnicodeMap;
 
     public static String toNew(String old) {
         String new_ = oldNewMap.get(old);
         return new_ == null ? old : new_;
     }
 
-    private static Map<String, String> oldNewMap = new HashMap<>();
+    private static final Map<String, String> oldNewMap = new HashMap<>();
 
     static {
         try {

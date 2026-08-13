@@ -1,13 +1,19 @@
 [![Release](https://jitpack.io/v/umjammer/vavi-apps-aozora.svg)](https://jitpack.io/#umjammer/vavi-apps-aozora)
 [![Java CI](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/codeql-analysis.yml)
-![Java](https://img.shields.io/badge/Java-8-b07219)
+![Java](https://img.shields.io/badge/Java-17-b07219)
 
 # vavi-apps-aozora
 
 Japanese Vertical (縦書き) Text Viewer.
 
-![ss](https://user-images.githubusercontent.com/493908/201278429-2dbb7ec9-a4fb-4c43-bf9a-6c68f9f44c03.png)
+<img alt="ss" src="https://user-images.githubusercontent.com/493908/201278429-2dbb7ec9-a4fb-4c43-bf9a-6c68f9f44c03.png" width="320" />
+
+## Install
+
+ * [maven](https://jitpack.io/#umjammer/vavi-apps-aozora)
+
+## Usage
 
 ## References
 
@@ -24,6 +30,6 @@ Japanese Vertical (縦書き) Text Viewer.
 
 ## TODO
 
- * ruby
+ * ~~ruby~~
  * proofreading
    * https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473

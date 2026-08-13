@@ -7,13 +7,12 @@ package vavi.text.aozora.converter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
-import java.util.logging.Level;
-
-import vavi.util.Debug;
 
 
 /**
@@ -23,17 +22,19 @@ import vavi.util.Debug;
  */
 public final class AozoraBunkoRuby {
 
+    private static final Logger logger = System.getLogger(AozoraBunkoRuby.class.getName());
+
     private String text;
 
-    private List<Integer> kanjiStarts;
-    private List<Integer> furiganaOpenings;
-    private List<Integer> furiganaClosings;
-    private List<Integer> emphasisOpenings;
-    private List<Integer> emphasisClosings;
-    private List<Integer> liKanjiBou;
+    private final List<Integer> kanjiStarts;
+    private final List<Integer> furiganaOpenings;
+    private final List<Integer> furiganaClosings;
+    private final List<Integer> emphasisOpenings;
+    private final List<Integer> emphasisClosings;
+    private final List<Integer> liKanjiBou;
 
-    private HashMap<String, String> tenStyles;
-    private HashMap<String, String> senStyles;
+    private final HashMap<String, String> tenStyles;
+    private final HashMap<String, String> senStyles;
 
     private static final String BOUTEN = "傍点";
     private static final String BOUSEN = "線";
@@ -41,10 +42,10 @@ public final class AozoraBunkoRuby {
 
     private static final String FW_INTS = "０１２３４５６７８９";
 
-    private Writer writer;
+    private final Writer writer;
 
-    private boolean bookmark = false;
-    private boolean rpTag = false;
+    private final boolean bookmark = false;
+    private final boolean rpTag = false;
 
     /** */
     public AozoraBunkoRuby(Reader reader, Writer writer) {
@@ -76,15 +77,15 @@ public final class AozoraBunkoRuby {
 
     /** */
     private void replacements() {
-        this.text = this.text.replaceAll("［＃挿絵（", "<img src=\"");
-        this.text = this.text.replaceAll("）入る］", "\">");
+        this.text = this.text.replace("［＃挿絵（", "<img src=\"");
+        this.text = this.text.replace("）入る］", "\">");
 
-        this.text = this.text.replaceAll("［＃改頁］", "<br>");
+        this.text = this.text.replace("［＃改頁］", "<br>");
     }
 
     /** */
     private void printDebug(Level level) {
-        Debug.printf(Level.FINER, "%d %d %d %d %d %d\n",
+        logger.log(Level.TRACE, "%d %d %d %d %d %d\n",
                 kanjiStarts.size(),
                 furiganaOpenings.size(),
                 furiganaClosings.size(),
@@ -100,11 +101,11 @@ public final class AozoraBunkoRuby {
                 count2++;
             }
         }
-        Debug.printf(Level.FINER, "%d %d", count1, count2);
+        logger.log(Level.TRACE, "%d %d", count1, count2);
 
-        Debug.println(Level.FINER, this.text.substring(133130, 133150));
-        Debug.println(Level.FINER, "---------------------------------------------------");
-        Debug.println(Level.FINER, this.text.substring(133733, 133999));
+        logger.log(Level.TRACE, this.text.substring(133130, 133150));
+        logger.log(Level.TRACE, "---------------------------------------------------");
+        logger.log(Level.TRACE, this.text.substring(133733, 133999));
     }
 
     /** */
@@ -112,7 +113,7 @@ public final class AozoraBunkoRuby {
         this.replacements();
         this.getMarkerIndices();
 
-//        printDebug(Level.FINE);
+//        printDebug(Level.DEBUG);
 
         StringBuilder sb = new StringBuilder();
 
@@ -120,7 +121,7 @@ public final class AozoraBunkoRuby {
 
         int kssize = this.kanjiStarts.size(), kbsize = this.liKanjiBou.size();
         while (i < kssize && j < kbsize) {
-Debug.printf(Level.FINER, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, kanjiStarts.get(i), furiganaClosings.get(i), liKanjiBou.get(j), emphasisClosings.get(j));
+logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, kanjiStarts.get(i), furiganaClosings.get(i), liKanjiBou.get(j), emphasisClosings.get(j));
             if (kanjiStarts.get(i) < liKanjiBou.get(j)) {
                 sb.append(this.text, curr, kanjiStarts.get(i));
                 sb.append(furiganaToRubyTag(kanjiStarts.get(i), furiganaOpenings.get(i), furiganaClosings.get(i)));
@@ -143,7 +144,7 @@ Debug.printf(Level.FINER, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, kanjiS
 
 
         while (j < this.liKanjiBou.size()) {
-Debug.printf(Level.FINER, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
+logger.log(Level.TRACE, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
             if (curr >= liKanjiBou.get(j))
                 break;
             sb.append(this.text, curr, liKanjiBou.get(j));
@@ -154,7 +155,7 @@ Debug.printf(Level.FINER, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
 
         sb.append(this.text.substring(curr));
 
-        return sb.toString().replaceAll("\uff5c", "");
+        return sb.toString().replace("\uff5c", "");
     }
 
     /** */
@@ -162,7 +163,7 @@ Debug.printf(Level.FINER, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
         StringBuilder sb = new StringBuilder();
         int curr = 0, count = 1, idx;
         while ((idx = text.indexOf('。', curr)) != -1) {
-Debug.printf(Level.FINER, "%d %d\n", curr, idx);
+logger.log(Level.TRACE, "%d %d\n", curr, idx);
             sb.append(text, curr, idx);
             sb.append("<a name=\"save_").append(count).append("\" href=\"#save_").append(count).append("\">。</a>");
             curr = idx + 1;
@@ -224,7 +225,7 @@ Debug.printf(Level.FINER, "%d %d\n", curr, idx);
         if (rpTag)
             ruby.append("<rp>").append(this.text.charAt(startIndex)).append("</rp>");
         ruby.append("<rt>");
-Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
+logger.log(Level.TRACE, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
         ruby.append(this.text, startIndex + 1, endIndex);
         ruby.append("</rt>");
         if (rpTag)
@@ -250,12 +251,11 @@ Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
             if (emphasis.endsWith(BOUTEN)) {
                 String styleName = emphasis.substring(wordEnd + 1);
                 String style = this.tenStyles.getOrDefault(styleName, "﹅");
-                output.append("<ruby><rb>").append(this.text.substring(kanjiIndex, startIndex));
+                output.append("<ruby><rb>").append(this.text, kanjiIndex, startIndex);
                 if (rpTag)
                     output.append("<rp>《</rp>");
                 output.append("<rt>");
-                for (int i = 0; i < wordLength; i++)
-                    output.append(style);
+                output.append(String.valueOf(style).repeat(Math.max(0, wordLength)));
                 output.append("</rt>");
                 if (rpTag)
                     output.append("<rp>》</rp>");
@@ -277,8 +277,7 @@ Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
                 for (int i = 0; i < space.length(); i++) {
                     value = value * 10 + FW_INTS.indexOf(space.charAt(i));
                 }
-                for (int i = 0; i < value; i++)
-                    output.append(" ");
+                output.append(" ".repeat(Math.max(0, value)));
 
                 return output.toString();
             }
@@ -302,14 +301,14 @@ Debug.printf(Level.FINER, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
             if (!skip) {
                 if (line.startsWith("-")) {
                     skip = true;
-Debug.println("skip start: " + line);
+logger.log(Level.INFO, "skip start: " + line);
                 } else {
                     sb.append(line).append("<br/>\n");
                 }
             } else {
                 if (line.startsWith("-")) {
                     skip = false;
-Debug.println("skip end: " + line);
+logger.log(Level.INFO, "skip end: " + line);
                 }
             }
         }

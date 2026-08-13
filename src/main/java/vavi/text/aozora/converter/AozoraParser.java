@@ -15,7 +15,7 @@ import java.util.Scanner;
 
 /**
  * AozoraParser.
- * <li> roby is good
+ * <li> ruby is good
  *
  * TODO controller "［...］" are ignored
  *
@@ -55,9 +55,9 @@ public class AozoraParser {
     private int curRBStartPos;
 
     public static class RubyInfo {
-        public String rb;
-        public String rt;
-        public int rbStartPos;
+        public final String rb;
+        public final String rt;
+        public final int rbStartPos;
 
         public RubyInfo(String rb, String rt, int rbStartPos) {
             this.rb = rb;

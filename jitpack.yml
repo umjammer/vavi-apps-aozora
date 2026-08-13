@@ -1,2 +1,5 @@
+jdk:
+  - openjdk17
+
 install:
   mvn -B install --file pom.xml -Dmaven.test.skip=true

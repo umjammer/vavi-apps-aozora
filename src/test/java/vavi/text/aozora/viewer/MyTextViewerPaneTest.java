@@ -45,6 +45,9 @@ public class MyTextViewerPaneTest {
     @Property(name = "aozora.zip")
     String file;
 
+    @Property(name = "useZip")
+    boolean useZip;
+
     /**
      * @param args none
      */
@@ -74,13 +77,18 @@ public class MyTextViewerPaneTest {
 
         JFrame frame = new JFrame();
         frame.setTitle(title);
-        MyTextViewerPane pane = new MyTextViewerPane(uri, 0) {
-            @Override protected void title(String title) {
+        MyTextViewerPane pane;
+        if (!app.useZip) {
+            pane = new MyTextViewerPane(uri, 0) {
+                @Override
+                protected void title(String title) {
 Debug.println("title: " + title);
-                frame.setTitle(title);
-            }
-        };
-//        MyTextViewerPane pane = new MyTextViewerPane(forParse, base, 0);
+                    frame.setTitle(title);
+                }
+            };
+        } else {
+            pane = new MyTextViewerPane(forParse, base, 0);
+        }
         frame.setLocation(200, 100);
         frame.getContentPane().add(pane);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -119,5 +127,3 @@ Debug.println("No encoding detected.");
         return encoding;
     }
 }
-
-/* */

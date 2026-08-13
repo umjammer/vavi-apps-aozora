@@ -20,8 +20,8 @@ import java.util.Scanner;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
 import org.klab.commons.csv.CsvEntity;
 import vavi.text.aozora.site.AozoraData;
 import vavi.util.Debug;
@@ -39,20 +39,26 @@ import vavi.util.properties.annotation.PropsEntity;
  * @see "https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473"
  */
 @PropsEntity(url = "file:local.properties")
-public class Test1 {
+public class TestCase {
 
     @Property(name = "aozora.txt")
     String file;
+
+    @Property(name = "aozora.url")
+    String aozora;
+
+    @Property(name = "aozora.local")
+    String local;
 
     /**
      * @param args
      */
     public static void main(String[] args) throws Exception {
-        Test1 app = new Test1();
+        TestCase app = new TestCase();
         PropsEntity.Util.bind(app);
 
         Set<String> suspiciousSet = new HashSet<>();
-        Scanner scanner = new Scanner(Test1.class.getResourceAsStream("/susupicious-ocr.txt"));
+        Scanner scanner = new Scanner(TestCase.class.getResourceAsStream("/susupicious-ocr.txt"));
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             suspiciousSet.add(line);
@@ -76,10 +82,11 @@ public class Test1 {
     }
 
     @Test
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test1() throws Exception {
-        URL url = new URL("https://www.aozora.gr.jp/index_pages/list_person_all_utf8.zip");
+        URL url = new URL(aozora);
         Archive archive = Archives.getArchive(new BufferedInputStream(url.openStream()));
-Debug.println("aarchive: " + archive);
+Debug.println("archive: " + archive);
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
         InputStream is = archive.getInputStream(archive.entries()[0]);
 Debug.println("entries: " + archive.entries().length);
@@ -93,9 +100,9 @@ Debug.println("is: " + is);
     }
 
     @Test
-    @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
+    @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test2() throws Exception {
-        Path path = Paths.get("tmp/list_person_all_utf8.zip");
+        Path path = Paths.get(local);
         Archive archive = Archives.getArchive(new BufferedInputStream(Files.newInputStream(path)));
         Arrays.stream(archive.entries()).forEach(e -> System.err.println(e.getName()));
         InputStream is = archive.getInputStream(archive.entries()[0]);

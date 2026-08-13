@@ -113,6 +113,10 @@ Debug.println(entry);
 
             @Override public void ruby(String rb, String rt) {
                 Debug.println("ruby|" + rb + "|" + rt);
+                // the ruby is one run over the whole base letters, JLReq 3.3 lays it out
+                for (SLetterCell cell : SLetterCellFactory.getInstance().createRubyCells(rb, rt, null)) {
+                    letterPane.addCell(cell);
+                }
             }
 
             @Override public void otherElement(String element) {
@@ -211,5 +215,3 @@ Debug.println(entry);
 Debug.printf("letterPane: %s", letterPane.getBounds());
     }
 }
-
-/* */
