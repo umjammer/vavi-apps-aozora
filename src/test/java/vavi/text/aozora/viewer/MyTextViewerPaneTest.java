@@ -63,9 +63,10 @@ public class MyTextViewerPaneTest {
         is.close();
         Reader reader = Files.newBufferedReader(textPath, Charset.forName(charset));
         Writer writer = new StringWriter();
-//        AozoraParser converter = new AozoraParser(reader, writer);
-        AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);
-        converter.printHtml();
+//        AozoraParser converter = new AozoraParser();
+        AozoraBunkoRuby converter = new AozoraBunkoRuby();
+        converter.readText(reader);
+        converter.printHtml(writer);
         URL base = new URL("https://vavi.com");
         Reader forParse = new StringReader(writer.toString());
         String title = textPath.getFileName().toString();

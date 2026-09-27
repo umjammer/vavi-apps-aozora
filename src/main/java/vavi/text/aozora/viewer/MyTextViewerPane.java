@@ -34,6 +34,7 @@ import java.lang.System.Logger.Level;
 import java.lang.System.Logger;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -80,7 +81,6 @@ import static javax.swing.SwingUtilities.invokeAndWait;
  * western text is one {@link com.soso.sgui.letter.SLetterWestern} run of proportional letters.
  *
  * TODO
- *  - half digit 2 letters pair should not be rotated (縦中横)
  *  - full '<<', '>>' are not rotated
  *  - in-page image
  */
@@ -709,8 +709,11 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
 
     private void initGUI() {
         setLayout(new BorderLayout(0, 0));
-        setBorder(new EmptyBorder(40, 20, 0, 20));
         setBackground(settings.getDefaultBGColor());
+        JPanel wrapper = new JPanel();
+        wrapper.setLayout(new BorderLayout());
+        wrapper.setBorder(BorderFactory.createEmptyBorder(48, 32, 48, 32));
+        wrapper.setOpaque(false);
         textPane = SLetterPane.newInstance(SLetterConstraint.ORIENTATION.TBRL);
         textPane.addObserver(new ViewerPaneObserver());
         textPane.setBackground(settings.getBackground());
@@ -721,7 +724,8 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
         textPane.setFont(settings.getFont());
         textPane.setRowSpace(settings.getRowSpace());
         textPane.setFontRangeRatio(settings.getFontRatio());
-        add(textPane, BorderLayout.CENTER);
+        wrapper.add(textPane, BorderLayout.CENTER);
+        add(wrapper, BorderLayout.CENTER);
         goLeftIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_LEFT_ICON.getString());
         goRightIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_RIGHT_ICON.getString());
         goUpIcon = AozoraUtil.getIcon(AozoraEnv.Env.GO_UP_ICON.getString());

@@ -20,7 +20,7 @@ import java.util.Scanner;
  *
  * TODO ruby start is wrong
  */
-public final class AozoraBunkoRuby {
+public final class AozoraBunkoRuby implements Converter {
 
     private static final Logger logger = System.getLogger(AozoraBunkoRuby.class.getName());
 
@@ -42,13 +42,11 @@ public final class AozoraBunkoRuby {
 
     private static final String FW_INTS = "０１２３４５６７８９";
 
-    private final Writer writer;
-
     private final boolean bookmark = false;
     private final boolean rpTag = false;
 
     /** */
-    public AozoraBunkoRuby(Reader reader, Writer writer) {
+    public AozoraBunkoRuby() {
         this.kanjiStarts = new ArrayList<>();
         this.furiganaOpenings = new ArrayList<>();
         this.furiganaClosings = new ArrayList<>();
@@ -70,9 +68,6 @@ public final class AozoraBunkoRuby {
         this.senStyles.put("に鎖線", "text-decoration-style: dotted;");
         this.senStyles.put("に破線", "text-decoration-style: dashed;");
         this.senStyles.put("に波線", "text-decoration-style: wavy;");
-
-        readText(reader);
-        this.writer = writer;
     }
 
     /** */
@@ -180,15 +175,15 @@ logger.log(Level.TRACE, "%d %d\n", curr, idx);
                 this.furiganaOpenings.add(i);
 
                 // TODO check is this algorithm can ruby kanji only?
-                int idx;
-                for (idx = i - 1; isCJKIdeograph(this.text.charAt(idx)) && this.text.charAt(idx) != '｜'; idx--) ;
+                int idx = i - 1;
+                while (isCJKIdeograph(this.text.charAt(idx)) && this.text.charAt(idx) != '｜') idx--;
                 if (idx == i - 1) {
-                    for (idx = i - 1; this.text.charAt(idx) != '｜'; idx--) ;
+                    idx = i - 1; while (this.text.charAt(idx) != '｜') idx--;
                 }
 
                 this.kanjiStarts.add(idx + 1);
 
-                for (idx = i + 1; this.text.charAt(idx) != '》'; idx++) ;
+                idx = i + 1; while (this.text.charAt(idx) != '》') idx++;
                 this.furiganaClosings.add(idx);
                 i = idx + 1;
             }
@@ -291,8 +286,8 @@ logger.log(Level.TRACE, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
         return Character.UnicodeBlock.of(c) == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || c == '々' || c == 'ヶ' || c == 'ノ';
     }
 
-    /** */
-    private void readText(Reader reader) {
+    @Override
+    public void readText(Reader reader) {
         Scanner scanner = new Scanner(reader);
         StringBuilder sb = new StringBuilder();
         boolean skip = false;
@@ -315,8 +310,8 @@ logger.log(Level.INFO, "skip end: " + line);
         this.text = sb.toString();
     }
 
-    /** */
-    public void printHtml() {
+    @Override
+    public void printHtml(Writer writer) {
         PrintWriter pr = new PrintWriter(writer);
         pr.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
         pr.println("<html xmlns=\"http://www.w3.org/1999/xhtml\">");

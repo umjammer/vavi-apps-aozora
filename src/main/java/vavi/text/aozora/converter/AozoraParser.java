@@ -22,7 +22,7 @@ import java.util.Scanner;
  * @author weimingtom
  * @see "http://www.aozora.gr.jp/cards/000035/card1567.html"
  */
-public class AozoraParser {
+public class AozoraParser implements Converter {
 
     private enum Type {
         KANJI { boolean matches(char c) { return (c >= '\u4e00' && c <= '\u9fbf') || (c == '\u3005'); }}, // '々'
@@ -71,7 +71,6 @@ public class AozoraParser {
 
     private final List<RubyInfo> rubyInfoList = new ArrayList<>();
 
-    private final Writer writer;
     private String breakLine = "<br/>\n"; // "\n"
 
     /** */
@@ -79,12 +78,8 @@ public class AozoraParser {
         this.breakLine = breakLine;
     }
 
-    public AozoraParser(Reader reader, Writer writer) {
-        readText(reader);
-        this.writer = writer;
-    }
-
-    private void readText(Reader reader) {
+    @Override
+    public void readText(Reader reader) {
         Scanner scanner = new Scanner(reader);
         StringBuilder sb = new StringBuilder();
         while (scanner.hasNextLine()) {
@@ -211,7 +206,8 @@ public class AozoraParser {
         return this.rubyInfoList;
     }
 
-    public void printHtml() {
+    @Override
+    public void printHtml(Writer writer) {
         PrintWriter pr = new PrintWriter(writer);
 
         pr.write("<html>\n");
@@ -226,7 +222,7 @@ public class AozoraParser {
         pr.flush();
     }
 
-    public void printNoRuby() {
+    public void printNoRuby(Writer writer) {
         PrintWriter pr = new PrintWriter(writer);
         pr.write(parseRuby());
         pr.flush();

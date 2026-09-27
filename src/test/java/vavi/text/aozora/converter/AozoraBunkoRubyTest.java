@@ -51,10 +51,9 @@ Debug.println(input);
         Path archivePath = Paths.get(input);
         Path textPath = getTextPath(archivePath);
 
-        AozoraBunkoRuby converter = new AozoraBunkoRuby(
-                Files.newBufferedReader(textPath, Charset.forName(encoding)),
-                Files.newBufferedWriter(Paths.get(output)));
-        converter.printHtml();
+        AozoraBunkoRuby converter = new AozoraBunkoRuby();
+        converter.readText(Files.newBufferedReader(textPath, Charset.forName(encoding)));
+        converter.printHtml(Files.newBufferedWriter(Paths.get(output)));
     }
 
     /** */

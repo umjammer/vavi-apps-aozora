@@ -84,8 +84,9 @@ Debug.println(entry);
         Reader reader = new BufferedReader(new InputStreamReader(text, StandardCharsets.UTF_8));
         Writer writer = new StringWriter();
 
-        AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);
-        converter.printHtml();
+        AozoraBunkoRuby converter = new AozoraBunkoRuby();
+        converter.readText(reader);
+        converter.printHtml(writer);
 
 //        List<Character> chars = writer.toString().chars().mapToObj(c -> (char) c).collect(Collectors.toList());
 //Debug.println("chars: " + chars.size());
