@@ -69,7 +69,7 @@ public class MyTextViewerPaneTest {
         AozoraBunkoRuby converter = new AozoraBunkoRuby();
         converter.readText(reader);
         converter.printHtml(writer);
-        URL base = new URL("https://vavi.com");
+        URL base = Path.of(app.file).getParent().toUri().toURL();
         Reader forParse = new StringReader(writer.toString());
         String title = textPath.getFileName().toString();
 

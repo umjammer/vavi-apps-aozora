@@ -26,10 +26,19 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.awt.MediaTracker;
+import java.awt.geom.AffineTransform;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.lang.System.Logger.Level;
 import java.lang.System.Logger;
 import javax.accessibility.AccessibleContext;
@@ -64,6 +73,7 @@ import com.soso.sgui.letter.SLetterCellFactory;
 import com.soso.sgui.letter.SLetterConstraint;
 import com.soso.sgui.letter.SLetterGlyphCell;
 import com.soso.sgui.letter.SLetterImageCell;
+import com.soso.sgui.letter.SLetterLineEnd;
 import com.soso.sgui.letter.SLetterPane;
 import com.soso.sgui.letter.SLetterPaneObserver;
 import com.soso.sgui.letter.SLetterPaneObserverHelper;
@@ -80,9 +90,10 @@ import static javax.swing.SwingUtilities.invokeAndWait;
  *
  * A ruby is one {@link com.soso.sgui.letter.SLetterRuby} over the whole base letters, and
  * western text is one {@link com.soso.sgui.letter.SLetterWestern} run of proportional letters.
- *
- * TODO
- *  - in-page image
+ * <p>
+ * The layout of aozora html is taken from the elements, the indents (jisage_N, burasage), the
+ * alignments to the line end (chitsuki_N), the headings (o-midashi, naka-midashi, ko-midashi)
+ * and the illustrations (img class="illustration") with their captions.
  */
 public class MyTextViewerPane extends JPanel {
 
@@ -346,6 +357,92 @@ public class MyTextViewerPane extends JPanel {
         }
     }
 
+    /**
+     * The layout an element of aozora html gives to the letters in it, a property which is
+     * null is taken from the element outside.
+     *
+     * @see "https://www.aozora.gr.jp/annotation/layout_2.html"
+     * @see "https://www.aozora.gr.jp/annotation/heading.html"
+     */
+    static class Style {
+
+        static final Pattern CLASS = Pattern.compile("class=\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);
+        static final Pattern MARGIN_LEFT = Pattern.compile("margin-left:\\s*(\\d+)em");
+        static final Pattern TEXT_INDENT = Pattern.compile("text-indent:\\s*(-?\\d+)em");
+        static final Pattern MARGIN_RIGHT = Pattern.compile("margin-right:\\s*(\\d+)em");
+        static final Pattern CHITSUKI = Pattern.compile("chitsuki_(\\d+)");
+        static final Pattern SIZE = Pattern.compile("(dai|sho)(\\d+)");
+
+        /**
+         * the scale of the letters of the size, one step is "large" or "small" of css and three
+         * steps or more are "xx-large" or "xx-small" as aozora html does
+         */
+        static final float[] LARGER = {1.2f, 1.5f, 2f};
+        static final float[] SMALLER = {0.8f, 0.65f, 0.55f};
+
+        /** the element name */
+        final String name;
+        /** the indent of the first line of a paragraph (字下げ) */
+        Integer indent;
+        /** the indent of the lines after a line break (折り返し) */
+        Integer wrapIndent;
+        /** the places left blank at the line end of the text aligned to it (地付き, 地から○字上げ) */
+        Integer raise;
+        /** the font of a heading, a caption or bold letters (太字) */
+        Font font;
+        /** italic letters (斜体) */
+        boolean italic;
+        /** the size of the letters (文字の大きさ) to the letters of the text */
+        Float scale;
+        /** a heading which is in a line of the text (同行見出し, 窓見出し) */
+        boolean inline;
+
+        Style(String name) {
+            this.name = name;
+        }
+
+        /** @param element the tag without the brackets */
+        static Style of(String element, Settings settings) {
+            String name = element.split("\\s", 2)[0].toLowerCase();
+            Style style = new Style(name);
+            Matcher m = CLASS.matcher(element);
+            String clazz = m.find() ? m.group(1) : "";
+            m = MARGIN_LEFT.matcher(element);
+            if (m.find()) {
+                // burasage is given by a negative text-indent
+                style.wrapIndent = Integer.parseInt(m.group(1));
+                Matcher t = TEXT_INDENT.matcher(element);
+                style.indent = Math.max(0, style.wrapIndent + (t.find() ? Integer.parseInt(t.group(1)) : 0));
+            }
+            m = CHITSUKI.matcher(clazz);
+            if (m.find()) {
+                Matcher r = MARGIN_RIGHT.matcher(element);
+                style.raise = r.find() ? Integer.parseInt(r.group(1)) : Integer.parseInt(m.group(1));
+            }
+            if (clazz.contains("midashi")) {
+                style.font = settings.getHeadingFont();
+                style.inline = clazz.startsWith("dogyo-") || clazz.startsWith("mado-");
+            } else if (clazz.equals("caption")) {
+                style.font = settings.getCaptionFont();
+            } else if (clazz.equals("futoji")) {
+                style.font = settings.getBoldFont();
+            } else if (clazz.equals("shatai")) {
+                style.italic = true;
+            }
+            m = SIZE.matcher(clazz);
+            if (m.matches()) {
+                float[] scales = m.group(1).equals("dai") ? LARGER : SMALLER;
+                style.scale = scales[Math.min(Integer.parseInt(m.group(2)), scales.length) - 1];
+            }
+            return style;
+        }
+
+        @Override
+        public String toString() {
+            return name + "[indent=" + indent + ", wrapIndent=" + wrapIndent + ", raise=" + raise + ", font=" + font + ", italic=" + italic + ", scale=" + scale + "]";
+        }
+    }
+
     private class ContentsHandler implements AozoraContentsParserHandler {
 
         boolean title;
@@ -355,9 +452,148 @@ public class MyTextViewerPane extends JPanel {
         SLetterGlyphCell rubyAlternative;
         /** a page break is just made, the line break which follows it is not needed */
         boolean pageBreak;
+        /** an illustration is just made, which ends its line, the line break which follows it is not needed */
+        boolean afterBlock;
+        /** no letter is put in the line yet */
+        boolean lineHead = true;
 
-        /** 改丁 and 改見開き are taken as 改ページ, no empty page is put for them */
-        static final List<String> pageBreaks = List.of("［＃改ページ］", "［＃改丁］", "［＃改見開き］");
+        /** 改丁 and 改見開き are taken as 改ページ, and 改段 as well for a page has one column, no empty page is put for them */
+        static final String PAGE_CENTER = "［＃ページの左右中央］";
+
+        static final List<String> pageBreaks = List.of("［＃改ページ］", "［＃改丁］", "［＃改見開き］", "［＃改段］");
+
+        /** the elements which give the layout, the innermost is the last */
+        private final Deque<Style> styles = new ArrayDeque<>();
+
+        /** the letters of a run aligned to the line end, which are put when the run ends */
+        private List<SLetterCell> lineEndLetters;
+        private int lineEndRaise;
+
+        private Integer indent() {
+            for (Iterator<Style> i = styles.descendingIterator(); i.hasNext(); ) {
+                Style style = i.next();
+                if (style.indent != null)
+                    return lineHead ? style.indent : style.wrapIndent;
+            }
+            return 0;
+        }
+
+        private Integer raise() {
+            for (Iterator<Style> i = styles.descendingIterator(); i.hasNext(); ) {
+                Style style = i.next();
+                if (style.raise != null)
+                    return style.raise;
+            }
+            return null;
+        }
+
+        /** the fonts made for the styles */
+        private final Map<List<Object>, Font> fonts = new HashMap<>();
+
+        /** the font of the elements, which is made of the face, the size and italic */
+        private Font font() {
+            Font face = null;
+            Float scale = null;
+            boolean italic = false;
+            for (Iterator<Style> i = styles.descendingIterator(); i.hasNext(); ) {
+                Style style = i.next();
+                if (face == null)
+                    face = style.font;
+                if (scale == null)
+                    scale = style.scale;
+                italic |= style.italic;
+            }
+            if (scale == null && !italic)
+                return face;
+            Font base = face != null ? face : settings.getFont();
+            float size = base.getSize2D() * (scale != null ? scale : 1);
+            boolean slanted = italic;
+            return fonts.computeIfAbsent(Arrays.asList(base, size, slanted), k -> {
+                Font font = base.deriveFont(size);
+                // there is no italic face of the japanese fonts, the letters are slanted
+                return slanted ? font.deriveFont(AffineTransform.getShearInstance(-0.2, 0)) : font;
+            });
+        }
+
+        /** starts an element */
+        private void push(Style style) {
+            flush();
+            styles.addLast(style);
+logger.log(Level.TRACE, "style: push: " + style);
+        }
+
+        /** ends the innermost element of the name, and the elements in it which are not ended */
+        private void pop(String name) {
+            flush();
+            if (styles.stream().noneMatch(style -> style.name.equals(name)))
+                return;
+            Style style;
+            do {
+                style = styles.removeLast();
+logger.log(Level.TRACE, "style: pop: " + style);
+            } while (!style.name.equals(name));
+            if (raise() == null)
+                endLineEnd();
+        }
+
+        /** a block starts at a line head */
+        private void startLine() {
+            flush();
+            if (!lineHead)
+                appendCell(cellFactory.createGlyphCell('\n'));
+        }
+
+        /** a block ends its line */
+        private void endLine() {
+            flush();
+            if (!lineHead)
+                appendCell(cellFactory.createGlyphCell('\n'));
+        }
+
+        /**
+         * Gives the layout of the elements to the letter and puts it. The letters of a run
+         * aligned to the line end are kept until the run ends, for the run is placed as a whole.
+         */
+        private void put(SLetterCell cell) {
+            boolean breaking = cell.isConstraintSet(SLetterConstraint.BREAK.NEW_LINE) ||
+                               cell.isConstraintSet(SLetterConstraint.BREAK.NEW_PAGE) ||
+                               cell.isConstraintSet(SLetterConstraint.PAGE.CENTER);
+            if (!breaking) {
+                cell.setIndent(indent());
+                Font font = font();
+                if (font != null && cell instanceof SLetterGlyphCell glyph && glyph.getFont() == null)
+                    glyph.setFont(font);
+                pageBreak = false;
+                afterBlock = false;
+                lineHead = false;
+                Integer raise = raise();
+                if (raise != null) {
+                    if (lineEndLetters != null && lineEndRaise != raise)
+                        endLineEnd();
+                    if (lineEndLetters == null) {
+                        lineEndLetters = new ArrayList<>();
+                        lineEndRaise = raise;
+                    }
+                    lineEndLetters.add(cell);
+                    return;
+                }
+            }
+            endLineEnd();
+            MyTextViewerPane.this.appendCell(cell);
+            if (breaking)
+                lineHead = true;
+        }
+
+        /** puts the run aligned to the line end */
+        private void endLineEnd() {
+            if (lineEndLetters != null) {
+                List<SLetterCell> letters = lineEndLetters;
+                lineEndLetters = null;
+                SLetterLineEnd.of(lineEndRaise, letters);
+                for (SLetterCell letter : letters)
+                    MyTextViewerPane.this.appendCell(letter);
+            }
+        }
 
         private GaijiRubyBuilder gaijirb;
 
@@ -370,7 +606,7 @@ public class MyTextViewerPane extends JPanel {
 
         private void appendCell(SLetterCell cell) {
             flush();
-            MyTextViewerPane.this.appendCell(cell);
+            put(cell);
         }
 
         /** makes the letters of the text collected so far, the white space is as html does */
@@ -379,7 +615,7 @@ public class MyTextViewerPane extends JPanel {
                 String s = CharacterUtil.trimSpace(text.toString());
                 text.setLength(0);
                 for (SLetterCell cell : cellFactory.createCells(s, null)) {
-                    MyTextViewerPane.this.appendCell(cell);
+                    put(cell);
                 }
             }
         }
@@ -423,6 +659,11 @@ logger.log(Level.DEBUG, "characters|[notes:page break]: " + cdata);
                         // the pane ends the page at a page separator
                         appendCell(cellFactory.createGlyphCell('\f'));
                         pageBreak = true;
+                    } else if (PAGE_CENTER.equals(cdata.trim())) {
+logger.log(Level.DEBUG, "characters|[notes:page center]: " + cdata);
+                        unnoted();
+                        appendCell(cellFactory.createPageCenterCell());
+                        pageBreak = true;
                     } else if (alternative) {
                         String a = parseUnicode(cdata);
                         if (a != null) {
@@ -453,7 +694,6 @@ logger.log(Level.DEBUG, "characters|[notes]: " + cdata);
                 notes = false;
                 return;
             }
-            pageBreak = false;
 
             if (gaijirb != null) {
                 gaijirb.append(cdata);
@@ -508,9 +748,27 @@ logger.log(Level.INFO, "image: %s -> not found: %s".formatted(Arrays.toString(pr
                 }
             }
 
-            Image image;
-            image = new ImageIcon(src).getImage();
-            if (image == null) {
+            ImageIcon icon = new ImageIcon(src);
+            if (!isGaiji && gaijirb == null) {
+                // an illustration (挿絵) takes lines of its own
+                startLine();
+                if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
+logger.log(Level.WARNING, "Image | not loaded | " + src);
+                    characters("［" + (alt != null ? alt : src.getFile()) + "］");
+                    endLine();
+                    return;
+                }
+logger.log(Level.INFO, "Image | " + src);
+                SLetterImageCell cell = (SLetterImageCell) cellFactory.createImageCell(icon.getImage(), alt);
+                cell.setBlock(true);
+                cell.setMagnifyable(true);
+                appendCell(cell);
+                afterBlock = true;
+                lineHead = true;
+                return;
+            }
+            Image image = icon.getImage();
+            if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
                 Icon errorIcon = UIManager.getIcon("OptionPane.errorIcon");
                 image = new BufferedImage(errorIcon.getIconWidth(), errorIcon.getIconHeight(), 1);
                 image.getGraphics().fillRect(0, 0, errorIcon.getIconWidth(), errorIcon.getIconHeight());
@@ -522,24 +780,22 @@ logger.log(Level.INFO, "image: %s -> not found: %s".formatted(Arrays.toString(pr
                 return;
             }
             ((SLetterImageCell) cell).setMagnifyable(!isGaiji);
-            if (isGaiji) {
-                if (AozoraCharacterUtil.isGaijiToRotate(src.getFile())) {
-                    logger.log(Level.INFO, "Gaiji | rotate | " + src);
-                    cell.addConstraint(SLetterConstraint.ROTATE.GENERALLY);
-                } else {
-                    logger.log(Level.INFO, "Gaiji | " + src);
-                }
+            if (AozoraCharacterUtil.isGaijiToRotate(src.getFile())) {
+                logger.log(Level.INFO, "Gaiji | rotate | " + src);
+                cell.addConstraint(SLetterConstraint.ROTATE.GENERALLY);
             } else {
-                logger.log(Level.INFO, "Image | " + src);
+                logger.log(Level.INFO, "Gaiji | " + src);
             }
             appendCell(cell);
         }
 
         @Override
         public void newLine() {
-            if (pageBreak) {
-                // the page break line itself, otherwise the next page starts with an empty line
+            if (pageBreak || afterBlock) {
+                // the page break line itself, otherwise the next page starts with an empty line,
+                // and the line of an illustration, which is ended by the illustration
                 pageBreak = false;
+                afterBlock = false;
                 return;
             }
             SLetterCell cell = cellFactory.createGlyphCell('\n');
@@ -554,8 +810,30 @@ logger.log(Level.INFO, "image: %s -> not found: %s".formatted(Arrays.toString(pr
             }
             if (lowerElement.startsWith("sub class=\"kaeriten\"")) {
                 kaeriten = true;
-            } else if (lowerElement.startsWith("span class=\"notes\"")) {
-                notes = true;
+            } else if (lowerElement.startsWith("span")) {
+                if (lowerElement.startsWith("span class=\"notes\""))
+                    notes = true;
+                push(Style.of(element, settings));
+            } else if (lowerElement.startsWith("/span")) {
+                pop("span");
+            } else if (lowerElement.matches("div(\\s.*)?")) {
+                startLine();
+                push(Style.of(element, settings));
+            } else if (lowerElement.startsWith("/div")) {
+                endLine();
+                pop("div");
+            } else if (lowerElement.matches("h[3-6]\\s.*midashi.*")) {
+                Style style = Style.of(element, settings);
+                if (!style.inline)
+                    startLine();
+                push(style);
+            } else if (lowerElement.matches("/h[3-6]") &&
+                       styles.stream().anyMatch(style -> style.name.equals(lowerElement.substring(1)))) {
+                boolean inline = styles.stream().filter(style -> style.name.equals(lowerElement.substring(1)))
+                        .reduce((a, b) -> b).get().inline;
+                if (!inline)
+                    endLine();
+                pop(lowerElement.substring(1));
             } else if (lowerElement.startsWith("ruby")) {
                 if (gaijirb != null) {
 logger.log(Level.WARNING, "another ruby starts while building: " + gaijirb);
@@ -576,9 +854,7 @@ logger.log(Level.WARNING, "another ruby starts while building: " + gaijirb);
                     gaijirb.endRT();
             } else if (lowerElement.startsWith("/ruby")) {
                 flushRuby();
-            } else if (lowerElement.startsWith("div") ||
-                       lowerElement.startsWith("/div") ||
-                       lowerElement.startsWith("p") ||
+            } else if (lowerElement.startsWith("p") ||
                        lowerElement.startsWith("/p") ||
                        lowerElement.startsWith("h") ||
                        lowerElement.startsWith("/h") ||
@@ -620,7 +896,7 @@ logger.log(Level.WARNING, "ruby[" + rb + "," + rt + "] appears while building: "
 logger.log(Level.TRACE, rb + ", " + rt);
             if (rb != null) {
                 // the ruby is kept as one run over its base letters, it is never divided per letter
-                SLetterCell[] cells = cellFactory.createRubyCells(rb, rt, null);
+                SLetterCell[] cells = cellFactory.createRubyCells(rb, rt, font());
                 for (int i = 0; i < cells.length; i++) {
                     appendCell(cells[i]);
                     if (i < rb.length() && rb.charAt(i) == '※') {
@@ -639,6 +915,7 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
         public void parseFinished() {
             flushRuby();
             flush();
+            endLineEnd();
             MyTextViewerPane.this.parseFinished();
         }
     }
@@ -694,6 +971,21 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
         final Font font = new Font("Hiragino Mincho ProN", Font.PLAIN, fontSize);
         public Font getFont() {
             return font;
+        }
+        /** a heading (見出し) is set in bold, which is a face of its own, the bold style does not choose it */
+        final Font headingFont = new Font("HiraMinProN-W6", Font.PLAIN, fontSize);
+        public Font getHeadingFont() {
+            return headingFont;
+        }
+        /** bold letters (太字) are set in bold gothic */
+        final Font boldFont = new Font("HiraginoSans-W6", Font.PLAIN, fontSize);
+        public Font getBoldFont() {
+            return boldFont;
+        }
+        /** a caption (キャプション) is set in gothic */
+        final Font captionFont = new Font("Hiragino Sans", Font.PLAIN, fontSize);
+        public Font getCaptionFont() {
+            return captionFont;
         }
         int rowSpace = fontSize / 2;
         public int getRowSpace() {
@@ -913,7 +1205,8 @@ done:       for (int row = textPane.getRowCount() - 1; row >= 0; row--) {
                 int posMax = textCells.size();
                 for (int pos = 0; pos < posMax; pos++) {
                     if (lastCell == textCells.get(pos)) {
-                        endPos = pos;
+                        // the end is after the last cell, as setStartPos does
+                        endPos = pos + 1;
                         setupButtonEnabled();
                         setupPageNumber();
                         break;
