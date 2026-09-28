@@ -68,6 +68,7 @@ import com.soso.sgui.letter.SLetterPane;
 import com.soso.sgui.letter.SLetterPaneObserver;
 import com.soso.sgui.letter.SLetterPaneObserverHelper;
 import com.soso.sgui.letter.SLetterRuby;
+import com.soso.sgui.text.CharacterUtil;
 import vavi.text.UnicodeUtil;
 import vavi.util.Debug;
 
@@ -361,8 +362,27 @@ public class MyTextViewerPane extends JPanel {
 
         private GaijiRubyBuilder gaijirb;
 
+        /**
+         * the text which is not made into letters yet. the texts are collected over the calls,
+         * so that a gaiji in a western word (as "g" "é" "ographiques") and the spaces around it
+         * are kept in one run of western text (JLReq 3.2.6)
+         */
+        private final StringBuilder text = new StringBuilder();
+
         private void appendCell(SLetterCell cell) {
+            flush();
             MyTextViewerPane.this.appendCell(cell);
+        }
+
+        /** makes the letters of the text collected so far, the white space is as html does */
+        private void flush() {
+            if (!text.isEmpty()) {
+                String s = CharacterUtil.trimSpace(text.toString());
+                text.setLength(0);
+                for (SLetterCell cell : cellFactory.createCells(s, null)) {
+                    MyTextViewerPane.this.appendCell(cell);
+                }
+            }
         }
 
         private final SLetterCellFactory cellFactory = SLetterCellFactory.getInstance();
@@ -442,34 +462,22 @@ logger.log(Level.DEBUG, "characters|[notes]: " + cdata);
             // https://linuxtut.com/en/bdc62f95f6d342705001/
             // the letters are collected and made at once, so that western text among them is
             // kept as a run, which is set with the proportional advances (JLReq 3.2.6)
-            StringBuilder sb = new StringBuilder();
-            char[] ca = cdata.trim().toCharArray();
+            char[] ca = cdata.toCharArray();
             for (int i = 0; i < ca.length; i++) {
                 if (ca[i] == '※') {
 logger.log(Level.TRACE, "characters|" + "※※※ NOTED ※※※");
-                    appendCells(sb);
+                    flush();
                     alternative = true;
                 } else {
                     if (Character.isHighSurrogate(ca[i]) && i + 1 < ca.length && Character.isSurrogatePair(ca[i], ca[i + 1])) {
 logger.log(Level.DEBUG, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
-                        sb.append(ca[i]).append(ca[i + 1]);
+                        text.append(ca[i]).append(ca[i + 1]);
                         i++;
                     } else {
                         // TODO old-new on/off flag
-                        sb.append(UnicodeUtil.toNew(String.valueOf(ca[i])).charAt(0));
+                        text.append(UnicodeUtil.toNew(String.valueOf(ca[i])).charAt(0));
                     }
                 }
-            }
-            appendCells(sb);
-        }
-
-        /** makes the letters of the text collected so far and empties it */
-        private void appendCells(StringBuilder sb) {
-            if (!sb.isEmpty()) {
-                for (SLetterCell cell : cellFactory.createCells(sb.toString(), null)) {
-                    appendCell(cell);
-                }
-                sb.setLength(0);
             }
         }
 
@@ -610,6 +618,7 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
 
         @Override
         public void parseFinished() {
+            flush();
             MyTextViewerPane.this.parseFinished();
         }
     }
