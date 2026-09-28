@@ -254,7 +254,7 @@ logger.log(Level.TRACE, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
             if (emphasis.endsWith(BOUTEN)) {
                 String styleName = emphasis.substring(wordEnd + 1);
                 String style = this.tenStyles.getOrDefault(styleName, "﹅");
-                output.append("<ruby><rb>").append(this.text, kanjiIndex, startIndex);
+                output.append("<ruby><rb>").append(this.text, kanjiIndex, startIndex).append("</rb>");
                 if (rpTag)
                     output.append("<rp>《</rp>");
                 output.append("<rt>");

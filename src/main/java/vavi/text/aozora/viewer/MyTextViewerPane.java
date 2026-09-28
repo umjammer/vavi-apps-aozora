@@ -548,8 +548,10 @@ logger.log(Level.INFO, "image: %s -> not found: %s", Arrays.toString(prc), a);
             } else if (lowerElement.startsWith("span class=\"notes\"")) {
                 notes = true;
             } else if (lowerElement.startsWith("ruby")) {
-                if (gaijirb != null)
-                    throw new IllegalStateException("another rb start while building " + gaijirb);
+                if (gaijirb != null) {
+logger.log(Level.WARNING, "another ruby starts while building: " + gaijirb);
+                    flushRuby();
+                }
                 gaijirb = new GaijiRubyBuilder();
             } else if (lowerElement.startsWith("rb")) {
                 if (gaijirb != null)
@@ -564,12 +566,7 @@ logger.log(Level.INFO, "image: %s -> not found: %s", Arrays.toString(prc), a);
                 if (gaijirb != null)
                     gaijirb.endRT();
             } else if (lowerElement.startsWith("/ruby")) {
-                if (gaijirb != null) {
-                    for (SLetterCell cell : gaijirb.getResult()) {
-                        appendCell(cell);
-                    }
-                    gaijirb = null;
-                }
+                flushRuby();
             } else if (lowerElement.startsWith("div") ||
                        lowerElement.startsWith("/div") ||
                        lowerElement.startsWith("p") ||
@@ -590,14 +587,27 @@ logger.log(Level.TRACE, "others: " + element);
             }
         }
 
+        /** appends the ruby being built, a broken ruby tag should not stop the whole text */
+        private void flushRuby() {
+            if (gaijirb != null) {
+                GaijiRubyBuilder builder = gaijirb;
+                gaijirb = null;
+                for (SLetterCell cell : builder.getResult()) {
+                    appendCell(cell);
+                }
+            }
+        }
+
         /**
          * @param rb target text
          * @param rt ruby text
          */
         @Override
         public void ruby(String rb, String rt) {
-            if (gaijirb != null)
-                throw new IllegalStateException("ruby[" + rb + "," + rt + "] appears while building " + gaijirb);
+            if (gaijirb != null) {
+logger.log(Level.WARNING, "ruby[" + rb + "," + rt + "] appears while building: " + gaijirb);
+                flushRuby();
+            }
 logger.log(Level.TRACE, rb + ", " + rt);
             if (rb != null) {
                 // the ruby is kept as one run over its base letters, it is never divided per letter
@@ -618,6 +628,7 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
 
         @Override
         public void parseFinished() {
+            flushRuby();
             flush();
             MyTextViewerPane.this.parseFinished();
         }
