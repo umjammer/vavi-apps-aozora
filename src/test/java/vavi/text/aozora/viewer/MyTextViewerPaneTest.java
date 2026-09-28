@@ -32,7 +32,9 @@ import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- * Application -> Component (trimming functions)
+ * Application -> Component (trimming functions) ... ???
+ *
+ * for {@code com.apple.eawt.Application}, {@code -Dmaven.test.skip=true} in `jitpack.yml`
  */
 //@EnabledIf("localPropertiesExists")
 @PropsEntity(url = "file:local.properties")
@@ -97,7 +99,11 @@ Debug.println("title: " + title);
         frame.setVisible(true);
     }
 
-    /** @return null not found */
+    /**
+     * charset auto detector
+     *
+     * @return null not found
+     */
     static String getCharset(InputStream is) throws IOException {
         byte[] buf = new byte[4096];
         // (1)

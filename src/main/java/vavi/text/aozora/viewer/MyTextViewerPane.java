@@ -692,6 +692,11 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
     Reader reader;
     URL base;
 
+    /**
+     *
+     * @param uri aozora html text
+     * @param firstStartPos position of reflow
+     */
     public MyTextViewerPane(URI uri, int firstStartPos) {
         this.uri = uri;
         this.firstStartPos = firstStartPos;
@@ -699,6 +704,12 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
         setup();
     }
 
+    /**
+     *
+     * @param reader aozora html text
+     * @param base dummy
+     * @param firstStartPos position of reflow
+     */
     public MyTextViewerPane(Reader reader, URL base, int firstStartPos) {
         this.reader = reader;
         this.base = base;

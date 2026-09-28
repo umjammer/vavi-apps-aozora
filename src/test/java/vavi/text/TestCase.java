@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -41,6 +43,10 @@ import vavi.util.properties.annotation.PropsEntity;
 @PropsEntity(url = "file:local.properties")
 public class TestCase {
 
+    static boolean localPropertiesExists() {
+        return Files.exists(Paths.get("local.properties"));
+    }
+
     @Property(name = "aozora.txt")
     String file;
 
@@ -50,7 +56,16 @@ public class TestCase {
     @Property(name = "aozora.local")
     String local;
 
+    @BeforeEach
+    void setup() throws Exception {
+        if (localPropertiesExists()) {
+            PropsEntity.Util.bind(this);
+        }
+    }
+
     /**
+     * proofreading using "susupicious-ocr.txt" database.
+     *
      * @param args
      */
     public static void main(String[] args) throws Exception {
@@ -82,6 +97,7 @@ public class TestCase {
     }
 
     @Test
+    @DisplayName("aozora bunko database url")
     @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test1() throws Exception {
         URL url = new URL(aozora);
@@ -100,6 +116,7 @@ Debug.println("is: " + is);
     }
 
     @Test
+    @DisplayName("aozora bunko database local")
     @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test2() throws Exception {
         Path path = Paths.get(local);
