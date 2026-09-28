@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -39,6 +40,8 @@ public final class AozoraBunkoRuby implements Converter {
     private static final String BOUTEN = "傍点";
     private static final String BOUSEN = "線";
     private static final String SPACING = "字下げ";
+
+    private static final String[] PAGE_BREAKS = {"［＃改ページ］", "［＃改丁］", "［＃改見開き］"};
 
     private static final String FW_INTS = "０１２３４５６７８９";
 
@@ -76,6 +79,11 @@ public final class AozoraBunkoRuby implements Converter {
         this.text = this.text.replace("）入る］", "\">");
 
         this.text = this.text.replace("［＃改頁］", "<br>");
+
+        // page breaks are marked up as aozora html does, the viewer breaks the page at them
+        for (String pageBreak : PAGE_BREAKS) {
+            this.text = this.text.replace(pageBreak, "<span class=\"notes\">" + pageBreak + "</span>");
+        }
     }
 
     /** */
@@ -275,6 +283,9 @@ logger.log(Level.TRACE, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
                 output.append(" ".repeat(Math.max(0, value)));
 
                 return output.toString();
+            } else if (Arrays.asList(PAGE_BREAKS).contains(this.text.substring(startIndex, endIndex + 1))) {
+                // kept for the viewer, other annotations are dropped
+                return this.text.substring(startIndex, endIndex + 1);
             }
         }
 

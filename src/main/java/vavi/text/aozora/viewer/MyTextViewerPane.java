@@ -353,6 +353,11 @@ public class MyTextViewerPane extends JPanel {
         boolean notes;
         boolean alternative;
         SLetterGlyphCell rubyAlternative;
+        /** a page break is just made, the line break which follows it is not needed */
+        boolean pageBreak;
+
+        /** 改丁 and 改見開き are taken as 改ページ, no empty page is put for them */
+        static final List<String> pageBreaks = List.of("［＃改ページ］", "［＃改丁］", "［＃改見開き］");
 
         private GaijiRubyBuilder gaijirb;
 
@@ -414,6 +419,11 @@ logger.log(Level.DEBUG, "characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
 logger.log(Level.WARNING, "characters|[notes:ruby※:N/A]: %s", cdata);
                         }
                         rubyAlternative = null;
+                    } else if (pageBreaks.contains(cdata.trim())) {
+logger.log(Level.DEBUG, "characters|[notes:page break]: " + cdata);
+                        // the pane ends the page at a page separator
+                        appendCell(cellFactory.createGlyphCell('\f'));
+                        pageBreak = true;
                     } else {
 logger.log(Level.DEBUG, "characters|[notes:#]: " + cdata);
                     }
@@ -423,6 +433,7 @@ logger.log(Level.DEBUG, "characters|[notes]: " + cdata);
                 notes = false;
                 return;
             }
+            pageBreak = false;
 
             if (gaijirb != null) {
                 gaijirb.append(cdata);
@@ -509,6 +520,11 @@ logger.log(Level.INFO, "image: %s -> not found: %s", Arrays.toString(prc), a);
 
         @Override
         public void newLine() {
+            if (pageBreak) {
+                // the page break line itself, otherwise the next page starts with an empty line
+                pageBreak = false;
+                return;
+            }
             SLetterCell cell = cellFactory.createGlyphCell('\n');
             appendCell(cell);
         }
