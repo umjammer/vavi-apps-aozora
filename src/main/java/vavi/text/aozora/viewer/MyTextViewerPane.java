@@ -417,7 +417,13 @@ logger.log(Level.TRACE, "characters|レ点: " + cdata);
             }
             if (notes) {
                 if (cdata.startsWith("［＃")) {
-                    if (alternative) {
+                    if (pageBreaks.contains(cdata.trim())) {
+logger.log(Level.DEBUG, "characters|[notes:page break]: " + cdata);
+                        unnoted();
+                        // the pane ends the page at a page separator
+                        appendCell(cellFactory.createGlyphCell('\f'));
+                        pageBreak = true;
+                    } else if (alternative) {
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
@@ -438,11 +444,6 @@ logger.log(Level.DEBUG, "characters|[notes:ruby※:U+%s]: %c, %s".formatted(a, c
 logger.log(Level.WARNING, "characters|[notes:ruby※:N/A]: %s".formatted(cdata));
                         }
                         rubyAlternative = null;
-                    } else if (pageBreaks.contains(cdata.trim())) {
-logger.log(Level.DEBUG, "characters|[notes:page break]: " + cdata);
-                        // the pane ends the page at a page separator
-                        appendCell(cellFactory.createGlyphCell('\f'));
-                        pageBreak = true;
                     } else {
 logger.log(Level.DEBUG, "characters|[notes:#]: " + cdata);
                     }
@@ -468,6 +469,7 @@ logger.log(Level.TRACE, "characters|" + "※※※ NOTED ※※※");
                     flush();
                     alternative = true;
                 } else {
+                    unnoted();
                     if (Character.isHighSurrogate(ca[i]) && i + 1 < ca.length && Character.isSurrogatePair(ca[i], ca[i + 1])) {
 logger.log(Level.DEBUG, "surrogate pair: %s".formatted(new String(new int[] {cdata.codePointAt(i)}, 0, 1)));
                         text.append(ca[i]).append(ca[i + 1]);
@@ -477,6 +479,14 @@ logger.log(Level.DEBUG, "surrogate pair: %s".formatted(new String(new int[] {cda
                         text.append(UnicodeUtil.toNew(String.valueOf(ca[i])).charAt(0));
                     }
                 }
+            }
+        }
+
+        /** a '※' which is not followed by its note is shown as it is */
+        private void unnoted() {
+            if (alternative) {
+                alternative = false;
+                text.append('※');
             }
         }
 

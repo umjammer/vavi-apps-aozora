@@ -125,7 +125,12 @@ public final class AozoraBunkoRuby implements Converter {
         int kssize = this.kanjiStarts.size(), kbsize = this.liKanjiBou.size();
         while (i < kssize && j < kbsize) {
 logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]".formatted(i, j, curr, kanjiStarts.get(i), furiganaClosings.get(i), liKanjiBou.get(j), emphasisClosings.get(j)));
-            if (kanjiStarts.get(i) < liKanjiBou.get(j)) {
+            if (kanjiStarts.get(i) < curr) {
+                // overlaps the one already made
+                i++;
+            } else if (isEmphasisOverlapped(j, curr)) {
+                j++;
+            } else if (kanjiStarts.get(i) < liKanjiBou.get(j)) {
                 sb.append(this.text, curr, kanjiStarts.get(i));
                 sb.append(furiganaToRubyTag(kanjiStarts.get(i), furiganaOpenings.get(i), furiganaClosings.get(i)));
                 curr = furiganaClosings.get(i) + 1;
@@ -139,6 +144,10 @@ logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]".formatted(i, j, curr, k
         }
 
         while (i < this.kanjiStarts.size()) {
+            if (kanjiStarts.get(i) < curr) {
+                i++;
+                continue;
+            }
             sb.append(this.text, curr, kanjiStarts.get(i));
             sb.append(furiganaToRubyTag(kanjiStarts.get(i), furiganaOpenings.get(i), furiganaClosings.get(i)));
             curr = furiganaClosings.get(i) + 1;
@@ -148,8 +157,10 @@ logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]".formatted(i, j, curr, k
 
         while (j < this.liKanjiBou.size()) {
 logger.log(Level.TRACE, "%d: %d, %d".formatted(j, curr, liKanjiBou.get(j)));
-            if (curr >= liKanjiBou.get(j))
-                break;
+            if (isEmphasisOverlapped(j, curr)) {
+                j++;
+                continue;
+            }
             sb.append(this.text, curr, liKanjiBou.get(j));
             sb.append(emphasisToRubyTag(liKanjiBou.get(j), emphasisOpenings.get(j), emphasisClosings.get(j)));
             curr = emphasisClosings.get(j) + 1;
@@ -159,6 +170,21 @@ logger.log(Level.TRACE, "%d: %d, %d".formatted(j, curr, liKanjiBou.get(j)));
         sb.append(this.text.substring(curr));
 
         return sb.toString().replace("\uff5c", "");
+    }
+
+    /**
+     * the target of an emphasis which overlaps the one already made is given up, but its
+     * annotation is still taken as a marker so that it is not shown
+     *
+     * @return true when the whole emphasis is already made
+     */
+    private boolean isEmphasisOverlapped(int j, int curr) {
+        if (liKanjiBou.get(j) >= curr)
+            return false;
+        if (emphasisOpenings.get(j) < curr)
+            return true;
+        liKanjiBou.set(j, emphasisOpenings.get(j));
+        return false;
     }
 
     /** */
@@ -184,16 +210,25 @@ logger.log(Level.TRACE, "%d %d".formatted(curr, idx));
 
                 // TODO check is this algorithm can ruby kanji only?
                 int idx = i - 1;
-                while (isCJKIdeograph(this.text.charAt(idx)) && this.text.charAt(idx) != '｜') idx--;
-                if (idx == i - 1) {
-                    idx = i - 1; while (this.text.charAt(idx) != '｜') idx--;
+                if (this.text.charAt(idx) == '］') {
+                    // a gaiji "※［＃...］" is the base letter
+                    idx = this.text.lastIndexOf('［', idx);
+                    if (idx > 0 && this.text.charAt(idx - 1) == '※') idx--;
+                    idx--;
+                } else {
+                    while (idx >= 0 && isCJKIdeograph(this.text.charAt(idx)) && this.text.charAt(idx) != '｜') idx--;
+                    if (idx == i - 1) {
+                        // the base is marked by '｜' in the same line, otherwise it is the letter just before
+                        while (idx >= 0 && this.text.charAt(idx) != '｜' && this.text.charAt(idx) != '\n') idx--;
+                        if (idx < 0 || this.text.charAt(idx) != '｜') idx = i - 2;
+                    }
                 }
 
                 this.kanjiStarts.add(idx + 1);
 
                 idx = i + 1; while (this.text.charAt(idx) != '》') idx++;
                 this.furiganaClosings.add(idx);
-                i = idx + 1;
+                i = idx; // the loop steps over the closing mark
             }
 //			// >>
 //			else if (this.text.charAt(i) == '\u300b') {
@@ -216,7 +251,7 @@ logger.log(Level.TRACE, "%d %d".formatted(curr, idx));
                 else
                     this.liKanjiBou.add(i);
                 this.emphasisClosings.add(eidx);
-                i = eidx + 1;
+                i = eidx; // the loop steps over the closing mark
             }
         }
     }
@@ -236,7 +271,8 @@ logger.log(Level.TRACE, "%d %d %d".formatted(kanjiIndex, startIndex, endIndex));
         ruby.append("</ruby>");
 
         ruby.insert(0, "</rb>");
-        ruby.insert(0, this.text.substring(kanjiIndex, startIndex));
+        // the annotation of a gaiji in the base is not shown
+        ruby.insert(0, this.text.substring(kanjiIndex, startIndex).replaceAll("［＃[^］]*］", ""));
         ruby.insert(0, "<ruby><rb>");
 
         return ruby.toString();
