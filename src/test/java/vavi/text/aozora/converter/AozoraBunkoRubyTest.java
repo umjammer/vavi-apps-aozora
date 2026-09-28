@@ -61,14 +61,19 @@ Debug.println(input);
         URI uri = URI.create("archive:" + archivePath.toUri());
         Map<String, Object> env = new HashMap<>();
         env.put(ArchiveFileSystemProvider.ENV_KEY_FAILSAFE_ENCODING, "ms932");
-        FileSystem fs = FileSystems.newFileSystem(uri, env);
-        Path virtualRoot = fs.getRootDirectories().iterator().next();
-        Debug.println(virtualRoot);
-        Path textPath = Files.walk(virtualRoot)
-                .filter(p -> p.getFileName() != null && p.getFileName().toString().toLowerCase().endsWith(".txt"))
-                .sorted()
-                .findFirst().get();
+        try {
+            FileSystem fs = FileSystems.newFileSystem(uri, env);
+            Path virtualRoot = fs.getRootDirectories().iterator().next();
+Debug.println(virtualRoot);
+            Path textPath = Files.walk(virtualRoot)
+                    .filter(p -> p.getFileName() != null && p.getFileName().toString().toLowerCase().endsWith(".txt"))
+                    .sorted()
+                    .findFirst().get();
 Debug.println("text: " + textPath);
-        return textPath;
+            return textPath;
+        } catch (IllegalArgumentException e) {
+            // not archive
+            return archivePath;
+        }
     }
 }

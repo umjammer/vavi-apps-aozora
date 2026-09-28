@@ -88,13 +88,13 @@ public final class AozoraBunkoRuby implements Converter {
 
     /** */
     private void printDebug(Level level) {
-        logger.log(Level.TRACE, "%d %d %d %d %d %d\n",
+        logger.log(Level.TRACE, "%d %d %d %d %d %d".formatted(
                 kanjiStarts.size(),
                 furiganaOpenings.size(),
                 furiganaClosings.size(),
                 emphasisOpenings.size(),
                 emphasisClosings.size(),
-                liKanjiBou.size());
+                liKanjiBou.size()));
 
         int count1 = 0, count2 = 0;
         for (int i = 0; i < this.text.length(); i++) {
@@ -104,7 +104,7 @@ public final class AozoraBunkoRuby implements Converter {
                 count2++;
             }
         }
-        logger.log(Level.TRACE, "%d %d", count1, count2);
+        logger.log(Level.TRACE, "%d %d".formatted(count1, count2));
 
         logger.log(Level.TRACE, this.text.substring(133130, 133150));
         logger.log(Level.TRACE, "---------------------------------------------------");
@@ -124,7 +124,7 @@ public final class AozoraBunkoRuby implements Converter {
 
         int kssize = this.kanjiStarts.size(), kbsize = this.liKanjiBou.size();
         while (i < kssize && j < kbsize) {
-logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, kanjiStarts.get(i), furiganaClosings.get(i), liKanjiBou.get(j), emphasisClosings.get(j));
+logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]".formatted(i, j, curr, kanjiStarts.get(i), furiganaClosings.get(i), liKanjiBou.get(j), emphasisClosings.get(j)));
             if (kanjiStarts.get(i) < liKanjiBou.get(j)) {
                 sb.append(this.text, curr, kanjiStarts.get(i));
                 sb.append(furiganaToRubyTag(kanjiStarts.get(i), furiganaOpenings.get(i), furiganaClosings.get(i)));
@@ -147,7 +147,7 @@ logger.log(Level.TRACE, "%d, %d: %d, [%d, %d], [%d, %d]\n", i, j, curr, kanjiSta
 
 
         while (j < this.liKanjiBou.size()) {
-logger.log(Level.TRACE, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
+logger.log(Level.TRACE, "%d: %d, %d".formatted(j, curr, liKanjiBou.get(j)));
             if (curr >= liKanjiBou.get(j))
                 break;
             sb.append(this.text, curr, liKanjiBou.get(j));
@@ -166,7 +166,7 @@ logger.log(Level.TRACE, "%d: %d, %d\n", j, curr, liKanjiBou.get(j));
         StringBuilder sb = new StringBuilder();
         int curr = 0, count = 1, idx;
         while ((idx = text.indexOf('。', curr)) != -1) {
-logger.log(Level.TRACE, "%d %d\n", curr, idx);
+logger.log(Level.TRACE, "%d %d".formatted(curr, idx));
             sb.append(text, curr, idx);
             sb.append("<a name=\"save_").append(count).append("\" href=\"#save_").append(count).append("\">。</a>");
             curr = idx + 1;
@@ -228,7 +228,7 @@ logger.log(Level.TRACE, "%d %d\n", curr, idx);
         if (rpTag)
             ruby.append("<rp>").append(this.text.charAt(startIndex)).append("</rp>");
         ruby.append("<rt>");
-logger.log(Level.TRACE, "%d %d %d\n", kanjiIndex, startIndex, endIndex);
+logger.log(Level.TRACE, "%d %d %d".formatted(kanjiIndex, startIndex, endIndex));
         ruby.append(this.text, startIndex + 1, endIndex);
         ruby.append("</rt>");
         if (rpTag)

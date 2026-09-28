@@ -82,7 +82,6 @@ import static javax.swing.SwingUtilities.invokeAndWait;
  * western text is one {@link com.soso.sgui.letter.SLetterWestern} run of proportional letters.
  *
  * TODO
- *  - full '<<', '>>' are not rotated
  *  - in-page image
  */
 public class MyTextViewerPane extends JPanel {
@@ -422,21 +421,21 @@ logger.log(Level.TRACE, "characters|レ点: " + cdata);
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
-logger.log(Level.DEBUG, "characters|[notes:※:U+%s]: %c, %s", a, c, cdata);
+logger.log(Level.DEBUG, "characters|[notes:※:U+%s]: %c, %s".formatted(a, c, cdata));
                             SLetterCell cell = cellFactory.createGlyphCell(c);
                             appendCell(cell);
                         } else {
-logger.log(Level.WARNING, "characters|[notes:※:N/A]: %s", cdata);
+logger.log(Level.WARNING, "characters|[notes:※:N/A]: %s".formatted(cdata));
                         }
                         alternative = false;
                     } else if (rubyAlternative != null) {
                         String a = parseUnicode(cdata);
                         if (a != null) {
                             char c = (char) Integer.parseInt(a, 16);
-logger.log(Level.DEBUG, "characters|[notes:ruby※:U+%s]: %c, %s", a, c, cdata);
+logger.log(Level.DEBUG, "characters|[notes:ruby※:U+%s]: %c, %s".formatted(a, c, cdata));
                             rubyAlternative.setMain(c);
                         } else {
-logger.log(Level.WARNING, "characters|[notes:ruby※:N/A]: %s", cdata);
+logger.log(Level.WARNING, "characters|[notes:ruby※:N/A]: %s".formatted(cdata));
                         }
                         rubyAlternative = null;
                     } else if (pageBreaks.contains(cdata.trim())) {
@@ -470,7 +469,7 @@ logger.log(Level.TRACE, "characters|" + "※※※ NOTED ※※※");
                     alternative = true;
                 } else {
                     if (Character.isHighSurrogate(ca[i]) && i + 1 < ca.length && Character.isSurrogatePair(ca[i], ca[i + 1])) {
-logger.log(Level.DEBUG, "surrogate pair: %s", new String(new int[] {cdata.codePointAt(i)}, 0, 1));
+logger.log(Level.DEBUG, "surrogate pair: %s".formatted(new String(new int[] {cdata.codePointAt(i)}, 0, 1)));
                         text.append(ca[i]).append(ca[i + 1]);
                         i++;
                     } else {
@@ -491,11 +490,11 @@ logger.log(Level.TRACE, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
                 // TODO why replaceFirst("[※\\(\\)]", "") doesn't work???
                 String a = alt.replaceFirst("※", "").replace("(", "").replace(")", "").trim();
                 if (unicode != null) {
-logger.log(Level.DEBUG, "image: %s -> %s, %s%s", Arrays.toString(prc), unicode, a, unicode.length() > 1 ? ", surrogate pare" : "");
+logger.log(Level.DEBUG, "image: %s -> %s, %s%s".formatted(Arrays.toString(prc), unicode, a, unicode.length() > 1 ? ", surrogate pare" : ""));
                     characters(unicode);
                     return;
                 } else {
-logger.log(Level.INFO, "image: %s -> not found: %s", Arrays.toString(prc), a);
+logger.log(Level.INFO, "image: %s -> not found: %s".formatted(Arrays.toString(prc), a));
                 }
             }
 
