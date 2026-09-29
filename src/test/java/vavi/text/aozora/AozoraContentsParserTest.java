@@ -47,8 +47,9 @@ public class AozoraContentsParserTest {
         Path textPath = AozoraBunkoRubyTest.getTextPath(Paths.get(app.file));
         Reader reader = Files.newBufferedReader(textPath, StandardCharsets.UTF_8);
         Writer writer = new StringWriter();
-        AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);
-        converter.printHtml();
+        AozoraBunkoRuby converter = new AozoraBunkoRuby();
+        converter.readText(reader);
+        converter.printHtml(writer);
         URL base = new URL("https://vavi.com");
         Reader forParse = new StringReader(writer.toString());
 

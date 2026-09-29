@@ -3,3 +3,4 @@ tmp/
 lib/
 local.properties
 target/
+/SESSION.md

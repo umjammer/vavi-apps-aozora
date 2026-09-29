@@ -32,7 +32,9 @@ import vavi.util.properties.annotation.PropsEntity;
 
 
 /**
- * Application -> Component (trimming functions)
+ * Application -> Component (trimming functions) ... ???
+ *
+ * for {@code com.apple.eawt.Application}, {@code -Dmaven.test.skip=true} in `jitpack.yml`
  */
 //@EnabledIf("localPropertiesExists")
 @PropsEntity(url = "file:local.properties")
@@ -63,10 +65,11 @@ public class MyTextViewerPaneTest {
         is.close();
         Reader reader = Files.newBufferedReader(textPath, Charset.forName(charset));
         Writer writer = new StringWriter();
-//        AozoraParser converter = new AozoraParser(reader, writer);
-        AozoraBunkoRuby converter = new AozoraBunkoRuby(reader, writer);
-        converter.printHtml();
-        URL base = new URL("https://vavi.com");
+//        AozoraParser converter = new AozoraParser();
+        AozoraBunkoRuby converter = new AozoraBunkoRuby();
+        converter.readText(reader);
+        converter.printHtml(writer);
+        URL base = Path.of(app.file).getParent().toUri().toURL();
         Reader forParse = new StringReader(writer.toString());
         String title = textPath.getFileName().toString();
 
@@ -96,7 +99,11 @@ Debug.println("title: " + title);
         frame.setVisible(true);
     }
 
-    /** @return null not found */
+    /**
+     * charset auto detector
+     *
+     * @return null not found
+     */
     static String getCharset(InputStream is) throws IOException {
         byte[] buf = new byte[4096];
         // (1)

@@ -15,6 +15,8 @@ Japanese Vertical (縦書き) Text Viewer.
 
 ## Usage
 
+ * [sample](src/test/java/vavi/text/aozora/viewer/MyTextViewerPaneTest.java)
+
 ## References
 
  * https://github.com/weimingtom/AozoraParser
@@ -27,9 +29,16 @@ Japanese Vertical (縦書き) Text Viewer.
         * https://github.com/sirthias/parboiled2 (scala, dsl on scala?)
         * https://github.com/jeronimonunes/PEG (use pegjs by nashorn) 🎯
  * https://github.com/taizan/vjap
+ * https://www.aozora.gr.jp/aozora-manual/index-input.html
 
 ## TODO
 
  * ~~ruby~~
  * proofreading
    * https://qiita.com/kaz-utashiro/items/2f199409bdb1e08dc473
+ * ~~proportional western words still has monospaced length, so there are unnatural spacing before/after the words~~
+ * ~~`MyTextViewerPane` reports "full '<<', '>>' are not rotated". where?~~
+ * ~~`Ⅰ` `Ⅱ` `Ⅲ` is rotated, maybe those are detected as western char, is this defined in w3c specs?~~
+ * ~~aozora directives [4-2 見出し, 4-3 字下げ, 4-4 改ページ, 4-10 画像](https://www.aozora.gr.jp/aozora-manual/index-input.html)~~
+ * ~~aozora directives 4-5 ページの左右中央, 4-8 文字サイズ・太字・斜体~~
+ * aozora directives 4-9 表組み・罫囲み, 4-11 その他

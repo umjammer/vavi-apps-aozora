@@ -6,6 +6,8 @@
 
 package vavi.text.aozora.converter;
 
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,18 +41,20 @@ public class AozoraParserTest {
         String input = app.file == null ? args[1] : app.file;
         String output = "/dev/stdout"; //args[2];
 
-        Debug.println(input);
+Debug.println(input);
 
         Path archivePath = Paths.get(input);
         Path textPath = AozoraBunkoRubyTest.getTextPath(archivePath);
 
-        AozoraParser converter = new AozoraParser(
-                Files.newBufferedReader(textPath, Charset.forName(encoding)),
-                Files.newBufferedWriter(Paths.get(output)));
-        converter.printHtml();
-        Debug.println("------------------------------------------------------");
-        converter.printNoRuby();
-        Debug.println("------------------------------------------------------");
+        Reader reader = Files.newBufferedReader(textPath, Charset.forName(encoding));
+        Writer writer = Files.newBufferedWriter(Paths.get(output));
+
+        AozoraParser converter = new AozoraParser();
+        converter.readText(reader);
+        converter.printHtml(writer);
+Debug.println("------------------------------------------------------");
+        converter.printNoRuby(writer);
+Debug.println("------------------------------------------------------");
         for (AozoraParser.RubyInfo item : converter.getRubyList()) {
             System.err.println(item);
         }
