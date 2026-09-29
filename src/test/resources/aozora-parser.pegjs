@@ -301,7 +301,7 @@ ClearColumn "改段"
   = "［＃改段］"
 
 ParaIndent "段落字下げ"
-  = ParaIndent2 + IndentEnd "\n"
+  = ParaIndent2 + IndentEnd Line? "\n"
 
 ParaIndent2 "段落字下げ2"
   = (
