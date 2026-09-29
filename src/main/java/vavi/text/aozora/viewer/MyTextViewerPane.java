@@ -1105,6 +1105,7 @@ logger.log(Level.INFO, "ruby: unhandled: ※");
                 setPageByProgressClick(e.getX(), e.getY());
             }
         });
+        progress.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         progress.setOpaque(false);
         buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
