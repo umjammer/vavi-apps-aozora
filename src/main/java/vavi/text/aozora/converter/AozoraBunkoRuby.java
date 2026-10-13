@@ -11,7 +11,7 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Function;
@@ -36,9 +36,6 @@ public final class AozoraBunkoRuby implements Converter {
     private final List<Integer> emphasisOpenings;
     private final List<Integer> emphasisClosings;
     private final List<Integer> liKanjiBou;
-
-    private final HashMap<String, String> tenStyles;
-    private final HashMap<String, String> senStyles;
 
     private static final String BOUTEN = "傍点";
     private static final String BOUSEN = "線";
@@ -84,6 +81,31 @@ public final class AozoraBunkoRuby implements Converter {
     private static final Pattern LINE_JISAGE = Pattern.compile("［＃(?:天から)?" + N + "字下げ］(.*)");
     private static final Pattern LINE_CHITSUKI = Pattern.compile("(.*?)［＃(?:地付き|地から" + N + "字上げ)］(.*)");
 
+    /**
+     * 4-5. the classes of aozora html for the emphasis dots (傍点) and the side lines (傍線),
+     * the key is the name of the annotation
+     */
+    private static final Map<String, String> EMPHASES = Map.ofEntries(
+            Map.entry("傍点", "sesame_dot"),
+            Map.entry("白ゴマ傍点", "white_sesame_dot"),
+            Map.entry("丸傍点", "black_circle"),
+            Map.entry("白丸傍点", "white_circle"),
+            Map.entry("黒三角傍点", "black_up-pointing_triangle"),
+            Map.entry("白三角傍点", "white_up-pointing_triangle"),
+            Map.entry("二重丸傍点", "bullseye"),
+            Map.entry("蛇の目傍点", "fisheye"),
+            Map.entry("ばつ傍点", "saltire"),
+            Map.entry("×傍点", "saltire"),
+            Map.entry("傍線", "underline_solid"),
+            Map.entry("二重傍線", "underline_double"),
+            Map.entry("鎖線", "underline_dotted"),
+            Map.entry("破線", "underline_dashed"),
+            Map.entry("波線", "underline_wave"));
+
+    /** the emphasis of a range, ［＃傍点］○○［＃傍点終わり］ */
+    private static final Pattern EMPHASIS = Pattern.compile("［＃(" + String.join("|", EMPHASES.keySet()) + ")］");
+    private static final Pattern EMPHASIS_END = Pattern.compile("［＃(" + String.join("|", EMPHASES.keySet()) + ")終わり］");
+
     private final boolean bookmark = false;
     private final boolean rpTag = false;
 
@@ -96,20 +118,6 @@ public final class AozoraBunkoRuby implements Converter {
         this.emphasisClosings = new ArrayList<>();
         this.liKanjiBou = new ArrayList<>();
 
-        this.tenStyles = new HashMap<>();
-        //
-        this.tenStyles.put("に丸傍点", "●");
-        this.tenStyles.put("に白丸傍点", "○");
-        this.tenStyles.put("に黒三角傍点", "▲");
-        this.tenStyles.put("に白三角傍点", "△");
-        this.tenStyles.put("に二重丸傍点", "◎");
-        this.tenStyles.put("にばつ傍点", "×");
-
-        this.senStyles = new HashMap<>();
-        this.senStyles.put("に二重傍線", "text-decoration-style: double;");
-        this.senStyles.put("に鎖線", "text-decoration-style: dotted;");
-        this.senStyles.put("に破線", "text-decoration-style: dashed;");
-        this.senStyles.put("に波線", "text-decoration-style: wavy;");
     }
 
     /**
@@ -130,6 +138,8 @@ public final class AozoraBunkoRuby implements Converter {
         this.text = this.text.replace("［＃ここでキャプション終わり］<br/>", "</div>");
 
         this.text = styles(this.text);
+        this.text = replace(this.text, EMPHASIS, m -> "<em class=\"" + EMPHASES.get(m.group(1)) + "\">");
+        this.text = EMPHASIS_END.matcher(this.text).replaceAll("</em>");
 
         this.text = this.text.replace("［＃改頁］", "［＃改ページ］");
 
@@ -571,34 +581,16 @@ logger.log(Level.TRACE, "%d %d %d".formatted(kanjiIndex, startIndex, endIndex));
         return ruby.toString();
     }
 
-    /** */
+    /** 4-5. the emphasis of the word before the annotation, ○○［＃「○○」に傍点］ */
     private String emphasisToRubyTag(int kanjiIndex, int startIndex, int endIndex) {
         String emphasis = this.text.substring(startIndex + 1, endIndex);
-        int wordStart = emphasis.indexOf("「");
         int wordEnd = emphasis.indexOf("」");
-        int wordLength = wordEnd - wordStart - 1;
 
         if (kanjiIndex != startIndex) {
-            StringBuilder output = new StringBuilder();
-            if (emphasis.endsWith(BOUTEN)) {
-                String styleName = emphasis.substring(wordEnd + 1);
-                String style = this.tenStyles.getOrDefault(styleName, "﹅");
-                output.append("<ruby><rb>").append(this.text, kanjiIndex, startIndex).append("</rb>");
-                if (rpTag)
-                    output.append("<rp>《</rp>");
-                output.append("<rt>");
-                output.append(String.valueOf(style).repeat(Math.max(0, wordLength)));
-                output.append("</rt>");
-                if (rpTag)
-                    output.append("<rp>》</rp>");
-                output.append("</ruby>");
-                return output.toString();
-            } else if (emphasis.endsWith(BOUSEN)) {
-                String styleName = emphasis.substring(wordEnd + 1);
-                String style = this.senStyles.getOrDefault(styleName, "");
-                output.append("<u style=\"").append(style).append("\">").append(this.text, kanjiIndex, startIndex).append("</u>");
-                return output.toString();
-            }
+            // "に" follows the word
+            String clazz = EMPHASES.get(emphasis.substring(wordEnd + 2));
+            if (clazz != null)
+                return "<em class=\"" + clazz + "\">" + this.text.substring(kanjiIndex, startIndex) + "</em>";
         } else {
             if (Arrays.asList(PAGE_BREAKS).contains(this.text.substring(startIndex, endIndex + 1))) {
                 // kept for the viewer, other annotations are dropped
