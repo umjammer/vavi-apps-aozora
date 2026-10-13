@@ -139,11 +139,11 @@
       <scope>test</scope>
     </dependency>
 
-	<dependency>
+    <dependency>
 	    <groupId>com.github.shotishu</groupId>
 	    <artifactId>PEG</artifactId>
 	    <version>0.10.0</version>
-	</dependency>
+    </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
@@ -153,13 +153,13 @@
     <dependency>
       <groupId>org.mozilla</groupId>
       <artifactId>rhino</artifactId>
-      <version>1.9.1</version>
+      <version>1.8.1</version> <!-- w/ 1.9.1, PEG.getInstance() fails: bindings.get("peg") returns null -->
       <scope>runtime</scope>
     </dependency>
     <dependency> <!-- for jsr-223 -->
       <groupId>org.mozilla</groupId>
       <artifactId>rhino-engine</artifactId>
-      <version>1.9.1</version>
+      <version>1.8.1</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
