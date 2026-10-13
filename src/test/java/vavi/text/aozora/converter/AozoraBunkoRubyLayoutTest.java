@@ -173,6 +173,18 @@ class AozoraBunkoRubyLayoutTest {
     }
 
     @Test
+    void testEmphasis() {
+        String html = parse("""
+                前文［＃傍点］強調と漢字《かんじ》［＃傍点終わり］と語［＃「語」に傍点］と言葉［＃「言葉」に白丸傍点］
+                ［＃波線］波［＃波線終わり］と線［＃「線」に二重傍線］
+                """);
+        System.out.println(html);
+        assertTrue(html.contains("前文<em class=\"sesame_dot\">強調と<ruby><rb>漢字</rb><rt>かんじ</rt></ruby></em>と<em class=\"sesame_dot\">語</em>と<em class=\"white_circle\">言葉</em><br/>\n"));
+        assertTrue(html.contains("<em class=\"underline_wave\">波</em>と<em class=\"underline_double\">線</em><br/>\n"));
+        assertFalse(html.contains("［＃"));
+    }
+
+    @Test
     void testToInt() {
         assertEquals(3, AozoraBunkoRuby.toInt("３"));
         assertEquals(12, AozoraBunkoRuby.toInt("１２"));

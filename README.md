@@ -1,7 +1,7 @@
 [![Release](https://jitpack.io/v/umjammer/vavi-apps-aozora.svg)](https://jitpack.io/#umjammer/vavi-apps-aozora)
 [![Java CI](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/codeql-analysis.yml)
-![Java](https://img.shields.io/badge/Java-17-b07219)
+![Java](https://img.shields.io/badge/Java-25-b07219)
 
 # vavi-apps-aozora
 
@@ -42,3 +42,4 @@ Japanese Vertical (縦書き) Text Viewer.
  * ~~aozora directives [4-2 見出し, 4-3 字下げ, 4-4 改ページ, 4-10 画像](https://www.aozora.gr.jp/aozora-manual/index-input.html)~~
  * ~~aozora directives 4-5 ページの左右中央, 4-8 文字サイズ・太字・斜体~~
  * aozora directives 4-9 表組み・罫囲み, 4-11 その他
+ * gesture paging, 3 tap dictionary

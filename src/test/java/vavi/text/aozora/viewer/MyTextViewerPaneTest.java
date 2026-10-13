@@ -69,7 +69,8 @@ public class MyTextViewerPaneTest {
         AozoraBunkoRuby converter = new AozoraBunkoRuby();
         converter.readText(reader);
         converter.printHtml(writer);
-        URL base = Path.of(app.file).getParent().toUri().toURL();
+        // the images are read from the same place as the text, which may be inside the archive
+        URL base = PathURLStreamHandler.toURL(textPath.getParent());
         Reader forParse = new StringReader(writer.toString());
         String title = textPath.getFileName().toString();
 

@@ -32,10 +32,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,6 +73,7 @@ import com.soso.sgui.SGUIUtil;
 import com.soso.sgui.letter.SLetterCell;
 import com.soso.sgui.letter.SLetterCellFactory;
 import com.soso.sgui.letter.SLetterConstraint;
+import com.soso.sgui.letter.SLetterEmphasis;
 import com.soso.sgui.letter.SLetterGlyphCell;
 import com.soso.sgui.letter.SLetterImageCell;
 import com.soso.sgui.letter.SLetterLineEnd;
@@ -380,6 +383,23 @@ public class MyTextViewerPane extends JPanel {
         static final float[] LARGER = {1.2f, 1.5f, 2f};
         static final float[] SMALLER = {0.8f, 0.65f, 0.55f};
 
+        /** the classes of aozora html for the emphasis dots (傍点) and the side lines (傍線) */
+        static final Map<String, SLetterEmphasis> EMPHASES = Map.ofEntries(
+                Map.entry("sesame_dot", SLetterEmphasis.SESAME_DOT),
+                Map.entry("white_sesame_dot", SLetterEmphasis.WHITE_SESAME_DOT),
+                Map.entry("black_circle", SLetterEmphasis.BLACK_CIRCLE),
+                Map.entry("white_circle", SLetterEmphasis.WHITE_CIRCLE),
+                Map.entry("black_up-pointing_triangle", SLetterEmphasis.BLACK_TRIANGLE),
+                Map.entry("white_up-pointing_triangle", SLetterEmphasis.WHITE_TRIANGLE),
+                Map.entry("bullseye", SLetterEmphasis.BULLSEYE),
+                Map.entry("fisheye", SLetterEmphasis.FISHEYE),
+                Map.entry("saltire", SLetterEmphasis.SALTIRE),
+                Map.entry("underline_solid", SLetterEmphasis.SOLID_LINE),
+                Map.entry("underline_double", SLetterEmphasis.DOUBLE_LINE),
+                Map.entry("underline_dotted", SLetterEmphasis.DOTTED_LINE),
+                Map.entry("underline_dashed", SLetterEmphasis.DASHED_LINE),
+                Map.entry("underline_wave", SLetterEmphasis.WAVY_LINE));
+
         /** the element name */
         final String name;
         /** the indent of the first line of a paragraph (字下げ) */
@@ -396,6 +416,8 @@ public class MyTextViewerPane extends JPanel {
         Float scale;
         /** a heading which is in a line of the text (同行見出し, 窓見出し) */
         boolean inline;
+        /** the emphasis dots (傍点) or the side lines (傍線) */
+        SLetterEmphasis emphasis;
 
         Style(String name) {
             this.name = name;
@@ -429,6 +451,7 @@ public class MyTextViewerPane extends JPanel {
             } else if (clazz.equals("shatai")) {
                 style.italic = true;
             }
+            style.emphasis = EMPHASES.get(clazz);
             m = SIZE.matcher(clazz);
             if (m.matches()) {
                 float[] scales = m.group(1).equals("dai") ? LARGER : SMALLER;
@@ -439,7 +462,7 @@ public class MyTextViewerPane extends JPanel {
 
         @Override
         public String toString() {
-            return name + "[indent=" + indent + ", wrapIndent=" + wrapIndent + ", raise=" + raise + ", font=" + font + ", italic=" + italic + ", scale=" + scale + "]";
+            return name + "[indent=" + indent + ", wrapIndent=" + wrapIndent + ", raise=" + raise + ", font=" + font + ", italic=" + italic + ", scale=" + scale + ", emphasis=" + emphasis + "]";
         }
     }
 
@@ -485,6 +508,16 @@ public class MyTextViewerPane extends JPanel {
                     return style.raise;
             }
             return null;
+        }
+
+        /** the emphases of the elements, a dot and a line are given to a letter together */
+        private Set<SLetterEmphasis> emphases() {
+            Set<SLetterEmphasis> emphases = EnumSet.noneOf(SLetterEmphasis.class);
+            for (Style style : styles) {
+                if (style.emphasis != null)
+                    emphases.add(style.emphasis);
+            }
+            return emphases;
         }
 
         /** the fonts made for the styles */
@@ -563,6 +596,8 @@ logger.log(Level.TRACE, "style: pop: " + style);
                 Font font = font();
                 if (font != null && cell instanceof SLetterGlyphCell glyph && glyph.getFont() == null)
                     glyph.setFont(font);
+                for (SLetterEmphasis emphasis : emphases())
+                    cell.addDecorator(emphasis);
                 pageBreak = false;
                 afterBlock = false;
                 lineHead = false;
@@ -733,8 +768,10 @@ logger.log(Level.DEBUG, "surrogate pair: %s".formatted(new String(new int[] {cda
         @Override
         public void img(URL src, String alt, boolean isGaiji) {
 logger.log(Level.TRACE, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
-            if (src.toString().matches(".*(\\d)-(\\d{2})-(\\d{2}).*")) {
-                String[] prc = src.toString().replaceFirst(".*(\\d)-(\\d{2})-(\\d{2}).*", "$1,$2,$3").split(",");
+            // a gaiji is told by its file name, the directories, as the name of an archive, may have numbers like it
+            String file = src.getPath().replaceFirst(".*/", "");
+            if (file.matches(".*(\\d)-(\\d{2})-(\\d{2}).*")) {
+                String[] prc = file.replaceFirst(".*(\\d)-(\\d{2})-(\\d{2}).*", "$1,$2,$3").split(",");
 
                 String unicode = UnicodeUtil.toUnicodeChar(Integer.parseInt(prc[0]), Integer.parseInt(prc[1]), Integer.parseInt(prc[2]));
                 // TODO why replaceFirst("[※\\(\\)]", "") doesn't work???
@@ -754,7 +791,7 @@ logger.log(Level.INFO, "image: %s -> not found: %s".formatted(Arrays.toString(pr
                 startLine();
                 if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
 logger.log(Level.WARNING, "Image | not loaded | " + src);
-                    characters("［" + (alt != null ? alt : src.getFile()) + "］");
+                    characters("［" + (alt != null && !alt.isEmpty() ? alt : file) + "］");
                     endLine();
                     return;
                 }
@@ -816,6 +853,10 @@ logger.log(Level.INFO, "Image | " + src);
                 push(Style.of(element, settings));
             } else if (lowerElement.startsWith("/span")) {
                 pop("span");
+            } else if (lowerElement.matches("em(\\s.*)?")) {
+                push(Style.of(element, settings));
+            } else if (lowerElement.startsWith("/em")) {
+                pop("em");
             } else if (lowerElement.matches("div(\\s.*)?")) {
                 startLine();
                 push(Style.of(element, settings));
