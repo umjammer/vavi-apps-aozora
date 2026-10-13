@@ -768,8 +768,10 @@ logger.log(Level.DEBUG, "surrogate pair: %s".formatted(new String(new int[] {cda
         @Override
         public void img(URL src, String alt, boolean isGaiji) {
 logger.log(Level.TRACE, "srcAttr: " + src + ", " + alt + ", " + isGaiji);
-            if (src.toString().matches(".*(\\d)-(\\d{2})-(\\d{2}).*")) {
-                String[] prc = src.toString().replaceFirst(".*(\\d)-(\\d{2})-(\\d{2}).*", "$1,$2,$3").split(",");
+            // a gaiji is told by its file name, the directories, as the name of an archive, may have numbers like it
+            String file = src.getPath().replaceFirst(".*/", "");
+            if (file.matches(".*(\\d)-(\\d{2})-(\\d{2}).*")) {
+                String[] prc = file.replaceFirst(".*(\\d)-(\\d{2})-(\\d{2}).*", "$1,$2,$3").split(",");
 
                 String unicode = UnicodeUtil.toUnicodeChar(Integer.parseInt(prc[0]), Integer.parseInt(prc[1]), Integer.parseInt(prc[2]));
                 // TODO why replaceFirst("[※\\(\\)]", "") doesn't work???
@@ -789,7 +791,7 @@ logger.log(Level.INFO, "image: %s -> not found: %s".formatted(Arrays.toString(pr
                 startLine();
                 if (icon.getImageLoadStatus() != MediaTracker.COMPLETE) {
 logger.log(Level.WARNING, "Image | not loaded | " + src);
-                    characters("［" + (alt != null ? alt : src.getFile()) + "］");
+                    characters("［" + (alt != null && !alt.isEmpty() ? alt : file) + "］");
                     endLine();
                     return;
                 }
