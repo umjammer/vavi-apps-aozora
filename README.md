@@ -1,7 +1,7 @@
 [![Release](https://jitpack.io/v/umjammer/vavi-apps-aozora.svg)](https://jitpack.io/#umjammer/vavi-apps-aozora)
 [![Java CI](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/umjammer/vavi-apps-aozora/actions/workflows/codeql-analysis.yml)
-![Java](https://img.shields.io/badge/Java-17-b07219)
+![Java](https://img.shields.io/badge/Java-25-b07219)
 
 # vavi-apps-aozora
 
