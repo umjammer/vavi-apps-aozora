@@ -538,7 +538,8 @@ logger.log(Level.TRACE, "%d %d".formatted(curr, idx));
                         we = eidx;
                 }
                 String btext = this.text.substring(i + 1, eidx);
-                if (btext.endsWith(BOUTEN) || btext.endsWith(BOUSEN))
+                // only the "［＃「word」に傍点］" form points back to the word, "［＃傍点］" (block form) has no 「」
+                if ((btext.endsWith(BOUTEN) || btext.endsWith(BOUSEN)) && ws >= 0 && we > ws && i - (we - ws - 1) >= 0)
                     this.liKanjiBou.add(i - (we - ws - 1));
                 else
                     this.liKanjiBou.add(i);
